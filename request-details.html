@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA Portal - Request Details</title>
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="assets/css/request-details.css">
+</head>
+<body>
+
+    <!-- Dark Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item active"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+        
+        <!-- Top Bar Header -->
+        <div class="top-bar">
+            <div class="page-title-area">
+                <h2 id="req-id-header">REQ-000</h2>
+                <span class="badge-type" id="req-type-badge">Request</span>
+            </div>
+
+            <div class="top-controls">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" placeholder="Search request..." id="headerSearchInput">
+                    <div class="search-results-dropdown" id="searchResults"></div>
+                </div>
+
+                <!-- Notification Container -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Dropdown -->
+                <a href="profile.html" class="profile-dropdown" style="text-decoration: none;">
+                    <div class="profile-avatar-top" id="topAvatarContainer">
+                        <i class='bx bx-user'></i>
+                    </div>
+                    <i class='bx bx-chevron-down arrow-icon'></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div>
+            <a href="my-request.html" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back to My Request</a>
+        </div>
+
+        <!-- Request Summaries -->
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-header-sm"><i class="fa-regular fa-id-card"></i> Employee Information</div>
+                <div class="info-row"><span class="info-label">Full Name</span><span class="info-value" id="emp-name">—</span></div>
+                <div class="info-row"><span class="info-label">Employee ID</span><span class="info-value" id="emp-id">—</span></div>
+                <div class="info-row"><span class="info-label">Department</span><span class="info-value" id="emp-dept">—</span></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header-sm"><i class="fa-solid fa-clipboard-list"></i> Request Summary</div>
+                <div class="info-row"><span class="info-label">Request Type</span><span class="info-value" id="summary-type">—</span></div>
+                <div class="info-row"><span class="info-label">Submitted Date</span><span class="info-value" id="summary-date">—</span></div>
+                <div class="info-row"><span class="info-label">Amount / Value</span><span class="info-value" id="summary-amount">—</span></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header-sm"><i class="fa-regular fa-clock"></i> Current Status</div>
+                <div class="status-box">
+                    <span id="status-badge" class="status-badge status-PENDING">PENDING</span>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Approval tracking active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Detailed Information Section -->
+        <div class="card">
+            <div class="card-header-sm"><i class="fa-solid fa-file-lines"></i> Detailed Request Information</div>
+            
+            <div class="form-body-grid">
+                <div>
+                    <div class="calculation-card" id="calculation-block" style="display: none;">
+                        <h4 style="margin-top: 0; color: #854d0e; margin-bottom: 10px;">Claim Summary</h4>
+                        <div class="calc-row"><span>Hours/Units:</span><strong id="calc-hours">—</strong></div>
+                        <div class="calc-row"><span>Rate/Base:</span><span id="calc-rate">—</span></div>
+                        <div class="calc-row total"><span>Total Amount:</span><span id="calc-total">RM 0.00</span></div>
+                    </div>
+                </div>
+
+                <div id="dynamic-fields-container" class="form-grid">
+                    <!-- Loaded dynamically via JavaScript -->
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <label class="info-label">Reason / Description</label>
+                <div class="form-control-static" id="req-reason" style="min-height: 60px; margin-top: 5px;">
+                    No description provided.
+                </div>
+            </div>
+        </div>
+
+        <!-- Attachments and Timeline -->
+        <div class="bottom-grid">
+            <div class="card">
+                <div class="card-header-sm"><i class="fa-solid fa-paperclip"></i> Uploaded Documents</div>
+                <div id="attachments-container">
+                    <a href="#" class="attachment-item" id="attachment-link" target="_blank">
+                        <i id="attachment-icon" class="fa-solid fa-file-pdf fa-2x" style="color: #ef4444;"></i>
+                        <div>
+                            <div style="font-weight: 600;" id="attachment-name">No file attached</div>
+                            <div style="font-size: 11px; color: var(--text-muted);" id="attachment-subtext">Click to view document</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header-sm"><i class="fa-solid fa-timeline"></i> Approval Timeline</div>
+                <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+                    <div><i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <strong>Submitted:</strong> <span id="timeline-created">—</span></div>
+                    <div id="timeline-stage1"><i class="fa-solid fa-user-clock" style="color: #d97706;"></i> <strong>Stage 1 Approval:</strong> Pending Review</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-download"></i> Download PDF</button>
+            
+            <!-- Send Reminder Button -->
+            <button id="btnSendReminder" class="btn" style="background-color: #f97316; color: #ffffff; display: none;">
+                <i class="fa-solid fa-bell"></i> Send Reminder
+            </button>
+
+            <button class="btn btn-secondary" onclick="alert('Notification email triggered successfully.')"><i class="fa-regular fa-envelope"></i> Send to Email</button>
+
+            <a href="my-request.html" class="back-link-bottom"><i class="fa-solid fa-chevron-left"></i> Back to My Request</a>
+        </div>
+    </main>
+
+    <script src="assets/js/request-details.js"></script>
+</body>
+</html>

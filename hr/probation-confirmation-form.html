@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probation Confirmation Form | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../assets/css/hr/probation-confirmation-form.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="../images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item"><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Probation Confirmation Form</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="form-container">
+                <form id="probationForm" novalidate>
+
+                    <!-- REQUEST INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Request Information</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="requestedBy">Requested By</label>
+                                <input type="text" id="requestedBy" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requestDate">Request Date</label>
+                                <input type="text" id="requestDate" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requesterDept">Department</label>
+                                <input type="text" id="requesterDept" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EMPLOYEE INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Employee Information</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group form-full">
+                                <label for="employeeId">Employee ID<span class="req">*</span></label>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <span class="helper-text" id="employeeLookupStatus"></span>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="employeeName">Employee Name</label>
+                                <input type="text" id="employeeName" disabled placeholder="Auto-filled after Employee ID">
+                            </div>
+                            <div class="input-group">
+                                <label for="employeeDept">Department</label>
+                                <input type="text" id="employeeDept" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="employeePosition">Position</label>
+                                <input type="text" id="employeePosition" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="employmentType">Employment Type</label>
+                                <input type="text" id="employmentType" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="employmentDate">Employment Date</label>
+                                <input type="text" id="employmentDate" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="probationPeriod">Probation Period<span class="req">*</span></label>
+                                <input type="text" id="probationPeriod" placeholder="e.g. 3 Months" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="probationEndDate">Probation End Date<span class="req">*</span></label>
+                                <input type="date" id="probationEndDate" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PROBATION ASSESSMENT -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Probation Assessment</h3>
+                        
+                        <div class="assessment-category">
+                            <div class="assessment-title">1. Overall Performance</div>
+                            <div class="radio-options-grid">
+                                <label class="radio-label"><input type="radio" name="overallPerformance" value="Excellent" required> Excellent</label>
+                                <label class="radio-label"><input type="radio" name="overallPerformance" value="Good"> Good</label>
+                                <label class="radio-label"><input type="radio" name="overallPerformance" value="Satisfactory"> Satisfactory</label>
+                                <label class="radio-label"><input type="radio" name="overallPerformance" value="Needs Improvement"> Needs Improvement</label>
+                            </div>
+                        </div>
+
+                        <div class="assessment-category">
+                            <div class="assessment-title">2. Work Performance</div>
+                            <div class="radio-options-grid">
+                                <label class="radio-label"><input type="radio" name="workPerformance" value="Meet Expectations" required> Meet Expectations</label>
+                                <label class="radio-label"><input type="radio" name="workPerformance" value="Partially Meet Expectations"> Partially Meet Expectations</label>
+                                <label class="radio-label"><input type="radio" name="workPerformance" value="Does Not Meet Expectations"> Does Not Meet Expectations</label>
+                            </div>
+                        </div>
+
+                        <div class="assessment-category">
+                            <div class="assessment-title">3. Attendance &amp; Punctuality</div>
+                            <div class="radio-options-grid">
+                                <label class="radio-label"><input type="radio" name="attendance" value="Excellent" required> Excellent</label>
+                                <label class="radio-label"><input type="radio" name="attendance" value="Good"> Good</label>
+                                <label class="radio-label"><input type="radio" name="attendance" value="Satisfactory"> Satisfactory</label>
+                                <label class="radio-label"><input type="radio" name="attendance" value="Needs Improvement"> Needs Improvement</label>
+                            </div>
+                        </div>
+
+                        <div class="assessment-category">
+                            <div class="assessment-title">4. Work Attitude &amp; Teamwork</div>
+                            <div class="radio-options-grid">
+                                <label class="radio-label"><input type="radio" name="attitude" value="Excellent" required> Excellent</label>
+                                <label class="radio-label"><input type="radio" name="attitude" value="Good"> Good</label>
+                                <label class="radio-label"><input type="radio" name="attitude" value="Satisfactory"> Satisfactory</label>
+                                <label class="radio-label"><input type="radio" name="attitude" value="Needs Improvement"> Needs Improvement</label>
+                            </div>
+                        </div>
+
+                        <div class="assessment-category" style="margin-bottom:0; padding-bottom:0; border:none;">
+                            <div class="assessment-title">5. Recommendation</div>
+                            <div class="radio-options-grid">
+                                <label class="radio-label"><input type="radio" name="recommendation" value="Confirm Employment" required> Confirm Employment</label>
+                                <label class="radio-label"><input type="radio" name="recommendation" value="Extend Probation"> Extend Probation</label>
+                                <label class="radio-label"><input type="radio" name="recommendation" value="Do Not Confirm"> Do Not Confirm</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HR REMARKS/ JUSTIFICATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">HR Remarks/ Justification</h3>
+                        <div class="input-group">
+                            <textarea id="justification" rows="4" placeholder="Please provide comments supporting the recommendation" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- SUPPORTING DOCUMENT -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Supporting Document (if applicable)</h3>
+                        <input type="file" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="dropzone" id="dropzone">
+                            <i class='bx bx-cloud-upload'></i>
+                            Drag &amp; drop or <a href="#" id="browseFilesLink">browse files</a>
+                            <small>PDF, JPG, PNG up to 5MB</small>
+                        </div>
+                        <div class="file-preview" id="filePreview">
+                            <i class='bx bx-check-circle'></i>
+                            <span id="fileNameText"></span>
+                            <a href="#" id="removeFileLink" style="margin-left:auto;color:#ef4444;font-size:12px;">Remove</a>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <div class="btn-group-actions">
+                            <button type="button" class="form-btn btn-cancel" id="btnCancel">Cancel</button>
+                            <button type="submit" class="form-btn btn-submit" id="btnSubmit">Submit</button>
+                        </div>
+                        <a href="hr-operation.html" class="back-link">&lt; Back to HR Operations</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/hr/probation-confirmation-form.js"></script>
+
+</body>
+</html>

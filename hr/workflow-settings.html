@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Workflow Settings - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../assets/css/hr/workflow-settings.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">—</h4>
+                <p id="sidebarMeta">—</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item active"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
+            <a href="hr-operations.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+            
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+
+        <!-- HEADER TOP BAR -->
+        <header class="top-header">
+            <h1>Administration</h1>
+            <div class="header-right">
+                <div class="search-box-wrapper">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search request">
+                    </div>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge" style="display: none;">0</span>
+                    </button>
+                    <div class="noti-dropdown" id="notiDropdown">
+                        <div class="noti-dropdown-header">Notifications</div>
+                        <div class="noti-list-body" id="notiListBody">
+                            <div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">—</div>
+                </a>
+            </div>
+        </header>
+
+        <!-- ADMINISTRATION TABS -->
+        <div class="admin-nav-tabs">
+            <a href="user-management.html" class="admin-tab-btn">User Management</a>
+            <a href="departments.html" class="admin-tab-btn">Departments</a>
+            <a href="workflow-settings.html" class="admin-tab-btn active">Workflow Settings</a>
+            <a href="system-config.html" class="admin-tab-btn">System Config</a>
+        </div>
+
+        <!-- MAIN CARD CONTAINER -->
+        <section class="admin-card">
+            <div class="card-toolbar">
+                <h2 class="card-title">Approval Workflow Configuration</h2>
+                <a href="new-workflow.html" class="btn-add-workflow" id="addWorkflowBtn">+ New Workflow</a>
+            </div>
+
+            <div class="workflow-list" id="workflowList">
+                <p style="color: #64748b; font-size: 13px;">Loading workflows from database...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="../assets/js/hr/workflow-settings.js"></script>
+</body>
+</html>

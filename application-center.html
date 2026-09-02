@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Center - OA Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/application-center.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i>
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header">
+            <h2 class="page-header-title">Application Center</h2>
+            <div class="header-actions">
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown"></div>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="ac-body">
+            <section class="ac-banner">
+                <div class="ac-banner-text">
+                    <h2>All your application in one place</h2>
+                    <p>Choose an application below to get started.</p>
+                </div>
+                <i class='bx bx-file-blank ac-banner-icon'></i>
+            </section>
+
+            <section class="ac-grid">
+                <a href="leave.html" class="ac-card">
+                    <div class="ac-card-icon" style="background:#dcfce7; color:#16a34a;"><i class='bx bx-calendar-event'></i></div>
+                    <div class="ac-card-title">Leave Application</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="javascript:void(0)" class="ac-card ac-card-disabled">
+                    <span class="ac-coming-soon">Coming Soon</span>
+                    <div class="ac-card-icon" style="background:#cffafe; color:#0891b2;"><i class='bx bx-wallet-alt'></i></div>
+                    <div class="ac-card-title">Trip Disbursement Form</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="travel-request.html" class="ac-card">
+                    <div class="ac-card-icon" style="background:#ede9fe; color:#7c3aed;"><i class='bx bx-paper-plane'></i></div>
+                    <div class="ac-card-title">Travel Request</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="javascript:void(0)" class="ac-card ac-card-disabled">
+                    <span class="ac-coming-soon">Coming Soon</span>
+                    <div class="ac-card-icon" style="background:#fce7f3; color:#db2777;"><i class='bx bx-globe'></i></div>
+                    <div class="ac-card-title">Visa Application Form</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="overtime-claim.html" class="ac-card">
+                    <div class="ac-card-icon" style="background:#fef3c7; color:#d97706;"><i class='bx bx-time-five'></i></div>
+                    <div class="ac-card-title">Overtime Claim</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="javascript:void(0)" class="ac-card ac-card-disabled">
+                    <span class="ac-coming-soon">Coming Soon</span>
+                    <div class="ac-card-icon" style="background:#ecfccb; color:#65a30d;"><i class='bx bx-briefcase-alt-2'></i></div>
+                    <div class="ac-card-title">Job Transfer Request</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="loan.html" class="ac-card">
+                    <div class="ac-card-icon" style="background:#fee2e2; color:#dc2626;"><i class='bx bx-wallet'></i></div>
+                    <div class="ac-card-title">Loan Application</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="javascript:void(0)" class="ac-card ac-card-disabled">
+                    <span class="ac-coming-soon">Coming Soon</span>
+                    <div class="ac-card-icon" style="background:#fde8d7; color:#9a3412;"><i class='bx bx-envelope'></i></div>
+                    <div class="ac-card-title">
+                        Application Process
+                        <small>(Binding Cards, Perfect Binding, and Other Advertising Banner Production)</small>
+                    </div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+
+                <a href="disbursement-form.html" class="ac-card">
+                    <div class="ac-card-icon" style="background:#e0e7ff; color:#4f46e5;"><i class='bx bx-transfer-alt'></i></div>
+                    <div class="ac-card-title">Disbursement Form</div>
+                    <i class='bx bx-right-arrow-alt ac-card-arrow'></i>
+                    <i class='bx bx-star ac-card-favorite'></i>
+                </a>
+            </section>
+        </div>
+    </main>
+
+    <script src="assets/js/application-center.js"></script>
+</body>
+</html>

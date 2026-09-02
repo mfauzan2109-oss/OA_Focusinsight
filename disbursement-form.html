@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA Portal - Disbursement Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/disbursement-form.css">
+</head>
+<body>
+
+    <div class="top-strip"></div>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+        
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer">
+                <i class='bx bx-user'></i>
+            </div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header">
+            <h2 class="page-header-title">Disbursement Form</h2>
+            <div class="header-actions">
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
+                    </div>
+                </div>
+
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-inner">
+
+            <form class="form-card" id="disbursementForm">
+                
+                <div id="draftNotice" class="draft-indicator">
+                    💾 <strong>Draft Restored:</strong> Unsaved form changes were restored from your previous session.
+                </div>
+
+                <div class="form-section" id="sectionEmpInfo">
+                    <span class="form-section-title">Employee Information</span>
+                    <div class="form-grid form-grid-3">
+                        <div class="input-group">
+                            <label>Employee ID</label>
+                            <input type="text" id="empIdInput" readonly>
+                        </div>
+                        <div class="input-group">
+                            <label>Employee Name</label>
+                            <input type="text" id="empNameInput" readonly>
+                        </div>
+                        <div class="input-group">
+                            <label>Department</label>
+                            <input type="text" id="empDeptInput" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" id="sectionExpenses">
+                    <div class="section-trigger-row">
+                        <span class="form-section-title">Expenses Details</span>
+                        <button type="button" class="btn-add-row" id="addRowBtn"><i class='bx bx-plus'></i> Add Row</button>
+                    </div>
+
+                    <div class="expenses-table-wrapper">
+                        <table class="expenses-table" id="expensesTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;">No.</th>
+                                    <th style="width: 140px;">Invoice Date</th>
+                                    <th style="width: 140px;">Invoice No.</th>
+                                    <th style="width: 180px;">Supplier Name</th>
+                                    <th>Description</th>
+                                    <th style="width: 120px;">Amount</th>
+                                    <th style="width: 150px;">Reason / Remark</th>
+                                    <th style="width: 50px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="total-claim-container">
+                        <span>TOTAL CLAIM AMOUNT</span>
+                        <input type="text" class="total-claim-input" id="totalClaimAmount" value="0.00" readonly>
+                    </div>
+                </div>
+
+                <div class="form-section" id="sectionDoc">
+                    <span class="form-section-title">Supporting Document (if applicable)</span>
+                    <div class="upload-dropzone" id="dropzone">
+                        <i class='bx bx-upload'></i>
+                        <p>Drag & drop or <a href="#" id="browseLink">browse files</a></p>
+                        <span class="upload-hint">PDF, JPG, PNG up to 5MB</span>
+                        <input type="file" id="fileInput" hidden accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="file-name" id="fileNameDisplay"></div>
+                    </div>
+                </div>
+
+                <div class="form-actions-pill">
+                    <button type="button" class="btn-cancel-pill" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-submit-pill">Submit</button>
+                </div>
+
+            </form>
+        </div><!-- /.main-inner -->
+    </main>
+
+    <script src="assets/js/disbursement-form.js"></script>
+</body>
+</html>

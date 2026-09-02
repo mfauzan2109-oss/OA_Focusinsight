@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overtime Claim - FocusInsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-shield-quarter'></i> Approval Queue
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        
+        <!-- WHITE HEADER BAR -->
+        <header class="page-header">
+            <h2 class="page-header-title">Overtime Claim</h2>
+            <div class="header-actions">
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
+                    </div>
+                </div>
+
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-inner">
+        <section class="form-card">
+            
+            <div id="errorBanner" class="error-banner"></div>
+
+            <div id="draftNotice" class="draft-indicator">
+                <i class="fa-regular fa-circle-check"></i> Draft autosaved automatically
+            </div>
+
+            <form id="overtimeForm">
+                
+                <div class="section-title">EMPLOYEE INFORMATION</div>
+                <div class="emp-grid">
+                    <div class="form-group">
+                        <label for="empId">Employee ID</label>
+                        <input type="text" id="empId" name="employee_id" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="empName">Employee Name</label>
+                        <input type="text" id="empName" name="employee_name" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="empDept">Department</label>
+                        <input type="text" id="empDept" name="department" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="basicSalary">Basic Salary (Auto)</label>
+                        <input type="text" id="basicSalary" name="basic_salary" readonly placeholder="Fetching..." class="form-control">
+                    </div>
+                </div>
+
+                <div class="section-title">OVERTIME DETAILS</div>
+                <div class="details-grid">
+                    
+                    <div>
+                        <div class="form-group">
+                            <label for="otDate">Date *</label>
+                            <input type="date" id="otDate" name="ot_date" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="period">Period *</label>
+                            <input type="text" id="period" name="period" readonly placeholder="0.0 hrs" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="dayType">Day Type :</label>
+                            <select id="dayType" name="day_type" class="form-control">
+                                <option value="weekdays">Weekdays & Saturday</option>
+                                <option value="holiday">Sunday & Public Holiday</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="otAllowance">OT Allowance:</label>
+                            <input type="text" id="otAllowance" name="ot_allowance" readonly value="RM 0.00" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="otRate">OT Rate Formula / Base:</label>
+                            <input type="text" id="otRate" name="ot_rate" readonly value="-" class="form-control">
+                        </div>
+
+                        <div class="summary-card">
+                            <h4>Overtime Summary</h4>
+                            <div class="summary-row">
+                                <span>Total Hours</span>
+                                <span>Effective Hourly Rate</span>
+                            </div>
+                            <div class="summary-row" style="font-weight: 700; margin-bottom: 12px;">
+                                <span id="sumTotalHours">0.0h</span>
+                                <span id="sumHourlyRate">RM 0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>OT Payment</span>
+                                <span id="sumOtPayment">RM 0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Meal Allowance (Min 3h)</span>
+                                <span id="sumMealAllowance">RM 0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Night Allowance (RM 50)</span>
+                                <span id="sumNightAllowance">RM 0.00</span>
+                            </div>
+                            <div class="summary-row summary-total">
+                                <span>Total Claim</span>
+                                <span id="sumTotalClaim">RM 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="form-group">
+                            <label for="startTime">Start Time *</label>
+                            <input type="time" id="startTime" name="start_time" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">End Time *</label>
+                            <input type="time" id="endTime" name="end_time" required class="form-control">
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (RM 50/day)</label>
+                            <input type="checkbox" id="nightAllowanceCheck" name="night_allowance_check">
+                        </div>
+                        <div class="checkbox-group">
+                            <div>
+                                <label for="mealAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Meal Allowance (RM 5/day)</label>
+                                <div class="rule-warning" id="mealWarning" style="display: none;">Requires ≥ 3 hrs of OT</div>
+                            </div>
+                            <input type="checkbox" id="mealAllowanceCheck" name="meal_allowance_check">
+                        </div>
+
+                        <div class="form-group" style="margin-top: 14px;">
+                            <label for="reason">Reason / Description *</label>
+                            <textarea id="reason" name="reason" rows="7" required placeholder="Provide a brief description of your overtime reason..." class="form-control" style="resize: vertical;"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+                </div>
+
+            </form>
+        </section>
+        </div>
+    </main>
+
+    <script src="assets/js/overtime-claim.js"></script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application - FocusInsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- FIX: Updated relative CSS path -->
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../assets/css/hr/loan-application-hr.css">
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <!-- FIX: Updated relative logo image path -->
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Chen Jun</h4>
+                <p id="sidebarMeta">HR4001 . Human Resources</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="administration.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="loan-application-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <!-- MAIN FORM CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER TOP BAR -->
+        <header class="top-header">
+            <h1>Loan Application</h1>
+            <div class="header-right">
+                <div class="search-box-wrapper" style="position: relative;">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="headerSearchInput" placeholder="Search request">
+                    </div>
+                </div>
+
+                <!-- NOTIFICATION BELL + DROPDOWN (data comes from /api/notifications) -->
+                <div class="notification-container">
+                    <button class="icon-btn noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request-hr.html" id="notiViewAllBtn">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">CJ</div>
+                </a>
+            </div>
+        </header>
+
+        <!-- FORM SWITCHER TABS -->
+        <div class="form-nav-tabs">
+            <a href="leave-application-hr.html" class="tab-btn">Leave Application</a>
+            <a href="loan-application-hr.html" class="tab-btn active">Loan Application</a>
+            <a href="travel-request-hr.html" class="tab-btn">Travel Request</a>
+            <a href="disbursement-hr.html" class="tab-btn">Disbursement Form</a>
+            <a href="overtime-claim-hr.html" class="tab-btn">Overtime Claim</a>
+            <a href="Salary-adjustment-hr.html" class="tab-btn">Salary Adjustment</a>
+        </div>
+
+        <!-- FORM CARD -->
+        <section class="form-card">
+            <div id="errorBanner" class="error-banner"></div>
+
+            <form id="hrLoanForm" enctype="multipart/form-data">
+
+                <!-- 1. EMPLOYEE INFORMATION -->
+                <div class="section-title">Employee Information</div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>Employee ID</label>
+                        <input type="text" id="empId" name="employee_id" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Employee Name</label>
+                        <input type="text" id="empName" name="employee_name" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="empDept" name="department" readonly class="form-control">
+                    </div>
+                </div>
+
+                <!-- 2. LOAN DETAILS -->
+                <div class="section-title">Loan Details</div>
+
+                <div class="form-group">
+                    <label>Loan Type <span class="required">*</span></label>
+                    <select id="loanType" name="loan_type" required class="form-control">
+                        <option value="" disabled selected>Select loan type</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Emergency">Emergency</option>
+                        <option value="Education">Education</option>
+                    </select>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Expected Repayment Period <span class="required">*</span></label>
+                        <select id="repaymentPeriod" name="repayment_period" required class="form-control">
+                            <option value="" disabled selected>Select period</option>
+                            <option value="3 Months">3 Months</option>
+                            <option value="6 Months">6 Months</option>
+                            <option value="12 Months">12 Months</option>
+                            <option value="24 Months">24 Months</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Salary <span class="required">*</span></label>
+                        <input type="text" id="monthlySalary" name="monthly_salary" required placeholder="e.g. 3500.00" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Amount Requested (RM) <span class="required">*</span></label>
+                        <input type="number" step="0.01" id="amountRequested" name="amount_requested" required placeholder="0.00" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Disbursement Method <span class="required">*</span></label>
+                        <select id="disbursementMethod" name="disbursement_method" required class="form-control">
+                            <option value="" disabled selected>Select method</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Cash">Cash</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 3. BORROWER BANK DETAILS -->
+                <div class="section-title">Borrower Bank Details</div>
+
+                <div class="form-group">
+                    <label>Account Holder Name <span class="required">*</span></label>
+                    <input type="text" id="accountHolder" name="account_holder" required placeholder="Enter full name as per bank account" class="form-control">
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Account Number <span class="required">*</span></label>
+                        <input type="text" id="accountNumber" name="account_number" required placeholder="Enter bank account number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Bank Details <span class="required">*</span></label>
+                        <input type="text" id="bankDetails" name="bank_details" required placeholder="e.g. Maybank / CIMB / Public Bank" class="form-control">
+                    </div>
+                </div>
+
+                <!-- 4. ATTACHMENT -->
+                <div class="form-group">
+                    <label>Supporting Document (if applicable)</label>
+                    <div class="file-upload-box" id="dropZone">
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <div class="upload-text">Drag & drop or <span id="browseBtn">browse files</span></div>
+                        <div class="upload-hint">PDF, JPG, PNG up to 5MB</div>
+                        <input type="file" id="attachment" name="attachment" style="display: none;">
+                        <div id="fileSelectedName" style="margin-top: 8px; font-size: 12px; font-weight: 600; color: #16a34a;"></div>
+                    </div>
+                </div>
+
+                <!-- FORM ACTIONS -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+                </div>
+
+            </form>
+        </section>
+
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script src="../assets/js/hr/loan-application-hr.js"></script>
+</body>
+</html>

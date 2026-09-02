@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Profile (EDITABLE) - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <link rel="stylesheet" href="../assets/css/hr/employee-profile-edit.css">
+</head>
+<body>
+
+    <!-- WHITE HEADER BAR -->
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- FORM CONTAINER -->
+    <main class="form-container">
+        <h1 class="page-title" id="profileHeading">LOADING PROFILE...</h1>
+
+        <!-- PROFILE OVERVIEW & STATUS BADGE -->
+        <div class="profile-overview-wrapper">
+            <div class="profile-summary-card">
+                <div class="profile-avatar-large">
+                    <div class="avatar-circle-lg"><i class="fa-solid fa-user"></i></div>
+                    <a href="#" class="change-pic-link">Change Picture</a>
+                </div>
+                <div class="profile-details-list">
+                    <div><strong>Name :</strong> <span id="summaryName">Loading...</span></div>
+                    <div><strong>Employee ID :</strong> <span id="summaryId">-</span></div>
+                    <div><strong>Position :</strong> <span id="summaryPos">-</span></div>
+                    <div><strong>Department :</strong> <span id="summaryDept">-</span></div>
+                    <div><strong>Employment type :</strong> <span id="summaryType">Full Time</span></div>
+                </div>
+            </div>
+
+            <div class="status-badge-container">
+                <div class="status-title-label">Status</div>
+                <div class="badge-active-pill" id="statusPill">Active</div>
+            </div>
+        </div>
+
+        <form id="employeeEditForm">
+
+            <!-- 1. PERSONAL INFORMATION -->
+            <div class="section-badge">Personal Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="fullName">Full Name</label>
+                <input type="text" id="fullName" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="icPassport">IC/Passport No.</label>
+                <input type="text" id="icPassport" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="phoneNo">Phone No.</label>
+                <input type="text" id="phoneNo" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="emergencyContact">Emergency Contact</label>
+                <input type="text" id="emergencyContact" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="address">Address</label>
+                <textarea id="address" class="form-textarea"></textarea>
+            </div>
+
+            <!-- 2. EMPLOYMENT INFORMATION -->
+            <div class="section-badge">Employment Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="dept">Department</label>
+                <input type="text" id="dept" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="position">Position</label>
+                <input type="text" id="position" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="supervisor">Manager/Supervisor</label>
+                <input type="text" id="supervisor" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="joinDate">Join date</label>
+                <input type="date" id="joinDate" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="empId">Employee ID</label>
+                <input type="text" id="empId" class="form-input" readonly>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="empPassword">Employee Password</label>
+                <input type="password" id="empPassword" class="form-input" placeholder="••••••••">
+            </div>
+
+            <!-- BOTTOM ACTION BUTTONS -->
+            <div class="bottom-actions">
+                <a href="user-management.html" class="btn-action-back">Back</a>
+                <button type="submit" class="btn-action-save">Save</button>
+            </div>
+
+        </form>
+    </main>
+
+    <script src="../assets/js/hr/employee-profile-edit.js"></script>
+</body>
+</html> 

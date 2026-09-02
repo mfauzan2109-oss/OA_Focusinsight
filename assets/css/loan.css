@@ -1,0 +1,43 @@
+.draft-indicator {
+            font-size: 12px;
+            color: #0284c7;
+            background-color: #e0f2fe;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+.repayment-summary-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+.repayment-summary-box span {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+.repayment-summary-box strong {
+            font-size: 16px;
+            color: #0284c7;
+            font-weight: 700;
+        }
+
+.error-banner {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            display: none;
+        }

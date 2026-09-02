@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/profile.css">
+</head>
+<body>
+
+<!-- Hidden Image Upload Input -->
+<input type="file" id="profileAvatarInput" accept="image/*">
+
+<div class="profile-container">
+    <div class="profile-card-header">
+        <div class="user-meta">
+            <!-- Clickable Interactive Profile Picture -->
+            <div class="avatar-wrapper" onclick="triggerProfileAvatarUpload()" title="Click to change profile picture">
+                <div class="avatar-circle" id="avatarContainer">
+                    <span id="avatarName">W</span>
+                </div>
+                <div class="avatar-overlay">
+                    <i class='bx bx-camera'></i>
+                </div>
+            </div>
+            
+            <div class="meta-details">
+                <p><strong>Name : </strong><span id="headerName">Loading...</span></p>
+                <p><strong>Employee ID : </strong><span id="headerId">Loading...</span></p>
+                <p><strong>Position : </strong><span id="headerPosition">Loading...</span></p>
+                <p><strong>Department : </strong><span id="headerDept">Loading...</span></p>
+                <p><strong>Employment Type : </strong><span id="headerEmpType">Loading...</span></p>
+            </div>
+        </div>
+        <div>
+            <span class="status-badge status-active" id="statusBadge">Active</span>
+        </div>
+    </div>
+
+    <form id="profileForm">
+        <div class="section-box">
+            <h3 class="section-title">Personal Information</h3>
+            <div class="form-grid">
+                <div class="input-group full-width">
+                    <label for="fullName">Full Name</label>
+                    <input 
+                        type="text" 
+                        id="fullName" 
+                        disabled 
+                        required 
+                        minlength="3" 
+                        maxlength="70"
+                        pattern="^[a-zA-Z\s'@\.\-\/]+$"
+                        title="Please enter a valid full name."
+                    >
+                </div>
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        disabled 
+                        required
+                        maxlength="80"
+                        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$"
+                        title="Please enter a valid email address ending in a valid TLD (e.g. .com, .org, .my)."
+                    >
+                </div>
+                <div class="input-group">
+                    <label for="icNo">IC/Passport No.</label>
+                    <input 
+                        type="text" 
+                        id="icNo" 
+                        disabled 
+                        maxlength="12" 
+                        inputmode="numeric"
+                        pattern="^[0-9]{12}$"
+                        placeholder="-"
+                        title="IC number must be exactly 12 digits."
+                    >
+                </div>
+                <div class="input-group">
+                    <label for="phoneNo">Phone No.</label>
+                    <input type="text" id="phoneNo" disabled placeholder="e.g. +60123456789">
+                </div>
+                <div class="input-group">
+                    <label for="emergencyContact">Emergency Contact</label>
+                    <input type="text" id="emergencyContact" disabled placeholder="e.g. +60123456789">
+                </div>
+                <div class="input-group full-width">
+                    <label for="address">Address</label>
+                    <textarea id="address" rows="3" disabled></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h3 class="section-title">Employment Information</h3>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Department</label>
+                    <input type="text" id="empDept" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Position</label>
+                    <input type="text" id="empPosition" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Employment Type</label>
+                    <input type="text" id="empType" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Manager/Supervisor</label>
+                    <input type="text" id="empManager" disabled>
+                </div>
+                <div class="input-group full-width">
+                    <label>Join date</label>
+                    <input type="text" id="joinDate" disabled>
+                </div>
+                <!-- Medan Salary ditambah di bawah Join date -->
+                <div class="input-group full-width">
+                    <label>Salary</label>
+                    <input type="text" id="salary" disabled>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button type="button" class="btn btn-back" id="btnBack">Back</button>
+            <button type="button" class="btn btn-action" id="btnSubmit">Update Profile</button>
+        </div>
+    </form>
+</div>
+
+<script src="assets/js/profile.js"></script>
+
+</body>
+</html>

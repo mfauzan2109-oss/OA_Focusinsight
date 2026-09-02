@@ -1,0 +1,423 @@
+body {
+            font-family: 'Inter', sans-serif;
+            background-color: #bcdbe5;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 24px 32px;
+            width: calc(100% - 250px);
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px 4px 14px;
+            margin-top: 6px;
+        }
+
+        /* --- STATS SUMMARY CARDS --- */
+        .summary-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card-stat {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-icon-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .icon-pending {
+            background-color: #fefce8;
+            color: #d97706;
+            border-color: #fef08a;
+        }
+
+        .icon-approved {
+            background-color: #f0fdf4;
+            color: #16a34a;
+            border-color: #bbf7d0;
+        }
+
+        .icon-rejected {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+
+        .icon-total {
+            background-color: #f0f9ff;
+            color: #4f46e5;
+            border-color: #e0e7ff;
+        }
+
+        .stat-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-number {
+            font-size: 26px;
+            font-weight: 900;
+            color: #000000;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        /* --- RECENT ACTIVITY TABLE CARD --- */
+        .activity-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            border: 2px solid #5eead4;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .activity-header h2 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .requests-table th {
+            background-color: #cce9f5;
+            color: #1e3a8a;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 12px 14px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .requests-table td {
+            padding: 14px;
+            font-size: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .req-id {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .badge-status.approve,
+        .badge-status.approved {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-status.pending {
+            background-color: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-status.rejected,
+        .badge-status.reject {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .action-view-link {
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .action-view-link:hover {
+            text-decoration: underline;
+        }
+
+        .remind-btn {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .remind-btn:hover {
+            background-color: #dbeafe;
+        }
+
+        .remind-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ==================================================================
+           NOTIFICATION DROPDOWN PANEL — matches hr-dashboard.html design
+           ================================================================== */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+        }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .noti-footer a {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        /* Toast feedback for reminder actions */
+        #appToast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background-color: #0f172a;
+            color: #ffffff;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 13px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.28);
+            z-index: 10000;
+            display: none;
+            max-width: 340px;
+            line-height: 1.5;
+        }
+
+        #appToast.error {
+            background-color: #b91c1c;
+        }

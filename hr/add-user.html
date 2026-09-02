@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <link rel="stylesheet" href="../assets/css/hr/add-user.css">
+</head>
+<body>
+
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="form-container">
+        <h1 class="page-title">New User Profile</h1>
+
+        <div class="profile-header-wrapper">
+            <div class="avatar-upload-block">
+                <div class="avatar-circle-lg"><i class="fa-solid fa-user"></i></div>
+                <a href="#" class="add-picture-link">Add Picture</a>
+            </div>
+
+            <div class="status-badge-position">
+                <div class="badge-active-pill">Active</div>
+            </div>
+        </div>
+
+        <form id="addUserForm">
+
+            <div class="section-badge">Personal Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="fullName">Full Name</label>
+                <input type="text" id="fullName" class="form-input" required placeholder="e.g. Ahmad Razak">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" class="form-input" required placeholder="e.g. ahmad@focusinsight.my">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="icPassport">IC/Passport No.</label>
+                <input type="text" id="icPassport" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="phoneNo">Phone No.</label>
+                <input type="text" id="phoneNo" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="emergencyContact">Emergency Contact</label>
+                <input type="text" id="emergencyContact" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="address">Address</label>
+                <textarea id="address" class="form-textarea"></textarea>
+            </div>
+
+            <div class="section-badge">Employment Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="department">Department</label>
+                <input type="text" id="department" class="form-input" required placeholder="e.g. Software">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="position">Position</label>
+                <input type="text" id="position" class="form-input" required placeholder="e.g. Manager / Head of Department / CEO / Engineer">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="employmentType">Employment Type</label>
+                <input type="text" id="employmentType" class="form-input" placeholder="Full Time / Part Time / Contract / Internship">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="supervisor">Manager/Supervisor</label>
+                <input type="text" id="supervisor" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="joinDate">Join date</label>
+                <input type="date" id="joinDate" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="employeeId">Employee ID (Auto-Generated)</label>
+                <input type="text" id="employeeId" class="form-input" placeholder="Generating next ID..." readonly required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="employeePassword">Employee Password</label>
+                <input type="password" id="employeePassword" class="form-input" required>
+            </div>
+
+            <div class="bottom-actions">
+                <a href="user-management.html" class="btn-action-cancel">Cancel</a>
+                <button type="submit" class="btn-action-submit">Add User</button>
+            </div>
+
+        </form>
+    </main>
+
+    <script src="../assets/js/hr/add-user.js"></script>
+</body>
+</html>

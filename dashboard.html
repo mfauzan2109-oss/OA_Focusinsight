@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA Portal Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+        
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- TOP BAR HEADER (FULL WIDTH WITHOUT GAP) -->
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Dashboard</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request...">
+                    <div class="search-results-dropdown" id="searchResults"></div>
+                </div>
+                
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTENT WRAPPER -->
+        <div class="dashboard-body">
+            <section class="welcome-banner">
+                <div class="welcome-text">
+                    <p class="current-date" id="currentDateDisplay">Tuesday, 28 July 2026</p>
+                    <h2>Good Morning, <span id="bannerName">User</span></h2>
+                    <p class="pending-alert">You have <span class="highlight-count" id="pendingCounter">0 pending requests</span> awaiting action.</p>
+                </div>
+            </section>
+
+            <section class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon pending-icon"><i class='bx bx-alarm'></i></div>
+                    <div class="metric-data"><h3 id="metricPending">0</h3><p>Pending Requests</p></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon approved-icon"><i class='bx bx-check-circle'></i></div>
+                    <div class="metric-data"><h3 id="metricApproved">0</h3><p>Approved Requests</p></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon rejected-icon"><i class='bx bx-x-circle'></i></div>
+                    <div class="metric-data"><h3 id="metricRejected">0</h3><p>Rejected</p></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon total-icon"><i class='bx bx-layer'></i></div>
+                    <div class="metric-data"><h3 id="metricTotal">0</h3><p>Total Submitted</p></div>
+                </div>
+            </section>
+
+            <section class="quick-access">
+                <h3>Quick Access</h3>
+                <div class="quick-access-grid">
+                    <a href="leave.html" class="qa-card">
+                        <i class='bx bx-calendar-event qa-icon' style="color: #2563eb;"></i>
+                        <span>Leave Application</span>
+                    </a>
+                    <a href="travel-request.html" class="qa-card">
+                        <i class='bx bx-paper-plane qa-icon' style="color: #059669;"></i>
+                        <span>Travel Request</span>
+                    </a>
+                    <a href="overtime-claim.html" class="qa-card">
+                        <i class='bx bx-time qa-icon' style="color: #d97706;"></i>
+                        <span>Overtime Claim</span>
+                    </a>
+                    <a href="loan.html" class="qa-card">
+                        <i class='bx bx-wallet qa-icon' style="color: #7c3aed;"></i>
+                        <span>Loan Application</span>
+                    </a>
+                    <a href="disbursement-form.html" class="qa-card">
+                        <i class='bx bx-receipt qa-icon' style="color: #dc2626;"></i>
+                        <span>Disbursement Form</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="recent-activity">
+                <div class="section-header">
+                    <h3>Recent Activity</h3>
+                    <a href="my-request.html" class="view-all">View all</a>
+                </div>
+                
+                <div class="table-container">
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>REQUEST ID</th>
+                                <th>EMPLOYEE</th>
+                                <th>TYPE</th>
+                                <th>SUBMITTED</th>
+                                <th>AMOUNT</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 24px;">Loading dynamic activities...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="assets/js/dashboard.js"></script>
+</body>
+</html>
