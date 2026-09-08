@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Renewal Form | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../assets/css/hr/contract-renewal-form.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="../images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item active"><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Contract Renewal Form</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="form-container">
+                <form id="contractRenewalForm" novalidate>
+
+                    <!-- REQUEST INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Request Information</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="requestedBy">Requested By</label>
+                                <input type="text" id="requestedBy" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requesterPosition">Position</label>
+                                <input type="text" id="requesterPosition" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requesterDept">Department</label>
+                                <input type="text" id="requesterDept" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requestDate">Request Date</label>
+                                <input type="text" id="requestDate" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EMPLOYEE INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Employee Information</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="employeeId">Employee ID<span class="req">*</span></label>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <span class="helper-text" id="employeeLookupStatus"></span>
+                            </div>
+                            <div class="input-group">
+                                <label for="employeeName">Employee Name</label>
+                                <input type="text" id="employeeName" disabled placeholder="Auto-filled after Employee ID">
+                            </div>
+                            <div class="input-group">
+                                <label for="employeeDept">Department</label>
+                                <input type="text" id="employeeDept" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="employeePosition">Position</label>
+                                <input type="text" id="employeePosition" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CURRENT CONTRACT DETAILS -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Current Contract Details</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="currentStartDate">Start Date<span class="req">*</span></label>
+                                <input type="date" id="currentStartDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="currentEndDate">End Date<span class="req">*</span></label>
+                                <input type="date" id="currentEndDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="currentDuration">Duration<span class="req">*</span></label>
+                                <input type="text" id="currentDuration" placeholder="e.g. 12 Months" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="currentSalary">Current Salary<span class="req">*</span></label>
+                                <input type="number" id="currentSalary" min="0" step="0.01" placeholder="RM 0.00" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PROPOSED RENEWAL DETAILS -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Proposed Renewal Details</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="proposedStartDate">Start Date<span class="req">*</span></label>
+                                <input type="date" id="proposedStartDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="proposedEndDate">End Date<span class="req">*</span></label>
+                                <input type="date" id="proposedEndDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="proposedDuration">Duration<span class="req">*</span></label>
+                                <input type="text" id="proposedDuration" placeholder="e.g. 12 Months" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="proposedSalary">Proposed Salary<span class="req">*</span></label>
+                                <input type="number" id="proposedSalary" min="0" step="0.01" placeholder="RM 0.00" required>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="reasonForRenewal">Reason for Renewal<span class="req">*</span></label>
+                                <textarea id="reasonForRenewal" rows="4" placeholder="Insert your reason for renewal" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EMPLOYEE ASSESSMENT -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Employee Assessment</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group form-full">
+                                <label for="performanceSummary">Performance Summary<span class="req">*</span></label>
+                                <textarea id="performanceSummary" rows="4" placeholder="Summarize the employee's performance during the current contract period" required></textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="attendanceStatus">Attendance Status<span class="req">*</span></label>
+                                <select id="attendanceStatus" required>
+                                    <option value="">Select status</option>
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Satisfactory">Satisfactory</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="employeeRemarks">Employee Remarks</label>
+                                <textarea id="employeeRemarks" rows="3" placeholder="Optional remarks about the employee"></textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="disciplineStatus">Discipline Status<span class="req">*</span></label>
+                                <select id="disciplineStatus" required>
+                                    <option value="">Select status</option>
+                                    <option value="No Issues">No Issues</option>
+                                    <option value="Minor Issues">Minor Issues</option>
+                                    <option value="Major Issues">Major Issues</option>
+                                    <option value="Under Investigation">Under Investigation</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="renewalRecommendation">Renewal Recommendation<span class="req">*</span></label>
+                                <select id="renewalRecommendation" required>
+                                    <option value="">Select recommendation</option>
+                                    <option value="Recommend for Renewal">Recommend for Renewal</option>
+                                    <option value="Recommend with Conditions">Recommend with Conditions</option>
+                                    <option value="Not Recommended">Not Recommended</option>
+                                </select>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="supervisorRecommendation">Supervisor Recommendation<span class="req">*</span></label>
+                                <textarea id="supervisorRecommendation" rows="4" placeholder="Insert supervisor's recommendation" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUPPORTING DOCUMENT -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Supporting Document (if applicable)</h3>
+                        <input type="file" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="dropzone" id="dropzone">
+                            <i class='bx bx-cloud-upload'></i>
+                            Drag &amp; drop or <a href="#" id="browseFilesLink">browse files</a>
+                            <small>PDF, JPG, PNG up to 5MB</small>
+                        </div>
+                        <div class="file-preview" id="filePreview">
+                            <i class='bx bx-check-circle'></i>
+                            <span id="fileNameText"></span>
+                            <a href="#" id="removeFileLink" style="margin-left:auto;color:#ef4444;font-size:12px;">Remove</a>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <div class="btn-group-actions">
+                            <button type="button" class="form-btn btn-cancel" id="btnCancel">Cancel</button>
+                            <button type="submit" class="form-btn btn-submit" id="btnSubmit">Submit</button>
+                        </div>
+                        <a href="hr-operation.html" class="back-link">&lt; Back to HR Operations</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/hr/contract-renewal-form.js"></script>
+
+</body>
+</html>
