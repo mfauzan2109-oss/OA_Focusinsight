@@ -148,30 +148,116 @@ router.get('/api/notifications', (req, res) => {
 
 router.post('/api/login', (req, res) => {
     const { user_id, password } = req.body;
-    const query = 'SELECT * FROM users WHERE LOWER(user_id) = LOWER(?)';
-    
+
+    const query = `
+        SELECT *
+        FROM users
+        WHERE LOWER(user_id) = LOWER(?)
+        LIMIT 1
+    `;
+
     db.query(query, [user_id], (err, results) => {
         if (err) {
             console.error('Database query error:', err);
-            return res.status(500).json({ success: false, message: 'Server database error.' });
+
+            return res.status(500).json({
+                success: false,
+                message: 'Server database error.'
+            });
         }
-        if (results.length > 0) {
-            const user = results[0];
-            if (user.password === password) {
-                return res.json({
-                    success: true,
-                    user_id: user.user_id,
-                    name: user.name,
-                    position: user.position,
-                    department: user.department,
-                    company_name: user.company_name
+
+        if (!results || results.length === 0) {
+            return res.json({
+                success: false,
+                message: 'Employee ID not found.'
+            });
+        }
+
+        const user = results[0];
+
+        if (user.password !== password) {
+            return res.json({
+                success: false,
+                message: 'Incorrect password.'
+            });
+        }
+
+        // Save authenticated identity on the server
+        req.session.user = {
+            user_id: user.user_id,
+            name: user.name,
+            position: user.position,
+            department: user.department,
+            company_name: user.company_name
+        };
+
+        req.session.save((sessionErr) => {
+            if (sessionErr) {
+                console.error('Session save error:', sessionErr);
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to create login session.'
                 });
-            } else {
-                return res.json({ success: false, message: 'Incorrect password.' });
             }
-        } else {
-            return res.json({ success: false, message: 'Employee ID not found.' });
+
+            return res.json({
+                success: true,
+                user_id: user.user_id,
+                name: user.name,
+                position: user.position,
+                department: user.department,
+                company_name: user.company_name
+            });
+        });
+    });
+});
+
+// ==========================================================================
+// GET CURRENT LOGGED-IN USER
+// ==========================================================================
+router.get('/api/me', (req, res) => {
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authenticated.'
+        });
+    }
+
+    return res.json({
+        success: true,
+        user: req.session.user
+    });
+});
+
+
+// ==========================================================================
+// LOGOUT
+// ==========================================================================
+router.post('/api/logout', (req, res) => {
+    if (!req.session) {
+        return res.json({
+            success: true,
+            message: 'Already logged out.'
+        });
+    }
+
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Logout Session Error:', err);
+
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to logout.'
+            });
         }
+
+        res.clearCookie('connect.sid');
+
+        return res.json({
+            success: true,
+            message: 'Logged out successfully.'
+        });
     });
 });
 

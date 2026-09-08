@@ -1,18 +1,19 @@
 const express = require('express');
 
 const db = require('../config/database');
+const { requireLogin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { normalizeFilePath, safeVal, safeNum } = require('../utils/helpers');
 
 const router = express.Router();
 
 const handleTravelSubmission = (req, res) => {
-    const employee_id   = safeVal(req.body.employee_id || req.body.applicant_id, 50);
-    const employee_name = safeVal(req.body.employee_name, 100);
-    const department    = safeVal(req.body.department, 100);
-    
-    let rawCompany = (req.body.company || req.body.company_name || 'focusinsight').toString().toLowerCase().trim();
-    const company_name  = rawCompany.includes('fortun') ? 'fortuntech' : 'focusinsight';
+    const employee_id = req.session.user.user_id;
+    const employee_name = req.session.user.name;
+    const department = req.session.user.department;
+
+    const company_name =
+        req.session.user.company_name || 'focusinsight';
 
     let travelDestination = safeVal(req.body.travel_destination || req.body.destination, 255) || 'N/A';
     let travelMode = safeVal(req.body.travel_mode, 100) || 'Flight';
@@ -21,7 +22,7 @@ const handleTravelSubmission = (req, res) => {
     }
 
     const allowance_type = safeVal(req.body.allowance_type, 100) || `Travel to ${travelDestination} (${travelMode})`;
-    
+
     const depDateVal = safeVal(req.body.expected_departure || req.body.expected_departure_date, 20);
     const claim_month = safeVal(req.body.claim_month, 20) || (depDateVal ? depDateVal.substring(0, 7) : new Date().toISOString().substring(0, 7));
 
@@ -87,136 +88,511 @@ const handleTravelSubmission = (req, res) => {
     });
 }
 
-router.post('/api/submit-disbursement', upload.single('attachment'), (req, res) => {
-    const employee_id   = req.body.employee_id;
-    const employee_name = req.body.employee_name;
-    const department    = req.body.department;
-    
-    let rawAmount = req.body.total_amount || "0";
-    let total_amount = parseFloat(rawAmount.toString().replace(/[^0-9.]/g, '')) || 0.00;
+router.post(
+    '/api/submit-disbursement',
+    requireLogin,
+    upload.single('attachment'),
+    (req, res) => {
+        const employee_id = req.session.user.user_id;
+        const employee_name = req.session.user.name;
+        const department = req.session.user.department;
 
-    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+        let rawAmount = req.body.total_amount || "0";
+        let total_amount = parseFloat(rawAmount.toString().replace(/[^0-9.]/g, '')) || 0.00;
 
-    const masterQuery = `
+        const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+
+        const masterQuery = `
         INSERT INTO \`disbursements\` 
         (\`employee_id\`, \`employee_name\`, \`department\`, \`total_amount\`, \`supporting_document\`, \`status\`, \`created_at\`) 
         VALUES (?, ?, ?, ?, ?, 'Pending', NOW())
     `;
 
-    db.query(masterQuery, [employee_id, employee_name, department, total_amount, attachment_path], (err, masterResult) => {
-        if (err) {
-            console.error('Master SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Failed to save master record: ' + err.message });
-        }
+        db.query(masterQuery, [employee_id, employee_name, department, total_amount, attachment_path], (err, masterResult) => {
+            if (err) {
+                console.error('Master SQL Error:', err);
+                return res.status(500).json({ success: false, message: 'Failed to save master record: ' + err.message });
+            }
 
-        const disbursementId = masterResult.insertId;
-        let expenseItems = [];
-        try {
-            expenseItems = JSON.parse(req.body.items || '[]');
-        } catch (parseErr) {
-            return res.status(400).json({ success: false, message: 'Invalid format for expense items.' });
-        }
+            const disbursementId = masterResult.insertId;
+            let expenseItems = [];
+            try {
+                expenseItems = JSON.parse(req.body.items || '[]');
+            } catch (parseErr) {
+                return res.status(400).json({ success: false, message: 'Invalid format for expense items.' });
+            }
 
-        if (expenseItems.length === 0) {
-            return res.json({ success: true, message: 'Disbursement saved successfully without itemized lines.' });
-        }
+            if (expenseItems.length === 0) {
+                return res.json({ success: true, message: 'Disbursement saved successfully without itemized lines.' });
+            }
 
-        const itemsQuery = `
+            const itemsQuery = `
             INSERT INTO \`disbursement_items\` 
             (\`disbursement_id\`, \`invoice_date\`, \`invoice_no\`, \`supplier_name\`, \`description\`, \`amount\`, \`remark\`) 
             VALUES ?
         `;
 
-        const itemsValues = expenseItems.map(item => [
-            disbursementId, 
-            item.invoice_date, 
-            item.invoice_no, 
-            item.supplier_name, 
-            item.description, 
-            parseFloat(String(item.amount || 0).replace(/[^0-9.]/g, '')) || 0.00, 
-            item.remark || ''
-        ]);
+            const itemsValues = expenseItems.map(item => [
+                disbursementId,
+                item.invoice_date,
+                item.invoice_no,
+                item.supplier_name,
+                item.description,
+                parseFloat(String(item.amount || 0).replace(/[^0-9.]/g, '')) || 0.00,
+                item.remark || ''
+            ]);
 
-        db.query(itemsQuery, [itemsValues], (err) => {
-            if (err) {
-                console.error('Child Table SQL Error:', err);
-                return res.status(500).json({ success: false, message: 'Failed to save itemized rows: ' + err.message });
-            }
-            return res.json({ success: true, message: 'Disbursement form and all rows saved successfully!' });
+            db.query(itemsQuery, [itemsValues], (err) => {
+                if (err) {
+                    console.error('Child Table SQL Error:', err);
+                    return res.status(500).json({ success: false, message: 'Failed to save itemized rows: ' + err.message });
+                }
+                return res.json({ success: true, message: 'Disbursement form and all rows saved successfully!' });
+            });
         });
-    });
-});
+    }
+);
 
-router.post('/api/submit-travel', upload.single('attachment'), handleTravelSubmission);
+router.post(
+    '/api/submit-travel',
+    requireLogin,
+    upload.single('attachment'),
+    handleTravelSubmission
+);
 
-router.post('/api/submit-allowance', upload.single('attachment'), handleTravelSubmission);
+router.post(
+    '/api/submit-allowance',
+    requireLogin,
+    upload.single('attachment'),
+    handleTravelSubmission
+);
 
-router.post('/api/submit-overtime', upload.none(), (req, res) => {
-    const {
-        employee_id, employee_name, department, ot_date, period, day_type,
-        ot_allowance, ot_rate, start_time, end_time, reason,
-        night_allowance_check, meal_allowance_check, total_claim
-    } = req.body;
+router.post(
+    '/api/submit-overtime',
+    requireLogin,
+    upload.none(),
+    (req, res) => {
 
-    const emp_id = employee_id || req.body.emp_id;
-    const emp_name = employee_name || req.body.emp_name;
+        const {
+            ot_date,
+            day_type,
+            start_time,
+            end_time,
+            reason,
+            night_allowance_check,
+            meal_allowance_check
+        } = req.body;
 
-    const rawAllowance = ot_allowance || "0";
-    const parsedOtAllowance = parseFloat(rawAllowance.toString().replace(/[^0-9.]/g, '')) || 0.00;
+        const employee_id = req.session.user.user_id;
+        const employee_name = req.session.user.name;
+        const department = req.session.user.department;
 
-    const rawTotalClaim = total_claim || rawAllowance;
-    const parsedTotalClaim = parseFloat(rawTotalClaim.toString().replace(/[^0-9.]/g, '')) || 0.00;
-
-    const night_allowance = Number(night_allowance_check) ? 1 : 0;
-    const meal_allowance = Number(meal_allowance_check) ? 1 : 0;
-
-    const query = `
-        INSERT INTO \`overtime\` 
-        (\`employee_id\`, \`employee_name\`, \`department\`, \`ot_date\`, \`start_time\`, \`end_time\`, \`period\`, \`day_type\`, \`ot_allowance\`, \`ot_rate\`, \`night_allowance\`, \`meal_allowance\`, \`reason\`, \`total_claim\`, \`status\`, \`created_at\`) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
-
-    db.query(query, [
-        emp_id, emp_name, department, ot_date, start_time, end_time,
-        period, day_type, parsedOtAllowance, ot_rate, night_allowance,
-        meal_allowance, reason, parsedTotalClaim
-    ], (err, result) => {
-        if (err) {
-            console.error('Overtime SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        if (!ot_date || !start_time || !end_time || !reason) {
+            return res.status(400).json({
+                success: false,
+                message: 'OT Date, Start Time, End Time and Reason are required.'
+            });
         }
-        return res.json({ success: true, message: 'Overtime claim submitted successfully!' });
-    });
-});
 
-router.post('/api/submit-loan', upload.single('attachment'), (req, res) => {
-    const {
-        employee_id, employee_name, department, loan_type,
-        repayment_period, monthly_salary, amount_requested,
-        disbursement_method, account_holder, account_number, bank_details
-    } = req.body;
+        function timeToMinutes(time) {
+            const parts = String(time).split(':');
 
-    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+            if (parts.length < 2) {
+                return null;
+            }
 
-    const query = `
-        INSERT INTO \`loans\` 
-        (\`employee_id\`, \`employee_name\`, \`department\`, \`loan_type\`, \`repayment_period\`, \`monthly_salary\`, \`amount_requested\`, \`disbursement_method\`, \`account_holder\`, \`account_number\`, \`bank_details\`, \`supporting_document\`, \`status\`, \`created_at\`) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
+            const hours = parseInt(parts[0], 10);
+            const minutes = parseInt(parts[1], 10);
 
-    db.query(query, [
-        employee_id, employee_name, department, loan_type,
-        repayment_period, monthly_salary, amount_requested,
-        disbursement_method, account_holder, account_number,
-        bank_details, attachment_path
-    ], (err, result) => {
-        if (err) {
-            console.error('Loan SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+            if (
+                Number.isNaN(hours) ||
+                Number.isNaN(minutes) ||
+                hours < 0 ||
+                hours > 23 ||
+                minutes < 0 ||
+                minutes > 59
+            ) {
+                return null;
+            }
+
+            return (hours * 60) + minutes;
         }
-        return res.json({ success: true, message: 'Loan application submitted successfully!' });
-    });
-});
+
+        const startMinutes = timeToMinutes(start_time);
+        let endMinutes = timeToMinutes(end_time);
+
+        if (startMinutes === null || endMinutes === null) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid overtime time.'
+            });
+        }
+
+        if (endMinutes < startMinutes) {
+            endMinutes += 24 * 60;
+        }
+
+        const totalMinutes = endMinutes - startMinutes;
+
+        if (totalMinutes <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'End Time must be after Start Time.'
+            });
+        }
+
+        const totalHours = totalMinutes / 60;
+
+        const cleanDayType =
+            String(day_type || '')
+                .trim()
+                .toLowerCase();
+
+        const isHoliday =
+            cleanDayType === 'holiday';
+
+        const nightRequested =
+            ['1', 'true', 'on'].includes(
+                String(night_allowance_check || '').toLowerCase()
+            );
+
+        const mealRequested =
+            ['1', 'true', 'on'].includes(
+                String(meal_allowance_check || '').toLowerCase()
+            );
+
+        const salaryQuery = `
+            SELECT basic_salary
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            salaryQuery,
+            [employee_id],
+            (salaryErr, salaryResults) => {
+
+                if (salaryErr) {
+                    console.error(
+                        'OT Salary Lookup Error:',
+                        salaryErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to retrieve employee salary.'
+                    });
+                }
+
+                if (!salaryResults || salaryResults.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee record not found.'
+                    });
+                }
+
+                const basicSalary =
+                    parseFloat(salaryResults[0].basic_salary) || 0;
+
+                let hourlyRate = 0;
+                let otRateCode = '';
+
+                if (basicSalary > 0) {
+                    if (basicSalary <= 3999.99) {
+                        const ORP = basicSalary / 26 / 8;
+
+                        const multiplier =
+                            isHoliday ? 2.0 : 1.5;
+
+                        hourlyRate = ORP * multiplier;
+
+                        otRateCode =
+                            `${multiplier.toFixed(1)}x`;
+                    } else {
+                        hourlyRate =
+                            isHoliday ? 20.00 : 15.00;
+
+                        otRateCode =
+                            isHoliday
+                                ? 'Fixed RM20'
+                                : 'Fixed RM15';
+                    }
+                } else {
+                    const multiplier =
+                        isHoliday ? 2.0 : 1.5;
+
+                    otRateCode =
+                        `${multiplier.toFixed(1)}x`;
+                }
+
+                const otPayment =
+                    totalHours * hourlyRate;
+
+                const mealAllowance =
+                    mealRequested && totalHours >= 3
+                        ? 5.00
+                        : 0.00;
+
+                const nightAllowance =
+                    nightRequested
+                        ? 50.00
+                        : 0.00;
+
+                const totalClaim =
+                    otPayment +
+                    mealAllowance +
+                    nightAllowance;
+
+                const period =
+                    `${totalHours.toFixed(1)} hrs`;
+
+                const cleanOtPayment =
+                    Number(otPayment.toFixed(2));
+
+                const cleanTotalClaim =
+                    Number(totalClaim.toFixed(2));
+
+                const query = `
+                    INSERT INTO overtime
+                    (
+                        employee_id,
+                        employee_name,
+                        department,
+                        ot_date,
+                        start_time,
+                        end_time,
+                        period,
+                        day_type,
+                        ot_allowance,
+                        ot_rate,
+                        night_allowance,
+                        meal_allowance,
+                        reason,
+                        total_claim,
+                        status,
+                        created_at
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        'Pending',
+                        NOW()
+                    )
+                `;
+
+                db.query(
+                    query,
+                    [
+                        employee_id,
+                        employee_name,
+                        department,
+                        ot_date,
+                        start_time,
+                        end_time,
+                        period,
+                        isHoliday
+                            ? 'holiday'
+                            : 'weekdays',
+                        cleanOtPayment,
+                        otRateCode,
+                        nightRequested ? 1 : 0,
+                        mealRequested && totalHours >= 3
+                            ? 1
+                            : 0,
+                        reason,
+                        cleanTotalClaim
+                    ],
+                    (err, result) => {
+
+                        if (err) {
+                            console.error(
+                                'Overtime SQL Error:',
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Database Error: ' +
+                                    err.message
+                            });
+                        }
+
+                        return res.json({
+                            success: true,
+                            message:
+                                'Overtime claim submitted successfully!',
+                            id: result.insertId
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
+
+router.post(
+    '/api/submit-loan',
+    requireLogin,
+    upload.single('attachment'),
+    (req, res) => {
+
+        const {
+            loan_type,
+            repayment_period,
+            amount_requested,
+            disbursement_method,
+            account_holder,
+            account_number,
+            bank_details
+        } = req.body;
+
+        const employee_id = req.session.user.user_id;
+        const employee_name = req.session.user.name;
+        const department = req.session.user.department;
+
+        const periodMatch =
+            String(repayment_period || '').match(/\d+/);
+
+        const cleanRepaymentPeriod =
+            periodMatch
+                ? parseInt(periodMatch[0], 10)
+                : null;
+
+        if (!cleanRepaymentPeriod) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid repayment period.'
+            });
+        }
+
+        const cleanAmount =
+            parseFloat(amount_requested);
+
+        if (
+            Number.isNaN(cleanAmount) ||
+            cleanAmount <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid loan amount.'
+            });
+        }
+
+        const attachment_path =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        const salaryQuery = `
+            SELECT basic_salary
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            salaryQuery,
+            [employee_id],
+            (salaryErr, salaryResults) => {
+
+                if (salaryErr) {
+                    console.error(
+                        'Loan Salary Lookup Error:',
+                        salaryErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to retrieve employee salary.'
+                    });
+                }
+
+                if (
+                    !salaryResults ||
+                    salaryResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee record not found.'
+                    });
+                }
+
+                const monthly_salary =
+                    parseFloat(
+                        salaryResults[0].basic_salary
+                    ) || 0;
+
+                const query = `
+                    INSERT INTO loans
+                    (
+                        employee_id,
+                        employee_name,
+                        department,
+                        loan_type,
+                        repayment_period,
+                        monthly_salary,
+                        amount_requested,
+                        disbursement_method,
+                        account_holder,
+                        account_number,
+                        bank_details,
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        'Pending',
+                        NOW()
+                    )
+                `;
+
+                db.query(
+                    query,
+                    [
+                        employee_id,
+                        employee_name,
+                        department,
+                        loan_type,
+                        cleanRepaymentPeriod,
+                        monthly_salary,
+                        cleanAmount,
+                        disbursement_method,
+                        account_holder,
+                        account_number,
+                        bank_details,
+                        attachment_path
+                    ],
+                    (err, result) => {
+
+                        if (err) {
+                            console.error(
+                                'Loan SQL Error:',
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Database Error: ' +
+                                    err.message
+                            });
+                        }
+
+                        return res.json({
+                            success: true,
+                            message:
+                                'Loan application submitted successfully!',
+                            id: result.insertId
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
 
 router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, res) => {
     const {
@@ -369,7 +745,7 @@ router.get('/api/request-details', (req, res) => {
         }
 
         const record = { ...results[0] };
-        
+
         // 2. Normalize attachment file path
         const rawDoc = record.supporting_document || record['Supporting Documen'] || record.attachment_path;
         record.supporting_document = normalizeFilePath(rawDoc);
@@ -381,13 +757,13 @@ router.get('/api/request-details', (req, res) => {
                 record.items = itemResults || [];
                 return res.json({ success: true, data: record });
             });
-        } 
+        }
         // 4. Parse assigned employees for Travel requests
         else if (reqType.includes('travel')) {
             let employeeList = [];
             try {
-                employeeList = typeof record.assigned_employees === 'string' 
-                    ? JSON.parse(record.assigned_employees) 
+                employeeList = typeof record.assigned_employees === 'string'
+                    ? JSON.parse(record.assigned_employees)
                     : (record.assigned_employees || []);
             } catch (e) {
                 employeeList = [];
@@ -402,7 +778,7 @@ router.get('/api/request-details', (req, res) => {
             }];
 
             return res.json({ success: true, data: record });
-        } 
+        }
         // 5. Standard return for Leave, Overtime, and Loans
         else {
             return res.json({ success: true, data: record });
@@ -418,10 +794,10 @@ router.get('/api/my-requests', (req, res) => {
     }
 
     const roleQuery = 'SELECT position FROM users WHERE LOWER(user_id) = LOWER(?)';
-    
+
     db.query(roleQuery, [req_user_id], (roleErr, roleResults) => {
         let isManagement = false;
-        
+
         if (!roleErr && roleResults.length > 0) {
             const pos = roleResults[0].position.toLowerCase();
             if (pos === 'ceo' || pos === 'manager' || pos === 'supervisor' || pos === 'management') {
@@ -429,19 +805,19 @@ router.get('/api/my-requests', (req, res) => {
             }
         }
 
-        let leaveQuery  = `SELECT * FROM \`leave\``;
-        let disQuery    = `SELECT * FROM \`disbursements\``;
+        let leaveQuery = `SELECT * FROM \`leave\``;
+        let disQuery = `SELECT * FROM \`disbursements\``;
         let travelQuery = `SELECT * FROM \`travel\``;
-        let otQuery     = `SELECT * FROM \`overtime\``;
-        let loanQuery   = `SELECT * FROM \`loans\``;
+        let otQuery = `SELECT * FROM \`overtime\``;
+        let loanQuery = `SELECT * FROM \`loans\``;
         let queryParams = [];
 
         if (!isManagement) {
-            leaveQuery  = `SELECT * FROM \`leave\` WHERE LOWER(\`Employee ID\`) = LOWER(?)`;
-            disQuery    = `SELECT * FROM \`disbursements\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            leaveQuery = `SELECT * FROM \`leave\` WHERE LOWER(\`Employee ID\`) = LOWER(?)`;
+            disQuery = `SELECT * FROM \`disbursements\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             travelQuery = `SELECT * FROM \`travel\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
-            otQuery     = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
-            loanQuery   = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            otQuery = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            loanQuery = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             queryParams = [req_user_id];
         }
 
@@ -455,7 +831,7 @@ router.get('/api/my-requests', (req, res) => {
                             (leaveResults || []).forEach(row => {
                                 const rawDate = row['Created At'] || row['Start Date'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || row.ID || 0,
@@ -476,7 +852,7 @@ router.get('/api/my-requests', (req, res) => {
                             (disResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,
@@ -495,7 +871,7 @@ router.get('/api/my-requests', (req, res) => {
                             (travelResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,
@@ -514,7 +890,7 @@ router.get('/api/my-requests', (req, res) => {
                             (otResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,
@@ -533,7 +909,7 @@ router.get('/api/my-requests', (req, res) => {
                             (loanResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,

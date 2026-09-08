@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+const session = require('express-session');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -11,6 +14,20 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const SESSION_TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes for testing
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'focusinsight-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    cookie: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: SESSION_TIMEOUT_MS
+    }
+}));
 
 // Block direct HTTP access to backend internals and legacy files before
 // falling through to the whole-project static server below. `express.static

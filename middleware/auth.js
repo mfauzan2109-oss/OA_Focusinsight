@@ -1,65 +1,47 @@
-const fs = require('fs');
-const db = require('../config/database');
-
-// If a file-upload middleware ran before this check and the request
-// ends up being rejected, delete the file it already wrote to disk
-// instead of leaving an orphaned upload from an unauthorized caller.
-function cleanupUploadedFile(req) {
-    if (req.file && req.file.path) {
-        fs.unlink(req.file.path, (err) => {
-            if (err) console.error('Failed to clean up rejected upload:', err);
+function requireLogin(req, res, next) {
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Authentication required.'
         });
     }
+
+    next();
 }
 
 function requireHRAccess(req, res, next) {
-    const userId =
-        req.query.user_id ||
-        req.body.user_id ||
-        req.headers['x-user-id'];
-
-    if (!userId) {
-        cleanupUploadedFile(req);
+    if (!req.session || !req.session.user) {
         return res.status(401).json({
             success: false,
-            message: 'Unauthorized. User ID parameter missing.'
+            message: 'Authentication required.'
         });
     }
 
-    const query = `
-        SELECT department, position
-        FROM users
-        WHERE LOWER(user_id) = LOWER(?)
-    `;
+    const department = String(
+        req.session.user.department || ''
+    ).trim().toLowerCase();
 
-    db.query(query, [userId], (err, results) => {
-        if (err || results.length === 0) {
-            cleanupUploadedFile(req);
-            return res.status(403).json({
-                success: false,
-                message: 'Access Denied: User verification failed.'
-            });
-        }
+    const position = String(
+        req.session.user.position || ''
+    ).trim().toLowerCase();
 
-        const user = results[0];
-        const department = (user.department || '').toLowerCase();
-        const position = (user.position || '').toLowerCase();
+    const isHR =
+        department.includes('human resources') ||
+        department === 'hr' ||
+        position.includes('human resources') ||
+        position === 'hr';
 
-        const isHR =
-            department.includes('hr') ||
-            department.includes('human resources') ||
-            position.includes('hr');
+    if (!isHR) {
+        return res.status(403).json({
+            success: false,
+            message: 'Access Denied: Only HR accounts can access this resource.'
+        });
+    }
 
-        if (!isHR) {
-            cleanupUploadedFile(req);
-            return res.status(403).json({
-                success: false,
-                message: 'Access Denied: Only HR accounts can access this resource.'
-            });
-        }
-
-        next();
-    });
+    next();
 }
 
-module.exports = { requireHRAccess };
+module.exports = {
+    requireLogin,
+    requireHRAccess
+};
