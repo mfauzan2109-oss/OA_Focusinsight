@@ -14,28 +14,55 @@ const storage = multer.diskStorage({
     },
 
     filename: (req, file, cb) => {
-        const cleanFileName = `${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
+        const cleanFileName =
+            Date.now() + '_' + file.originalname.replace(/\s+/g, '_');
+
         cb(null, cleanFileName);
     }
 });
 
-// Front-end forms only check file type in the browser, which is easy to
-// bypass by calling the API directly. Enforce the same PDF/JPG/PNG
-// restriction (plus a size cap) here as well.
-const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const allowedMimeTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png'
+];
+
+const allowedExtensions = [
+    '.pdf',
+    '.jpg',
+    '.jpeg',
+    '.png'
+];
 
 const fileFilter = (req, file, cb) => {
-    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-        return cb(new Error('Only PDF, JPG, or PNG files are allowed.'));
+    const ext = path
+        .extname(file.originalname)
+        .toLowerCase();
+
+    const validMime =
+        allowedMimeTypes.includes(file.mimetype);
+
+    const validExtension =
+        allowedExtensions.includes(ext);
+
+    if (validMime && validExtension) {
+        return cb(null, true);
     }
-    cb(null, true);
+
+    return cb(
+        new Error(
+            'Invalid file type. Only PDF, JPG, JPEG and PNG files are allowed.'
+        ),
+        false
+    );
 };
 
 const upload = multer({
     storage,
-    fileFilter,
-    limits: { fileSize: MAX_FILE_SIZE_BYTES }
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    },
+    fileFilter
 });
 
 module.exports = upload;
