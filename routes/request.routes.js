@@ -338,6 +338,79 @@ router.post('/api/submit-probation-confirmation', upload.single('attachment'), (
     });
 });
 
+router.post('/api/submit-contract-renewal', upload.single('attachment'), (req, res) => {
+    const {
+        requested_by, requester_position, request_date, department,
+        employee_id, employee_name, employee_department, position,
+        current_start_date, current_end_date, current_duration, current_salary,
+        proposed_start_date, proposed_end_date, proposed_duration, proposed_salary,
+        reason_for_renewal,
+        performance_summary, attendance_status, employee_remarks,
+        discipline_status, renewal_recommendation, supervisor_recommendation
+    } = req.body;
+
+    if (!employee_id || !employee_name) {
+        return res.status(400).json({ success: false, message: 'Employee ID and Employee Name are required.' });
+    }
+    if (!current_start_date || !current_end_date || !current_duration || !current_salary) {
+        return res.status(400).json({ success: false, message: 'Please complete all Current Contract Details fields.' });
+    }
+    if (!proposed_start_date || !proposed_end_date || !proposed_duration || !proposed_salary || !reason_for_renewal) {
+        return res.status(400).json({ success: false, message: 'Please complete all Proposed Renewal Details fields.' });
+    }
+    if (!performance_summary || !attendance_status || !discipline_status || !renewal_recommendation || !supervisor_recommendation) {
+        return res.status(400).json({ success: false, message: 'Please complete all required Employee Assessment fields.' });
+    }
+
+    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+
+    const query = `
+        INSERT INTO \`contract_renewals\`
+        (\`requested_by\`, \`requester_position\`, \`department\`, \`request_date\`,
+         \`employee_id\`, \`employee_name\`, \`employee_department\`, \`position\`,
+         \`current_start_date\`, \`current_end_date\`, \`current_duration\`, \`current_salary\`,
+         \`proposed_start_date\`, \`proposed_end_date\`, \`proposed_duration\`, \`proposed_salary\`,
+         \`reason_for_renewal\`,
+         \`performance_summary\`, \`attendance_status\`, \`employee_remarks\`,
+         \`discipline_status\`, \`renewal_recommendation\`, \`supervisor_recommendation\`,
+         \`supporting_document\`, \`status\`, \`created_at\`)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+    `;
+
+    db.query(query, [
+        safeVal(requested_by, 20),
+        safeVal(requester_position, 100),
+        safeVal(department, 100),
+        safeVal(request_date, 20) || new Date().toISOString().split('T')[0],
+        safeVal(employee_id, 50),
+        safeVal(employee_name, 100),
+        safeVal(employee_department, 100),
+        safeVal(position, 100),
+        safeVal(current_start_date, 20),
+        safeVal(current_end_date, 20),
+        safeVal(current_duration, 50),
+        safeVal(current_salary, 50),
+        safeVal(proposed_start_date, 20),
+        safeVal(proposed_end_date, 20),
+        safeVal(proposed_duration, 50),
+        safeVal(proposed_salary, 50),
+        safeVal(reason_for_renewal, 0),
+        safeVal(performance_summary, 0),
+        safeVal(attendance_status, 50),
+        safeVal(employee_remarks, 0),
+        safeVal(discipline_status, 50),
+        safeVal(renewal_recommendation, 50),
+        safeVal(supervisor_recommendation, 0),
+        attachment_path
+    ], (err, result) => {
+        if (err) {
+            console.error('Contract Renewal SQL Error:', err);
+            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        }
+        return res.json({ success: true, message: 'Contract renewal form submitted successfully!', id: result.insertId });
+    });
+});
+
 router.get('/api/request-details', (req, res) => {
     const { id, type } = req.query;
 
