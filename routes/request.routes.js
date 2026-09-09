@@ -1496,80 +1496,241 @@ router.get('/api/my-requests', (req, res) => {
     });
 });
 
-router.post('/api/submit-hiring-approval', upload.single('attachment'), (req, res) => {
-    const {
-        requested_by, request_date, department,
-        employee_name, employee_id, hiring_type, employee_replaced_id,
-        number_of_vacancy, employment_type, employment_period, work_location, required_start_date,
-        reason_for_hiring, job_description, key_responsibilities,
-        minimum_qualification, required_skills, required_experience,
-        salary_range, budget_cost_center, hiring_priority
-    } = req.body;
+router.post(
+    '/api/submit-hiring-approval',
+    requireHRAccess,
+    upload.single('attachment'),
+    (req, res) => {
 
-    if (!employee_name || !employee_id || !hiring_type) {
-        return res.status(400).json({ success: false, message: 'Employee Name, Employee ID, and Hiring type are required.' });
-    }
-    if (hiring_type === 'Replacement' && !employee_replaced_id) {
-        return res.status(400).json({ success: false, message: 'Employee being replaced is required for Replacement hiring type.' });
-    }
-    if (!number_of_vacancy || !employment_type || !work_location || !required_start_date || !reason_for_hiring) {
-        return res.status(400).json({ success: false, message: 'Please complete all Employment Information fields.' });
-    }
-    const PERIOD_REQUIRED_TYPES = ['Contract', 'Intern', 'Probation'];
-    if (PERIOD_REQUIRED_TYPES.includes(employment_type) && !employment_period) {
-        return res.status(400).json({ success: false, message: 'Period is required for Contract, Intern, or Probation employment types.' });
-    }
-    if (!job_description || !key_responsibilities || !minimum_qualification || !required_skills || !required_experience) {
-        return res.status(400).json({ success: false, message: 'Please complete all Job Requirement fields.' });
-    }
-    if (!salary_range || !budget_cost_center || !hiring_priority) {
-        return res.status(400).json({ success: false, message: 'Please complete all Compensation & Budget fields.' });
-    }
+        const {
+            employee_name,
+            employee_id,
+            hiring_type,
+            employee_replaced_id,
+            number_of_vacancy,
+            employment_type,
+            employment_period,
+            work_location,
+            required_start_date,
+            reason_for_hiring,
+            job_description,
+            key_responsibilities,
+            minimum_qualification,
+            required_skills,
+            required_experience,
+            salary_range,
+            budget_cost_center,
+            hiring_priority
+        } = req.body;
 
-    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
-
-    const query = `
-        INSERT INTO \`hiring_approvals\`
-        (\`requested_by\`, \`request_date\`, \`department\`,
-         \`employee_name\`, \`employee_id\`, \`hiring_type\`, \`employee_replaced_id\`,
-         \`number_of_vacancy\`, \`employment_type\`, \`employment_period\`, \`work_location\`, \`required_start_date\`,
-         \`reason_for_hiring\`, \`job_description\`, \`key_responsibilities\`,
-         \`minimum_qualification\`, \`required_skills\`, \`required_experience\`,
-         \`salary_range\`, \`budget_cost_center\`, \`hiring_priority\`, \`supporting_document\`,
-         \`status\`, \`created_at\`)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
-
-    db.query(query, [
-        safeVal(requested_by, 20),
-        safeVal(request_date, 20) || new Date().toISOString().split('T')[0],
-        safeVal(department, 100),
-        safeVal(employee_name, 100),
-        safeVal(employee_id, 50),
-        safeVal(hiring_type, 50),
-        safeVal(employee_replaced_id, 50),
-        safeNum(number_of_vacancy),
-        safeVal(employment_type, 50),
-        safeVal(employment_period, 50),
-        safeVal(work_location, 150),
-        safeVal(required_start_date, 20),
-        safeVal(reason_for_hiring, 0),
-        safeVal(job_description, 0),
-        safeVal(key_responsibilities, 0),
-        safeVal(minimum_qualification, 255),
-        safeVal(required_skills, 0),
-        safeVal(required_experience, 0),
-        safeVal(salary_range, 100),
-        safeVal(budget_cost_center, 100),
-        safeVal(hiring_priority, 20),
-        attachment_path
-    ], (err, result) => {
-        if (err) {
-            console.error('Hiring Approval SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        if (!employee_name || !employee_id || !hiring_type) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee Name, Employee ID, and Hiring type are required.'
+            });
         }
-        return res.json({ success: true, message: 'Hiring approval form submitted successfully!', id: result.insertId });
-    });
-});
+
+        if (
+            hiring_type === 'Replacement' &&
+            !employee_replaced_id
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee being replaced is required for Replacement hiring type.'
+            });
+        }
+
+        const vacancyCount =
+            parseInt(number_of_vacancy, 10);
+
+        if (
+            Number.isNaN(vacancyCount) ||
+            vacancyCount < 1
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Number of Vacancy must be at least 1.'
+            });
+        }
+
+        if (
+            !employment_type ||
+            !work_location ||
+            !required_start_date ||
+            !reason_for_hiring
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Employment Information fields.'
+            });
+        }
+
+        const PERIOD_REQUIRED_TYPES = [
+            'Contract',
+            'Intern',
+            'Probation'
+        ];
+
+        if (
+            PERIOD_REQUIRED_TYPES.includes(
+                employment_type
+            ) &&
+            !employment_period
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Period is required for Contract, Intern, or Probation employment types.'
+            });
+        }
+
+        if (
+            !job_description ||
+            !key_responsibilities ||
+            !minimum_qualification ||
+            !required_skills ||
+            !required_experience
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Job Requirement fields.'
+            });
+        }
+
+        if (
+            !salary_range ||
+            !budget_cost_center ||
+            !hiring_priority
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Compensation & Budget fields.'
+            });
+        }
+
+        const requester =
+            req.session.user;
+
+        const requestDate =
+            new Date()
+                .toISOString()
+                .split('T')[0];
+
+        const attachment_path =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        const query = `
+            INSERT INTO hiring_approvals
+            (
+                requested_by,
+                request_date,
+                department,
+
+                employee_name,
+                employee_id,
+                hiring_type,
+                employee_replaced_id,
+
+                number_of_vacancy,
+                employment_type,
+                employment_period,
+                work_location,
+                required_start_date,
+
+                reason_for_hiring,
+                job_description,
+                key_responsibilities,
+
+                minimum_qualification,
+                required_skills,
+                required_experience,
+
+                salary_range,
+                budget_cost_center,
+                hiring_priority,
+
+                supporting_document,
+                status,
+                created_at
+            )
+            VALUES (
+                ?, ?, ?,
+                ?, ?, ?, ?,
+                ?, ?, ?, ?, ?,
+                ?, ?, ?,
+                ?, ?, ?,
+                ?, ?, ?,
+                ?,
+                'Pending',
+                NOW()
+            )
+        `;
+
+        db.query(
+            query,
+            [
+                requester.user_id,
+                requestDate,
+                requester.department,
+
+                safeVal(employee_name, 100),
+                safeVal(employee_id, 50),
+                safeVal(hiring_type, 50),
+                safeVal(employee_replaced_id, 50),
+
+                vacancyCount,
+                safeVal(employment_type, 50),
+                safeVal(employment_period, 50),
+                safeVal(work_location, 150),
+                safeVal(required_start_date, 20),
+
+                safeVal(reason_for_hiring, 0),
+                safeVal(job_description, 0),
+                safeVal(key_responsibilities, 0),
+
+                safeVal(minimum_qualification, 255),
+                safeVal(required_skills, 0),
+                safeVal(required_experience, 0),
+
+                safeVal(salary_range, 100),
+                safeVal(budget_cost_center, 100),
+                safeVal(hiring_priority, 20),
+
+                attachment_path
+            ],
+            (err, result) => {
+
+                if (err) {
+                    console.error(
+                        'Hiring Approval SQL Error:',
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Database Error: ' +
+                            err.message
+                    });
+                }
+
+                return res.json({
+                    success: true,
+                    message:
+                        'Hiring approval form submitted successfully!',
+                    id: result.insertId
+                });
+            }
+        );
+    }
+);
 
 module.exports = router;
