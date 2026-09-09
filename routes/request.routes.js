@@ -411,6 +411,90 @@ router.post('/api/submit-contract-renewal', upload.single('attachment'), (req, r
     });
 });
 
+// Simplified statutory approximations (Malaysia). NOTE: these are simplified
+// flat-rate approximations for display/record purposes only - they are not a
+// substitute for the official EPF/PERKESO/LHDN contribution tables, which are
+// bracket-based and depend on age, citizenship, and other factors. Verify
+// against current official tables before relying on this for actual payroll.
+function calcStatutoryDeductions(gross) {
+    const epf = Math.round(gross * 0.11 * 100) / 100;      // Employee EPF ~11%
+    const socso = Math.round(gross * 0.005 * 100) / 100;   // Employee SOCSO ~0.5% (Category 1 approx)
+    const eis = Math.round(gross * 0.002 * 100) / 100;     // Employee EIS 0.2%
+    return { epf, socso, eis };
+}
+
+router.post('/api/submit-payroll-payment', upload.single('attachment'), (req, res) => {
+    const {
+        requested_by, requester_position, request_date, department,
+        payment_type, payment_period, payee_name, employee_id,
+        gross_amount, payment_description,
+        bank_name, bank_account_number, requested_payment_date, cost_center,
+        tax_amount, remarks
+    } = req.body;
+
+    if (!payment_type || !payment_period || !payee_name || !employee_id) {
+        return res.status(400).json({ success: false, message: 'Please complete all Payment Details fields.' });
+    }
+    const gross = safeNum(gross_amount);
+    if (!gross || gross <= 0) {
+        return res.status(400).json({ success: false, message: 'Amount (RM) must be a valid positive number.' });
+    }
+    if (!payment_description) {
+        return res.status(400).json({ success: false, message: 'Payment Description is required.' });
+    }
+    if (!bank_name || !bank_account_number || !requested_payment_date || !cost_center) {
+        return res.status(400).json({ success: false, message: 'Please complete all Bank & Payment Information fields.' });
+    }
+
+    const { epf, socso, eis } = calcStatutoryDeductions(gross);
+    const tax = safeNum(tax_amount) || 0;
+    const netPay = Math.round((gross - epf - socso - eis - tax) * 100) / 100;
+
+    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+
+    const query = `
+        INSERT INTO \`payroll_payment_requests\`
+        (\`requested_by\`, \`requester_position\`, \`department\`, \`request_date\`,
+         \`payment_type\`, \`payment_period\`, \`payee_name\`, \`employee_id\`,
+         \`gross_amount\`, \`payment_description\`,
+         \`bank_name\`, \`bank_account_number\`, \`requested_payment_date\`, \`cost_center\`,
+         \`epf_amount\`, \`socso_amount\`, \`eis_amount\`, \`tax_amount\`, \`net_pay\`,
+         \`remarks\`, \`supporting_document\`, \`status\`, \`created_at\`)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+    `;
+
+    db.query(query, [
+        safeVal(requested_by, 20),
+        safeVal(requester_position, 100),
+        safeVal(department, 100),
+        safeVal(request_date, 20) || new Date().toISOString().split('T')[0],
+        safeVal(payment_type, 50),
+        safeVal(payment_period, 20),
+        safeVal(payee_name, 100),
+        safeVal(employee_id, 50),
+        gross,
+        safeVal(payment_description, 0),
+        safeVal(bank_name, 100),
+        safeVal(bank_account_number, 50),
+        safeVal(requested_payment_date, 20),
+        safeVal(cost_center, 100),
+        epf, socso, eis, tax, netPay,
+        safeVal(remarks, 0),
+        attachment_path
+    ], (err, result) => {
+        if (err) {
+            console.error('Payroll Payment SQL Error:', err);
+            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        }
+        return res.json({
+            success: true,
+            message: 'Payroll payment request submitted successfully!',
+            id: result.insertId,
+            summary: { gross_amount: gross, epf, socso, eis, tax, net_pay: netPay }
+        });
+    });
+});
+
 router.get('/api/request-details', (req, res) => {
     const { id, type } = req.query;
 

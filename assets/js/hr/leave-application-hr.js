@@ -172,6 +172,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const numDaysInput = document.getElementById('numDays');
         const dayTypeSelect = document.getElementById('dayType');
 
+        // Weekends excluded: Saturday (6) and Sunday (0) don't count as leave days
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
+
+        function countBusinessDays(start, end) {
+            let count = 0;
+            const cursor = new Date(start);
+            cursor.setHours(0, 0, 0, 0);
+            const endClamped = new Date(end);
+            endClamped.setHours(0, 0, 0, 0);
+            while (cursor <= endClamped) {
+                if (!isWeekend(cursor)) count++;
+                cursor.setDate(cursor.getDate() + 1);
+            }
+            return count;
+        }
+
+        // Sekat calendar picker daripada pilih tarikh kurang dari 3 hari notis (UX level)
+        (function setMinStartDate() {
+            const minDate = new Date();
+            minDate.setDate(minDate.getDate() + 3);
+            const yyyy = minDate.getFullYear();
+            const mm = String(minDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(minDate.getDate()).padStart(2, '0');
+            startDateInput.min = `${yyyy}-${mm}-${dd}`;
+        })();
+
         function calculateDays() {
             const start = startDateInput.value;
             const end = endDateInput.value;
@@ -181,8 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const eDate = new Date(end);
 
                 if (eDate >= sDate) {
-                    const diffTime = Math.abs(eDate - sDate);
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    let diffDays = countBusinessDays(sDate, eDate);
 
                     if (dayTypeSelect.value.includes('Half Day')) {
                         diffDays = 0.5;
@@ -194,9 +222,68 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        startDateInput.addEventListener('change', calculateDays);
-        endDateInput.addEventListener('change', calculateDays);
+        startDateInput.addEventListener('change', () => {
+            if (startDateInput.value) {
+                const start = new Date(startDateInput.value);
+                if (isWeekend(start)) {
+                    alert('Weekends are excluded from leave. Please choose a Start Date that falls on a weekday (Mon–Fri).');
+                    startDateInput.value = '';
+                    numDaysInput.value = '';
+                    return;
+                }
+            }
+            endDateInput.min = startDateInput.value;
+            calculateDays();
+        });
+        endDateInput.addEventListener('change', () => {
+            if (endDateInput.value) {
+                const end = new Date(endDateInput.value);
+                if (isWeekend(end)) {
+                    alert('Weekends are excluded from leave. Please choose an End Date that falls on a weekday (Mon–Fri).');
+                    endDateInput.value = '';
+                    numDaysInput.value = '';
+                    return;
+                }
+            }
+            calculateDays();
+        });
         dayTypeSelect.addEventListener('change', calculateDays);
+
+        function isAtLeast3DaysAdvance(startDateValue) {
+            if (!startDateValue) return false;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const start = new Date(startDateValue);
+            start.setHours(0, 0, 0, 0);
+            const diffDays = Math.round((start - today) / (1000 * 60 * 60 * 24));
+            return diffDays >= 3;
+        }
+
+        async function hasOverlappingLeave(startVal, endVal) {
+            try {
+                const response = await fetch(`${API_BASE}/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                const result = await response.json();
+                if (!result.success || !Array.isArray(result.data)) return false;
+
+                const newStart = new Date(startVal);
+                const newEnd = new Date(endVal);
+
+                return result.data.some(row => {
+                    const sameUser = row.employee_id && row.employee_id.toString().trim().toLowerCase() === userId.toString().trim().toLowerCase();
+                    const isLeave = (row.request_type || '').toLowerCase() === 'leave';
+                    const status = (row.status || '').toLowerCase();
+                    const isActive = status.includes('pending') || status === 'approved';
+                    if (!sameUser || !isLeave || !isActive || !row.start_date || !row.end_date) return false;
+
+                    const existingStart = new Date(row.start_date);
+                    const existingEnd = new Date(row.end_date);
+                    return newStart <= existingEnd && newEnd >= existingStart;
+                });
+            } catch (err) {
+                console.error('Overlap pre-check failed:', err);
+                return false;
+            }
+        }
 
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('attachment');
@@ -246,6 +333,22 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
 
             errorBanner.style.display = 'none';
+
+            if (!isAtLeast3DaysAdvance(startDateInput.value)) {
+                alert('Leave must be submitted at least 3 days in advance. Please choose a Start Date at least 3 days from today.');
+                return;
+            }
+
+            if (isWeekend(new Date(startDateInput.value)) || isWeekend(new Date(endDateInput.value))) {
+                alert('Weekends are excluded from leave. Please select weekday dates only.');
+                return;
+            }
+
+            if (await hasOverlappingLeave(startDateInput.value, endDateInput.value)) {
+                alert('This employee already has a pending or approved leave request that overlaps with these dates. Duplicate leave applications are not allowed.');
+                return;
+            }
+
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
 
