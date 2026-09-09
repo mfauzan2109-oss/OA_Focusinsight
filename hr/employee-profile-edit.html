@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Profile (EDITABLE) - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #aedce2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- WHITE HEADER BAR --- */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            width: 100%;
+        }
+
+        .brand-logo img {
+            height: 36px;
+            width: auto;
+            display: block;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .header-icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* --- FULL WIDTH CONTAINER --- */
+        .form-container {
+            width: 92%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 0 40px 0;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        /* --- PROFILE OVERVIEW CARD & STATUS --- */
+        .profile-overview-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .profile-summary-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            max-width: 600px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .profile-avatar-large {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .avatar-circle-lg {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: #ffffff;
+            font-size: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .change-pic-link {
+            font-size: 11px;
+            color: #2563eb;
+            text-decoration: underline;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .profile-details-list {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #0f172a;
+        }
+
+        .profile-details-list strong {
+            font-weight: 700;
+        }
+
+        .profile-details-list span {
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        .status-badge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-title-label {
+            font-size: 14px;
+            font-weight: 800;
+            color: #000000;
+        }
+
+        .badge-active-pill {
+            background-color: #00e619;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 800;
+            padding: 8px 36px;
+            border-radius: 20px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 230, 25, 0.2);
+        }
+
+        /* --- FORM SECTION BADGES & INPUTS --- */
+        .section-badge {
+            display: inline-block;
+            background-color: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 16px;
+            margin-top: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input[readonly] {
+            background-color: #f1f5f9;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .form-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Bottom Action Buttons */
+        .bottom-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .btn-action-back {
+            background-color: #c7d2fe;
+            color: #1e1b4b;
+            border: 1px solid #a5b4fc;
+            padding: 10px 48px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-back:hover {
+            background-color: #b4c6fc;
+        }
+
+        .btn-action-save {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 10px 48px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-save:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- WHITE HEADER BAR -->
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- FORM CONTAINER -->
+    <main class="form-container">
+        <h1 class="page-title" id="profileHeading">LOADING PROFILE...</h1>
+
+        <!-- PROFILE OVERVIEW & STATUS BADGE -->
+        <div class="profile-overview-wrapper">
+            <div class="profile-summary-card">
+                <div class="profile-avatar-large">
+                    <div class="avatar-circle-lg"><i class="fa-solid fa-user"></i></div>
+                    <a href="#" class="change-pic-link">Change Picture</a>
+                </div>
+                <div class="profile-details-list">
+                    <div><strong>Name :</strong> <span id="summaryName">Loading...</span></div>
+                    <div><strong>Employee ID :</strong> <span id="summaryId">-</span></div>
+                    <div><strong>Position :</strong> <span id="summaryPos">-</span></div>
+                    <div><strong>Department :</strong> <span id="summaryDept">-</span></div>
+                    <div><strong>Employment type :</strong> <span id="summaryType">Full Time</span></div>
+                </div>
+            </div>
+
+            <div class="status-badge-container">
+                <div class="status-title-label">Status</div>
+                <div class="badge-active-pill" id="statusPill">Active</div>
+            </div>
+        </div>
+
+        <form id="employeeEditForm">
+
+            <!-- 1. PERSONAL INFORMATION -->
+            <div class="section-badge">Personal Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="fullName">Full Name</label>
+                <input type="text" id="fullName" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="icPassport">IC/Passport No.</label>
+                <input type="text" id="icPassport" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="phoneNo">Phone No.</label>
+                <input type="text" id="phoneNo" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="emergencyContact">Emergency Contact</label>
+                <input type="text" id="emergencyContact" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="address">Address</label>
+                <textarea id="address" class="form-textarea"></textarea>
+            </div>
+
+            <!-- 2. EMPLOYMENT INFORMATION -->
+            <div class="section-badge">Employment Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="dept">Department</label>
+                <input type="text" id="dept" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="position">Position</label>
+                <input type="text" id="position" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="supervisor">Manager/Supervisor</label>
+                <input type="text" id="supervisor" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="joinDate">Join date</label>
+                <input type="date" id="joinDate" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="salary">Basic Salary</label>
+                <input type="number" step="0.01" id="salary" class="form-input" placeholder="e.g. 3500.00">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="empId">Employee ID</label>
+                <input type="text" id="empId" class="form-input" readonly>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="empPassword">Employee Password</label>
+                <input type="password" id="empPassword" class="form-input" placeholder="••••••••">
+            </div>
+
+            <!-- BOTTOM ACTION BUTTONS -->
+            <div class="bottom-actions">
+                <a href="user-management.html" class="btn-action-back">Back</a>
+                <button type="submit" class="btn-action-save">Save</button>
+            </div>
+
+        </form>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const empIdParam = urlParams.get('id') || 'EMP001';
+
+        // Load profile data from MySQL via API
+        async function loadProfileData() {
+            try {
+                const response = await fetch(`/api/profile/${encodeURIComponent(empIdParam)}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const u = result.data;
+
+                    // Update Title & Summary Card
+                    document.getElementById('profileHeading').textContent = `${(u.name || 'USER').toUpperCase()} (${u.user_id})`;
+                    document.getElementById('summaryName').textContent = u.name || 'N/A';
+                    document.getElementById('summaryId').textContent = u.user_id || 'N/A';
+                    document.getElementById('summaryPos').textContent = u.position || 'N/A';
+                    document.getElementById('summaryDept').textContent = u.department || 'N/A';
+                    document.getElementById('summaryType').textContent = u.employment_type || 'Full Time';
+
+                    // Populate Input Fields
+                    document.getElementById('fullName').value = u.name || '';
+                    document.getElementById('email').value = u.email || '';
+                    document.getElementById('icPassport').value = u.ic_no || '';
+                    document.getElementById('phoneNo').value = u.phone_no || '';
+                    document.getElementById('emergencyContact').value = u.emergency_contact || '';
+                    document.getElementById('address').value = u.address || '';
+                    document.getElementById('dept').value = u.department || '';
+                    document.getElementById('position').value = u.position || '';
+                    document.getElementById('supervisor').value = u.manager || '';
+                    
+                    if (u.join_date) {
+                        try {
+                            const formattedDate = new Date(u.join_date).toISOString().split('T')[0];
+                            document.getElementById('joinDate').value = formattedDate;
+                        } catch(e) {
+                            document.getElementById('joinDate').value = '';
+                        }
+                    }
+
+                    document.getElementById('empId').value = u.user_id || '';
+                    document.getElementById('salary').value = (u.salary !== null && u.salary !== undefined) ? u.salary : '';
+                } else {
+                    alert('Error loading user profile: ' + (result.message || 'User not found.'));
+                }
+            } catch (err) {
+                console.error('Fetch profile error:', err);
+                alert('Database connection error. Ensure your Node.js server is running.');
+            }
+        }
+
+        await loadProfileData();
+
+        // Submit profile updates to MySQL database
+        document.getElementById('employeeEditForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const payload = {
+                name: document.getElementById('fullName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                ic_no: document.getElementById('icPassport').value.trim(),
+                phone_no: document.getElementById('phoneNo').value.trim(),
+                emergency_contact: document.getElementById('emergencyContact').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                department: document.getElementById('dept').value.trim(),
+                position: document.getElementById('position').value.trim(),
+                manager: document.getElementById('supervisor').value.trim(),
+                join_date: document.getElementById('joinDate').value,
+                basic_salary: document.getElementById('salary').value.trim()
+            };
+
+            try {
+                const response = await fetch(`/api/profile/${encodeURIComponent(empIdParam)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(result.message || 'Employee profile updated successfully!');
+                    window.location.href = 'user-management.html';
+                } else {
+                    alert('Update failed: ' + result.message);
+                }
+            } catch (err) {
+                console.error('Save profile error:', err);
+                alert('Failed to connect to server. Ensure Node.js server is running.');
+            }
+        });
+    });
+    </script>
+</body>
+</html>

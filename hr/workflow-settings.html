@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Workflow Settings - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .profile-avatar img,
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-avatar, .avatar-circle {
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #bcdbe5;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 24px 32px;
+            width: calc(100% - 250px);
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px 4px 14px;
+            margin-top: 6px;
+        }
+
+        /* --- NAVIGATION TABS BAR --- */
+        .admin-nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .admin-tab-btn {
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-tab-btn.active {
+            background-color: #5eead4;
+            color: #0f172a;
+            border: 2px solid #2563eb;
+        }
+
+        .admin-tab-btn:hover:not(.active) {
+            background-color: #f8fafc;
+            color: #2563eb;
+        }
+
+        /* --- CONTENT CARD --- */
+        .admin-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            border: 2px solid #5eead4;
+        }
+
+        .card-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .btn-add-workflow {
+            background-color: #1d4ed8;
+            color: #ffffff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-add-workflow:hover {
+            background-color: #1e40af;
+        }
+
+        /* --- WORKFLOW LIST CARDS --- */
+        .workflow-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .workflow-item {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .workflow-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            border-color: #94a3b8;
+        }
+
+        .workflow-info h3 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 6px 0;
+        }
+
+        .workflow-info p {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .workflow-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .badge-levels {
+            background-color: #cce9f5;
+            color: #1e3a8a;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 6px 14px;
+            border-radius: 12px;
+        }
+
+        .btn-edit-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .btn-edit-link:hover {
+            text-decoration: underline;
+        }
+
+        /* --- NOTIFICATION BELL & DROPDOWN --- */
+        .notification-container { position: relative; }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover { background-color: #f1f5f9; }
+
+        .noti-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 800;
+            min-width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+        }
+
+        @keyframes noti-badge-pop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.5); }
+            60% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        .noti-badge-pop { animation: noti-badge-pop 0.4s ease-out; }
+
+        @keyframes noti-bell-shake {
+            0%, 100% { transform: rotate(0deg); }
+            20% { transform: rotate(-12deg); }
+            40% { transform: rotate(10deg); }
+            60% { transform: rotate(-8deg); }
+            80% { transform: rotate(6deg); }
+        }
+        .noti-bell-shake { animation: noti-bell-shake 0.5s ease-in-out; }
+
+        .noti-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 100;
+        }
+        .noti-dropdown.open { display: block; }
+
+        .noti-dropdown-header {
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .noti-list-body { padding: 8px; }
+
+        .noti-card {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-left: 4px solid #f59e0b;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        .noti-card:hover { transform: translateX(2px); }
+        .noti-card.status-approved { border-left-color: #22c55e; }
+        .noti-card.status-rejected { border-left-color: #ef4444; }
+        .noti-card.status-review { border-left-color: #0ea5e9; }
+        .noti-card.status-pending { border-left-color: #f59e0b; }
+
+        .noti-card-title { font-size: 12.5px; font-weight: 700; color: #0f172a; margin: 0 0 2px 0; }
+        .noti-card-formno { font-size: 11px; font-weight: 600; color: #475569; margin: 0; }
+        .noti-card-date { font-size: 10.5px; color: #94a3b8; margin: 2px 0 0 0; }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review { background: #0ea5e9; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">—</h4>
+                <p id="sidebarMeta">—</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item active"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
+            <a href="hr-operations.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+            
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="/hr/my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+
+        <!-- HEADER TOP BAR -->
+        <header class="top-header">
+            <h1>Administration</h1>
+            <div class="header-right">
+                <div class="search-box-wrapper">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search request">
+                    </div>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge" style="display: none;">0</span>
+                    </button>
+                    <div class="noti-dropdown" id="notiDropdown">
+                        <div class="noti-dropdown-header">Notifications</div>
+                        <div class="noti-list-body" id="notiListBody">
+                            <div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">—</div>
+                </a>
+            </div>
+        </header>
+
+        <!-- ADMINISTRATION TABS -->
+        <div class="admin-nav-tabs">
+            <a href="user-management.html" class="admin-tab-btn">User Management</a>
+            <a href="departments.html" class="admin-tab-btn">Departments</a>
+            <a href="workflow-settings.html" class="admin-tab-btn active">Workflow Settings</a>
+            <a href="system-config.html" class="admin-tab-btn">System Config</a>
+        </div>
+
+        <!-- MAIN CARD CONTAINER -->
+        <section class="admin-card">
+            <div class="card-toolbar">
+                <h2 class="card-title">Approval Workflow Configuration</h2>
+                <a href="new-workflow.html" class="btn-add-workflow" id="addWorkflowBtn">+ New Workflow</a>
+            </div>
+
+            <div class="workflow-list" id="workflowList">
+                <p style="color: #64748b; font-size: 13px;">Loading workflows from database...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+    let previousNotiState = {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const username = sessionStorage.getItem('username') || '';
+        const userId = sessionStorage.getItem('userId') || '';
+        const department = sessionStorage.getItem('department') || '';
+        const position = sessionStorage.getItem('position') || '';
+
+        document.getElementById('sidebarName').textContent = username || '—';
+        document.getElementById('sidebarMeta').textContent = (userId || department) ? `${userId} . ${department}` : '—';
+
+        const initials = username
+            ? username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+            : '';
+        document.getElementById('topAvatar').textContent = initials || '—';
+
+        // Show the profile picture the user set in profile-hr.html, if any
+        (function loadSavedProfileAvatar() {
+            if (!userId) return;
+            const formattedUserId = userId.toUpperCase();
+            const savedAvatar = localStorage.getItem(`userAvatar_${formattedUserId}`);
+            if (!savedAvatar) return;
+
+            const avatarImgHtml = `<img src="${savedAvatar}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+
+            const sidebarAvatar = document.getElementById('sidebarAvatarContainer');
+            if (sidebarAvatar) sidebarAvatar.innerHTML = avatarImgHtml;
+
+            const topAvatar = document.getElementById('topAvatar');
+            if (topAvatar) topAvatar.innerHTML = avatarImgHtml;
+        })();
+
+        async function loadWorkflows() {
+            const listContainer = document.getElementById('workflowList');
+            try {
+                const response = await fetch('/api/workflows');
+                const result = await response.json();
+
+                if (!result.success || !Array.isArray(result.data) || result.data.length === 0) {
+                    listContainer.innerHTML = `<p style="color: #94a3b8; font-size: 13px;">No workflows configured yet.</p>`;
+                    return;
+                }
+
+                listContainer.innerHTML = result.data.map(wf => `
+                    <div class="workflow-item">
+                        <div class="workflow-info">
+                            <h3>${wf.workflow_name}</h3>
+                            <p>${wf.chain}</p>
+                        </div>
+                        <div class="workflow-actions">
+                            <span class="badge-levels">${wf.levels} Level${wf.levels !== 1 ? 's' : ''}</span>
+                            <a href="edit-workflow.html?type=${encodeURIComponent(wf.workflow_type)}" class="btn-edit-link">Edit</a>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading workflows:', err);
+                listContainer.innerHTML = `<p style="color: #ef4444; font-size: 13px;">Failed to load workflows from database.</p>`;
+            }
+        }
+
+        loadWorkflows();
+
+        // --- NOTIFICATIONS ---
+        if (userId) {
+            fetchNotifications(userId, department, position);
+            setInterval(() => fetchNotifications(userId, department, position), 15000);
+        } else {
+            document.getElementById('notiListBody').innerHTML = `<div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Log in to see notifications</div>`;
+        }
+
+        const notiBellBtn = document.getElementById('notiBellBtn');
+        const notiDropdown = document.getElementById('notiDropdown');
+
+        notiBellBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notiDropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!notiDropdown.contains(e.target) && e.target !== notiBellBtn) {
+                notiDropdown.classList.remove('open');
+            }
+        });
+
+        notiDropdown.addEventListener('click', function(e) {
+            const card = e.target.closest('.noti-card');
+            if (!card) return;
+            e.stopPropagation();
+
+            const reqId = card.getAttribute('data-req-id');
+            const reqType = card.getAttribute('data-req-type') || 'Form';
+            if (!reqId) return;
+
+            notiDropdown.classList.remove('open');
+            window.location.href = `request-details.html?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`;
+        });
+    });
+
+    async function fetchNotifications(userId, department, position) {
+        try {
+            const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+            const result = await response.json();
+
+            if (result.success && Array.isArray(result.notifications)) {
+                renderNotifications(result.notifications);
+            } else {
+                document.getElementById('notiListBody').innerHTML = `<div style="padding: 12px; text-align: center; color: #ef4444; font-size: 13px;">Failed to load notifications</div>`;
+            }
+        } catch (err) {
+            console.error('Error fetching notifications:', err);
+            document.getElementById('notiListBody').innerHTML = `<div style="padding: 12px; text-align: center; color: #ef4444; font-size: 13px;">Server connection error</div>`;
+        }
+    }
+
+    function renderNotifications(notifications) {
+        const notiListBody = document.getElementById('notiListBody');
+        const notiBadge = document.getElementById('notiBadge');
+        const notiBellBtn = document.getElementById('notiBellBtn');
+
+        const pendingCount = notifications.filter(n => (n.status || '').toLowerCase() === 'pending').length;
+        const wasHidden = notiBadge.style.display === 'none' || notiBadge.style.display === '';
+
+        if (pendingCount > 0) {
+            notiBadge.textContent = pendingCount;
+            notiBadge.style.display = 'flex';
+        } else {
+            notiBadge.style.display = 'none';
+        }
+
+        if (notifications.length === 0) {
+            notiListBody.innerHTML = `<div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">No notifications found</div>`;
+            previousNotiState = {};
+            return;
+        }
+
+        const nextState = {};
+        let hasNewOrChanged = false;
+        let html = '';
+
+        notifications.forEach(item => {
+            const statusLower = (item.status || 'pending').toLowerCase();
+            let cardClass = 'status-pending';
+            let pillClass = 'pending';
+
+            if (statusLower.includes('approve')) { cardClass = 'status-approved'; pillClass = 'approved'; }
+            else if (statusLower.includes('reject')) { cardClass = 'status-rejected'; pillClass = 'rejected'; }
+            else if (statusLower.includes('revision') || statusLower.includes('review')) { cardClass = 'status-review'; pillClass = 'review'; }
+
+            const title = item.is_reminder
+                ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                : `${item.type || 'Form'} ${statusLower.charAt(0).toUpperCase() + statusLower.slice(1)}`;
+
+            const reqId = item.id || item.form_id || item.form_no;
+            const reqType = item.type || 'Form';
+            const itemKey = `${item.is_reminder ? 'reminder' : 'status'}-${reqType}-${item.form_no || item.id}`;
+            const isChanged = previousNotiState[itemKey] !== undefined && previousNotiState[itemKey] !== statusLower;
+            const isBrandNew = previousNotiState[itemKey] === undefined && Object.keys(previousNotiState).length > 0;
+            if (isChanged || isBrandNew) hasNewOrChanged = true;
+            nextState[itemKey] = statusLower;
+
+            html += `
+                <div class="noti-card ${cardClass}" data-req-id="${reqId}" data-req-type="${reqType}">
+                    <div>
+                        <p class="noti-card-title">${title}</p>
+                        <p class="noti-card-formno">Form No: ${item.form_no || ''}</p>
+                        <p class="noti-card-date">${item.time || ''}</p>
+                    </div>
+                    <span class="noti-status-pill ${pillClass}">${(item.status || 'Pending').toUpperCase()}</span>
+                </div>
+            `;
+        });
+
+        notiListBody.innerHTML = html;
+        previousNotiState = nextState;
+
+        if (hasNewOrChanged) {
+            notiBadge.classList.remove('noti-badge-pop');
+            void notiBadge.offsetWidth;
+            notiBadge.classList.add('noti-badge-pop');
+
+            notiBellBtn.classList.remove('noti-bell-shake');
+            void notiBellBtn.offsetWidth;
+            notiBellBtn.classList.add('noti-bell-shake');
+        } else if (wasHidden && pendingCount > 0) {
+            notiBadge.classList.remove('noti-badge-pop');
+            void notiBadge.offsetWidth;
+            notiBadge.classList.add('noti-badge-pop');
+        }
+    }
+    </script>
+</body>
+</html>

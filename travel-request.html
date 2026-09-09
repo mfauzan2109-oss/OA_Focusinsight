@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Request | OA Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-avatar img,
+        .avatar-circle img,
+        .user-avatar-circle img,
+        .header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-avatar, .avatar-circle, .header-avatar {
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- WHITE HEADER BAR --- */
+        .main-content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .main-inner {
+            padding: 24px 32px 60px 32px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .page-header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .brand-logo img {
+            height: 36px;
+            width: auto;
+            display: block;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        /* Search Bar & Dropdown Styles */
+        .search-container { 
+            position: relative; 
+        }
+
+        .search-container input { 
+            background-color: #ffffff; 
+            border: 1px solid #D5DBDB; 
+            border-radius: 20px; 
+            padding: 8px 16px 8px 36px; 
+            font-size: 14px; 
+            outline: none; 
+            width: 260px; 
+        }
+
+        .search-container .search-icon { 
+            position: absolute; 
+            left: 14px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: #7F8C8D; 
+            font-size: 16px; 
+            display: flex;
+            align-items: center;
+        }
+
+        .search-dropdown {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 45px;
+            width: 320px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            flex-direction: column;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .search-dropdown.active {
+            display: flex;
+        }
+
+        /* --- NOTIFICATION BELL & DROPDOWN --- */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid #ffffff;
+        }
+
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .view-all-link:hover { text-decoration: underline; }
+
+        /* Approval Queue Menu Badge Styling */
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background-color: #f97316;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        @keyframes navBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .nav-badge.noti-badge-pop {
+            animation: navBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile profile-link">
+            <div class="profile-avatar" id="sidebarAvatarContainer">
+                <i class='bx bx-user'></i>
+            </div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge hidden-nav" id="approvalQueueBadge">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+            <h2 class="page-header-title">Travel Request</h2>
+            <div class="header-actions">
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
+                    </div>
+                </div>
+
+                <!-- Notification Bell Component -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" aria-label="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-inner">
+        <form class="form-card form-card-wide" id="travelForm" enctype="multipart/form-data">
+
+            <div class="autosave-status" id="autosaveStatus" style="display: none; align-items: center; gap: 6px; font-size: 12px; color: #16a34a; background: #f0fdf4; padding: 6px 12px; border-radius: 6px; margin-bottom: 15px; transition: opacity 0.5s ease;">
+                <i class='bx bx-check-circle'></i> Draft autosaved automatically
+            </div>
+
+            <div class="error-banner hidden-nav" id="errorBanner"></div>
+
+            <!-- EMPLOYEE INFORMATION -->
+            <section class="form-section">
+                <h3 class="form-section-title">Employee Information</h3>
+
+                <div class="input-group">
+                    <label for="company">Company<span class="required">*</span></label>
+                    <input type="text" id="company" name="company" placeholder="Fetching company name..." readonly required>
+                </div>
+
+                <div class="employee-toolbar">
+                    <div class="employee-search">
+                        <i class='bx bx-search'></i>
+                        <input type="text" id="employeeSearch" placeholder="Search employee list...">
+                    </div>
+                    <button type="button" class="btn-add-employee" id="addEmployeeBtn">
+                        <i class='bx bx-plus'></i> Add Employee
+                    </button>
+                </div>
+
+                <div class="employee-table-wrap">
+                    <table class="data-table" id="employeeTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">ID</th>
+                                <th style="width: 180px;">NAME</th>
+                                <th style="width: 130px;">CONTACT NO</th>
+                                <th style="width: 180px;">EMAIL ADDRESS</th>
+                                <th>PURPOSE OF TRAVEL</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                            <!-- Rows added dynamically -->
+                        </tbody>
+                    </table>
+                    <div class="empty-table-hint" id="employeeEmptyHint">No employees added yet. Click "Add Employee" to include travellers on this request.</div>
+                </div>
+            </section>
+
+            <!-- TRIP DETAILS -->
+            <section class="form-section">
+                <h3 class="form-section-title">Trip Details</h3>
+
+                <div class="input-group">
+                    <label for="travel-destination">Travel Destination<span class="required">*</span></label>
+                    <input type="text" id="travel-destination" name="travel_destination" placeholder="e.g. Singapore" required>
+                    <span class="upload-hint">Please specify the destination location / client company</span>
+                </div>
+
+                <div class="field-pair">
+                    <div class="input-group">
+                        <label for="travel-mode">Travel Mode<span class="required">*</span></label>
+                        <select id="travel-mode" name="travel_mode" required>
+                            <option value="" selected disabled>Select travel mode</option>
+                            <option value="flight">Flight</option>
+                            <option value="car">Car</option>
+                            <option value="others">Others</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="travel-mode-others">Others (please specify)</label>
+                        <input type="text" id="travel-mode-others" name="travel_mode_others" placeholder="Enter travel mode" disabled>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="departure-destination">Departure Destination<span class="required">*</span></label>
+                        <input type="text" id="departure-destination" name="departure_destination" placeholder="e.g. Kuala Lumpur" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="arrival-destination">Arrival Destination<span class="required">*</span></label>
+                        <input type="text" id="arrival-destination" name="arrival_destination" placeholder="e.g. Singapore" required>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="expected-departure">Expected Date Departure<span class="required">*</span></label>
+                        <input type="date" id="expected-departure" name="expected_departure" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="expected-arrival">Expected Date Arrival<span class="required">*</span></label>
+                        <input type="date" id="expected-arrival" name="expected_arrival" required>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="return-date">Estimated Return Date<span class="required">*</span></label>
+                        <input type="date" id="return-date" name="return_date" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="mileage">Mileage <span class="mileage-label-hint">(For Domestic Travel Only)</span></label>
+                        <input type="number" id="mileage" name="mileage" min="0" step="0.1" placeholder="0.0 km">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="accommodation">Required Accommodation<span class="required">*</span></label>
+                    <select id="accommodation" name="accommodation" required>
+                        <option value="" selected disabled>Please select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- CONTACT DETAILS SECTION -->
+            <section class="form-section" id="contact-section">
+                <h3 class="form-section-title" id="contact-section-title">Oversea Contact Details</h3>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="primary-contact">Primary Contact<span class="required">*</span></label>
+                        <input type="text" id="primary-contact" name="primary_contact" placeholder="Full name" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="phone-number">Phone Number<span class="required">*</span></label>
+                        <input type="tel" id="phone-number" name="phone_number" placeholder="e.g. +65 8123 4567" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="venue-address">Venue &amp; Address<span class="required">*</span></label>
+                    <textarea id="venue-address" name="venue_address" rows="3" placeholder="Enter venue name and full address" required></textarea>
+                </div>
+            </section>
+
+            <!-- FLIGHT (DEPARTURE) -->
+            <section class="form-section" id="flight-dep-section" style="display: none;">
+                <h3 class="form-section-title">Flight (Departure)</h3>
+
+                <div class="input-group">
+                    <label for="dep-channel">Channel<span class="required">*</span></label>
+                    <input type="text" id="dep-channel" name="dep_channel" placeholder="E.g. Trip.com/Booking.com" required>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="dep-departure-dest">Departure Destination<span class="required">*</span></label>
+                        <input type="text" id="dep-departure-dest" name="dep_departure_dest" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="dep-arrival-dest">Arrival Destination<span class="required">*</span></label>
+                        <input type="text" id="dep-arrival-dest" name="dep_arrival_dest" required>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label>Departure Date &amp; Time<span class="required">*</span></label>
+                        <div class="field-pair">
+                            <input type="date" id="dep-date" name="dep_date" required>
+                            <input type="time" id="dep-time" name="dep_time" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Arrival Date &amp; Time<span class="required">*</span></label>
+                        <div class="field-pair">
+                            <input type="date" id="dep-arr-date" name="dep_arr_date" required>
+                            <input type="time" id="dep-arr-time" name="dep_arr_time" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-pair">
+                    <div class="input-group">
+                        <label for="dep-airline">Airline<span class="required">*</span></label>
+                        <input type="text" id="dep-airline" name="dep_airline" placeholder="e.g. Malaysia Airlines" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="dep-airline-type">Flight Type<span class="required">*</span></label>
+                        <select id="dep-airline-type" name="dep_airline_type" required>
+                            <option value="" selected disabled>Please select</option>
+                            <option value="direct">Direct Flight</option>
+                            <option value="transfer">Flight with Transfers</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="dep-baggage">Checked Baggage<span class="required">*</span></label>
+                        <input type="text" id="dep-baggage" name="dep_baggage" placeholder="e.g. 20kg" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="dep-price">Estimated Price<span class="required">*</span></label>
+                        <input type="number" step="0.01" id="dep-price" name="dep_price" placeholder="0.00" required>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FLIGHT (RETURN) -->
+            <section class="form-section" id="flight-ret-section" style="display: none;">
+                <h3 class="form-section-title">Flight (Return)</h3>
+
+                <div class="input-group">
+                    <label for="ret-channel">Channel<span class="required">*</span></label>
+                    <input type="text" id="ret-channel" name="ret_channel" placeholder="E.g. Trip.com/Booking.com" required>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="ret-departure-dest">Departure Destination<span class="required">*</span></label>
+                        <input type="text" id="ret-departure-dest" name="ret_departure_dest" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="ret-arrival-dest">Arrival Destination<span class="required">*</span></label>
+                        <input type="text" id="ret-arrival-dest" name="ret_arrival_dest" required>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label>Departure Date &amp; Time<span class="required">*</span></label>
+                        <div class="field-pair">
+                            <input type="date" id="ret-date" name="ret_date" required>
+                            <input type="time" id="ret-time" name="ret_time" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Arrival Date &amp; Time<span class="required">*</span></label>
+                        <div class="field-pair">
+                            <input type="date" id="ret-arr-date" name="ret_arr_date" required>
+                            <input type="time" id="ret-arr-time" name="ret_arr_time" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-pair">
+                    <div class="input-group">
+                        <label for="ret-airline">Airline<span class="required">*</span></label>
+                        <input type="text" id="ret-airline" name="ret_airline" placeholder="e.g. Malaysia Airlines" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="ret-airline-type">Flight Type<span class="required">*</span></label>
+                        <select id="ret-airline-type" name="ret_airline_type" required>
+                            <option value="" selected disabled>Please select</option>
+                            <option value="direct">Direct Flight</option>
+                            <option value="transfer">Flight with Transfers</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="ret-baggage">Checked Baggage<span class="required">*</span></label>
+                        <input type="text" id="ret-baggage" name="ret_baggage" placeholder="e.g. 20kg" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="ret-price">Estimated Price<span class="required">*</span></label>
+                        <input type="number" step="0.01" id="ret-price" name="ret_price" placeholder="0.00" required>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HOTEL -->
+            <section class="form-section" id="hotel-section" style="display: none;">
+                <h3 class="form-section-title">Hotel</h3>
+
+                <div class="input-group">
+                    <label for="hotel-channel">Channel<span class="required">*</span></label>
+                    <input type="text" id="hotel-channel" name="hotel_channel" placeholder="E.g. Trip.com/Booking.com" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="hotel-name">Hotel Name<span class="required">*</span></label>
+                    <input type="text" id="hotel-name" name="hotel_name" required>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="hotel-duration">Duration<span class="required">*</span></label>
+                        <input type="text" id="hotel-duration" name="hotel_duration" placeholder="e.g. 2 Jul - 5 Jul 2026" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="hotel-nights">Total Nights<span class="required">*</span></label>
+                        <input type="number" id="hotel-nights" name="hotel_nights" min="0" step="1" placeholder="0" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="hotel-price">Estimated Price<span class="required">*</span></label>
+                    <input type="number" step="0.01" id="hotel-price" name="hotel_price" placeholder="0.00" required>
+                </div>
+            </section>
+
+            <!-- ATTACHMENT SECTION -->
+            <section class="form-section">
+                <h3 class="form-section-title">Supporting Document</h3>
+                <div class="input-group">
+                    <label for="attachment">Attachment</label>
+                    <input type="file" id="attachment" name="attachment">
+                    <span class="upload-hint">Upload itineraries, flight/hotel quotes, or invitation letters (PDF, JPG, PNG).</span>
+                </div>
+            </section>
+
+            <!-- ALLOWANCE CALCULATION -->
+            <div class="allowance-container">
+                <h3 class="allowance-title">
+                    <i class="fa-solid fa-calculator"></i> Allowance Calculation
+                </h3>
+
+                <div class="allowance-grid">
+                    
+                    <!-- Travel Allowance -->
+                    <div class="allowance-card">
+                        <div class="allowance-header">
+                            <i class="fa-solid fa-plane allowance-icon"></i>
+                            <span class="allowance-name">Travel Allowance</span>
+                        </div>
+                        <div class="allowance-metrics">
+                            <div class="metric-item">
+                                <span class="metric-label">Trip Days</span>
+                                <span class="metric-value" id="travel-days">0</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Rate</span>
+                                <span class="metric-value" id="rate-travel">RM150</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Allowance</span>
+                                <span class="metric-value" id="travel-allowance">RM 0.00</span>
+                            </div>
+                            <div class="metric-item highlight">
+                                <span class="metric-label">Est. Total</span>
+                                <span class="metric-value" id="travel-total">RM 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="form-actions-pill form-actions-margin">
+                <button type="button" class="btn-cancel-pill" id="cancelBtn">Cancel</button>
+                <button type="submit" class="btn-submit-pill" id="submitBtn">Submit</button>
+            </div>
+
+        </form>
+
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+
+            const CONFIG = {
+                apiBaseUrl: window.APP_CONFIG?.apiBaseUrl || (window.location.origin.includes('localhost') 
+                    ? 'http://localhost:3000/api' 
+                    : '/api'),
+                loginPage: window.APP_CONFIG?.loginPage || 'login.html',
+                dashboardPage: window.APP_CONFIG?.dashboardPage || 'dashboard.html',
+                endpoints: {
+                    allowanceRates: '/allowance-rates',
+                    submitAllowance: '/submit-travel',
+                    notifications: '/notifications'
+                }
+            };
+
+            const userSession = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || {};
+
+            const currentEmployeeId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || userSession.user_id || userSession.employee_id || '';
+            const currentEmployeeName = sessionStorage.getItem('username') || localStorage.getItem('username') || userSession.name || userSession.username || 'Pengguna';
+            const currentDepartment = sessionStorage.getItem('department') || localStorage.getItem('department') || userSession.department || 'General Department';
+            
+            const currentPosition = sessionStorage.getItem('position') || localStorage.getItem('position') || userSession.position || '';
+            const userRole = (sessionStorage.getItem('role') || localStorage.getItem('role') || userSession.role || '').toLowerCase();
+
+            const formattedEmployeeId = (currentEmployeeId || '').toUpperCase();
+
+            const isManager = (currentEmployeeId && formattedEmployeeId.startsWith('MGR')) ||
+                              (currentPosition && currentPosition.toLowerCase().includes('manager')) ||
+                              userRole.includes('manager') ||
+                              userRole.includes('admin') ||
+                              userRole.includes('supervisor');
+
+            if (!currentEmployeeId) {
+                alert('Session expired or unauthorized. Please log in.');
+                window.location.href = CONFIG.loginPage;
+                return;
+            }
+
+            // AUTO-FILL COMPANY NAME DIRECTLY FROM DATABASE
+            const companyInput = document.getElementById('company');
+
+            async function loadUserCompany() {
+                if (!currentEmployeeId) return;
+
+                const storedCompany = sessionStorage.getItem('company_name') || localStorage.getItem('company_name') || userSession.company_name;
+                
+                if (storedCompany) {
+                    companyInput.value = storedCompany;
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${CONFIG.apiBaseUrl}/profile/${encodeURIComponent(currentEmployeeId)}`);
+                    const resData = await response.json();
+
+                    if (resData.success && resData.data && resData.data.company_name) {
+                        companyInput.value = resData.data.company_name;
+                        sessionStorage.setItem('company_name', resData.data.company_name);
+                    } else {
+                        companyInput.value = 'FocusInsight'; 
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch user company from DB:', err);
+                    companyInput.value = 'FocusInsight';
+                }
+            }
+
+            loadUserCompany();
+
+            // ROLE-BASED VISIBILITY FOR APPROVAL QUEUE
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem) {
+                if (isManager) {
+                    approvalQueueItem.classList.remove('hidden-nav');
+                } else {
+                    approvalQueueItem.classList.add('hidden-nav');
+                }
+            }
+
+            async function checkApprovalQueueAccess(userId, department, position) {
+                const pos = (position || '').toLowerCase();
+                const dept = (department || '').toLowerCase();
+
+                if (!(pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userId || '').toUpperCase().startsWith('MGR'))) {
+                    return;
+                }
+                try {
+                    const res = await fetch(`${CONFIG.apiBaseUrl}/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        const pendingApprovalCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;
+                        const badge = document.getElementById('approvalQueueBadge');
+                        if (badge) {
+                            if (pendingApprovalCount > 0) {
+                                const wasHidden = badge.style.display === 'none' || badge.style.display === '' || badge.classList.contains('hidden-nav');
+                                const prevCount = badge.textContent;
+                                badge.classList.remove('hidden-nav');
+                                badge.textContent = pendingApprovalCount;
+                                badge.style.display = 'inline-block';
+                                if (wasHidden || prevCount !== String(pendingApprovalCount)) {
+                                    badge.classList.remove('noti-badge-pop');
+                                    void badge.offsetWidth;
+                                    badge.classList.add('noti-badge-pop');
+                                }
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Approval queue badge check failed:', e);
+                }
+            }
+
+            checkApprovalQueueAccess(currentEmployeeId, currentDepartment, currentPosition);
+            setInterval(() => checkApprovalQueueAccess(currentEmployeeId, currentDepartment, currentPosition), 5000);
+
+            const sidebarNameEl = document.getElementById('sidebarName');
+            const sidebarMetaEl = document.getElementById('sidebarMeta');
+            const topAvatarEl = document.getElementById('topAvatar');
+
+            if (sidebarNameEl) sidebarNameEl.textContent = currentEmployeeName;
+            if (sidebarMetaEl) sidebarMetaEl.textContent = `${formattedEmployeeId} • ${currentDepartment}`;
+            
+            const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+
+            if (topAvatarEl) {
+                const initials = currentEmployeeName
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .substring(0, 2)
+                    .toUpperCase();
+                topAvatarEl.textContent = initials || 'US';
+            }
+
+            function updateAvatarDisplay(avatarBase64) {
+                if (avatarBase64) {
+                    const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                    if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+                    if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+                }
+            }
+
+            const specificAvatarKey = `userAvatar_${formattedEmployeeId}`;
+            const savedAvatar = localStorage.getItem(specificAvatarKey);
+            updateAvatarDisplay(savedAvatar);
+
+            window.addEventListener('storage', function(e) {
+                if (e.key === specificAvatarKey) {
+                    updateAvatarDisplay(e.newValue);
+                }
+            });
+
+            let currentGrandTotalAllowance = 0;
+            let rates = {}; 
+            let allFetchedRequests = [];
+
+            async function fetchAllowanceRates() {
+                try {
+                    const response = await fetch(`${CONFIG.apiBaseUrl}${CONFIG.endpoints.allowanceRates}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        rates = Object.keys(data).reduce((acc, key) => {
+                            acc[key] = parseFloat(data[key]) || 0;
+                            return acc;
+                        }, {});
+                        
+                        if(rates.travel !== undefined) document.getElementById('rate-travel').textContent = `RM${rates.travel}`;
+
+                        calculateAllowance();
+                    } else {
+                        rates = { travel: 150 };
+                    }
+                } catch (error) {
+                    console.error('Error fetching allowance rates:', error);
+                    rates = { travel: 150 };
+                }
+            }
+
+            await fetchAllowanceRates();
+
+            // AUTO-SAVE DRAFT LOGIC
+            const AUTOSAVE_KEY = `travel_request_draft_${currentEmployeeId}`;
+            const autosaveStatus = document.getElementById('autosaveStatus');
+            const travelForm = document.getElementById('travelForm');
+
+            function loadDraft() {
+                const savedDraft = localStorage.getItem(AUTOSAVE_KEY);
+                if (!savedDraft) return;
+
+                try {
+                    const draftData = JSON.parse(savedDraft);
+                    for (const [key, value] of Object.entries(draftData)) {
+                        if (key === 'attachment' || key === 'company') continue;
+                        const field = travelForm.elements[key];
+                        if (field) {
+                            if (field.type === 'checkbox' || field.type === 'radio') {
+                                field.checked = (field.value === value);
+                            } else {
+                                field.value = value;
+                            }
+                            field.dispatchEvent(new Event('change'));
+                            field.dispatchEvent(new Event('input'));
+                        }
+                    }
+                    calculateAllowance();
+                } catch (err) {
+                    console.error('Gagal memuatkan draft:', err);
+                }
+            }
+
+            function saveCurrentFormDraft() {
+                if (!travelForm) return;
+                const formDataObj = {};
+                const formData = new FormData(travelForm);
+                
+                formData.forEach((value, key) => {
+                    if (typeof value !== 'string') return;
+                    formDataObj[key] = value;
+                });
+
+                localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(formDataObj));
+            }
+
+            let autosaveTimer;
+            if (travelForm) {
+                travelForm.addEventListener('input', () => {
+                    clearTimeout(autosaveTimer);
+                    autosaveTimer = setTimeout(() => {
+                        saveCurrentFormDraft();
+
+                        if (autosaveStatus) {
+                            autosaveStatus.style.display = 'flex';
+                            autosaveStatus.style.opacity = '1';
+                            setTimeout(() => {
+                                autosaveStatus.style.opacity = '0';
+                            }, 2000);
+                        }
+                    }, 1000);
+                });
+
+                window.addEventListener('beforeunload', () => {
+                    saveCurrentFormDraft();
+                });
+
+                document.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        const href = link.getAttribute('href');
+                        if (href && href !== '#' && !href.startsWith('javascript')) {
+                            saveCurrentFormDraft();
+                        }
+                    });
+                });
+            }
+
+            loadDraft();
+
+            const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+            const employeeTableBody = document.getElementById('employeeTableBody');
+            const employeeEmptyHint = document.getElementById('employeeEmptyHint');
+
+            if (addEmployeeBtn && employeeTableBody) {
+                addEmployeeBtn.addEventListener('click', () => {
+                    if (employeeEmptyHint) {
+                        employeeEmptyHint.style.display = 'none';
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><input type="text" class="table-input emp-id" name="emp_id[]" placeholder="Employee ID" required></td>
+                        <td><input type="text" class="table-input emp-name" name="emp_name[]" placeholder="Full Name" required></td>
+                        <td><input type="tel" class="table-input emp-phone" name="emp_phone[]" placeholder="Phone Number" required></td>
+                        <td><input type="email" class="table-input emp-email" name="emp_email[]" placeholder="Email Address" required></td>
+                        <td>
+                            <select class="table-input emp-purpose" name="emp_purpose[]" required>
+                                <option value="" selected disabled>Select Purpose</option>
+                                <option value="Business">Business</option>
+                                <option value="Training">Training</option>
+                                <option value="Event">Event</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-remove-row" aria-label="Remove Row">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </td>
+                    `;
+
+                    tr.querySelector('.btn-remove-row').addEventListener('click', () => {
+                        tr.remove();
+                        if (employeeTableBody.children.length === 0 && employeeEmptyHint) {
+                            employeeEmptyHint.style.display = 'block';
+                        }
+                        calculateAllowance();
+                    });
+
+                    employeeTableBody.appendChild(tr);
+                    calculateAllowance();
+                });
+            }
+
+            const travelModeSelect = document.getElementById('travel-mode');
+            const travelModeOthersInput = document.getElementById('travel-mode-others');
+            const contactSectionTitle = document.getElementById('contact-section-title');
+            const flightDepSection = document.getElementById('flight-dep-section');
+            const flightRetSection = document.getElementById('flight-ret-section');
+            const hotelSection = document.getElementById('hotel-section');
+            const accommodationSelect = document.getElementById('accommodation');
+
+            if (travelModeSelect && travelModeOthersInput) {
+                travelModeSelect.addEventListener('change', () => {
+                    const mode = travelModeSelect.value.toLowerCase();
+                    const isOthers = mode === 'others';
+                    
+                    travelModeOthersInput.disabled = !isOthers;
+                    travelModeOthersInput.required = isOthers;
+                    
+                    if (!isOthers) {
+                        travelModeOthersInput.value = '';
+                    } else {
+                        travelModeOthersInput.focus();
+                    }
+
+                    const flightSections = [flightDepSection, flightRetSection];
+                    const isFlight = mode === 'flight';
+
+                    if (mode === 'car' || mode === 'others') {
+                        if (contactSectionTitle) contactSectionTitle.textContent = 'Contact Details';
+                    } else {
+                        if (contactSectionTitle) contactSectionTitle.textContent = 'Oversea Contact Details';
+                    }
+
+                    flightSections.forEach(section => {
+                        if (!section) return;
+                        section.style.display = isFlight ? 'block' : 'none';
+                        section.querySelectorAll('input, select, textarea').forEach(input => {
+                            if (isFlight) {
+                                input.setAttribute('required', 'required');
+                            } else {
+                                input.removeAttribute('required');
+                            }
+                        });
+                    });
+                });
+            }
+
+            if (accommodationSelect && hotelSection) {
+                accommodationSelect.addEventListener('change', () => {
+                    const needsHotel = accommodationSelect.value === 'yes';
+                    hotelSection.style.display = needsHotel ? 'block' : 'none';
+                    hotelSection.querySelectorAll('input, select, textarea').forEach(input => {
+                        if (needsHotel) {
+                            input.setAttribute('required', 'required');
+                        } else {
+                            input.removeAttribute('required');
+                        }
+                    });
+                });
+            }
+
+            const departureDateInput = document.getElementById('expected-departure');
+            const returnDateInput = document.getElementById('return-date');
+            const hotelNightsInput = document.getElementById('hotel-nights');
+
+            function calculateAllowance() {
+                const depDateVal = departureDateInput ? departureDateInput.value : '';
+                const retDateVal = returnDateInput ? returnDateInput.value : '';
+                const travellerCount = Math.max(1, employeeTableBody ? employeeTableBody.children.length : 1);
+                const nights = parseInt(hotelNightsInput ? hotelNightsInput.value : 0) || 0;
+
+                let diffDays = 0;
+                if (depDateVal && retDateVal) {
+                    const depDate = new Date(depDateVal);
+                    const retDate = new Date(retDateVal);
+                    if (retDate >= depDate) {
+                        diffDays = Math.ceil((retDate - depDate) / (1000 * 60 * 60 * 24)) + 1;
+                    }
+                }
+
+                if (diffDays > 0) {
+                    const travelRate = rates.travel || 150;
+                    const travelTotal = diffDays * travelRate * travellerCount;
+
+                    updateMetricDisplay('travel', diffDays, travelRate * diffDays, travelTotal);
+
+                    currentGrandTotalAllowance = travelTotal;
+                } else {
+                    resetAllowanceDisplay();
+                    currentGrandTotalAllowance = 0;
+                }
+            }
+
+            function updateMetricDisplay(prefix, daysCount, singleTotal, groupTotal) {
+                const daysEl = document.getElementById(`${prefix}-days`);
+                const allowEl = document.getElementById(`${prefix}-allowance`);
+                const totalEl = document.getElementById(`${prefix}-total`);
+
+                if (daysEl) daysEl.textContent = daysCount;
+                if (allowEl) allowEl.textContent = `RM ${singleTotal.toFixed(2)}`;
+                if (totalEl) totalEl.textContent = `RM ${groupTotal.toFixed(2)}`;
+            }
+
+            function resetAllowanceDisplay() {
+                ['travel'].forEach(prefix => {
+                    const daysEl = document.getElementById(`${prefix}-days`);
+                    const allowEl = document.getElementById(`${prefix}-allowance`);
+                    const totalEl = document.getElementById(`${prefix}-total`);
+
+                    if (daysEl) daysEl.textContent = '0';
+                    if (allowEl) allowEl.textContent = 'RM 0.00';
+                    if (totalEl) totalEl.textContent = 'RM 0.00';
+                });
+            }
+
+            if (departureDateInput) departureDateInput.addEventListener('change', calculateAllowance);
+            if (returnDateInput) returnDateInput.addEventListener('change', calculateAllowance);
+            if (hotelNightsInput) hotelNightsInput.addEventListener('input', calculateAllowance);
+
+            const errorBanner = document.getElementById('errorBanner');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (travelForm) {
+                travelForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    if (errorBanner) {
+                        errorBanner.style.display = 'none';
+                        errorBanner.textContent = '';
+                    }
+
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Submitting...';
+                    }
+
+                    try {
+                        const formData = new FormData(travelForm);
+
+                        formData.append('applicant_id', currentEmployeeId);
+                        formData.append('employee_id', currentEmployeeId);
+                        formData.append('employee_name', currentEmployeeName);
+                        formData.append('department', currentDepartment);
+                        formData.append('total_amount', currentGrandTotalAllowance.toFixed(2));
+
+                        let travelMode = travelModeSelect?.value || '';
+                        if (travelMode.toLowerCase() === 'others') {
+                            travelMode = travelModeOthersInput?.value || 'Others';
+                        }
+                        formData.set('travel_mode', travelMode);
+
+                        const accompanyingEmployees = [];
+                        const rows = employeeTableBody ? employeeTableBody.querySelectorAll('tr') : [];
+
+                        rows.forEach(row => {
+                            const empIdVal = row.querySelector('.emp-id')?.value || '';
+                            if (empIdVal) {
+                                accompanyingEmployees.push({
+                                    employee_id: empIdVal,
+                                    name: row.querySelector('.emp-name')?.value || '',
+                                    contact: row.querySelector('.emp-phone')?.value || '',
+                                    email: row.querySelector('.emp-email')?.value || '',
+                                    purpose: row.querySelector('.emp-purpose')?.value || 'Business trip'
+                                });
+                            }
+                        });
+
+                        if (accompanyingEmployees.length === 0) {
+                            accompanyingEmployees.push({
+                                employee_id: currentEmployeeId,
+                                name: currentEmployeeName,
+                                contact: document.getElementById('phone-number')?.value || '—',
+                                email: '—',
+                                purpose: 'Business trip'
+                            });
+                        }
+
+                        formData.append('assigned_employees', JSON.stringify(accompanyingEmployees));
+
+                        const response = await fetch(`${CONFIG.apiBaseUrl}${CONFIG.endpoints.submitAllowance}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            localStorage.removeItem(AUTOSAVE_KEY);
+                            alert(result.message || 'Travel Request submitted successfully!');
+                            window.location.href = CONFIG.dashboardPage;
+                        } else {
+                            const message = result.message || 'Submission failed. Please check form inputs.';
+                            if (errorBanner) {
+                                errorBanner.textContent = `Error: ${message}`;
+                                errorBanner.style.display = 'block';
+                            } else {
+                                alert(`Error: ${message}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Submission error:', error);
+                        const networkErrorMsg = 'Failed to connect to backend server. Please verify your connection.';
+                        if (errorBanner) {
+                            errorBanner.textContent = networkErrorMsg;
+                            errorBanner.style.display = 'block';
+                        } else {
+                            alert(networkErrorMsg);
+                        }
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Submit';
+                        }
+                    }
+                });
+            }
+
+            // ==========================================
+            // REAL-TIME NOTIFICATION & REMINDER SYSTEM
+            // ==========================================
+            const notiBellBtn = document.getElementById('notiBellBtn');
+            const notiDropdown = document.getElementById('notiDropdown');
+            const notiList = document.getElementById('notiList');
+            const notiBadge = document.getElementById('notiBadge');
+            const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+            if (notiBellBtn && notiDropdown) {
+                notiBellBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notiDropdown.classList.toggle('active');
+                    if (notiDropdown.classList.contains('active')) {
+                        fetchNotifications();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                        notiDropdown.classList.remove('active');
+                    }
+                });
+
+                notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+            }
+
+            async function fetchNotifications() {
+                try {
+                    const fetchUrl = `${CONFIG.apiBaseUrl}${CONFIG.endpoints.notifications}?employee_id=${encodeURIComponent(formattedEmployeeId)}&department=${encodeURIComponent(currentDepartment)}&position=${encodeURIComponent(currentPosition)}`;
+
+                    const response = await fetch(fetchUrl);
+                    const data = await response.json();
+
+                    if (data.success && data.notifications && data.notifications.length > 0) {
+                        const unreadCount = data.notifications.filter(item =>
+                            item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                        ).length;
+
+                        if (notiList) {
+                            notiList.innerHTML = '';
+                            data.notifications.forEach(item => {
+                                const statusLower = (item.status || '').toLowerCase();
+                                let cardClass = 'status-pending';
+                                let pillClass = 'pending';
+
+                                if (item.is_reminder) {
+                                    cardClass = 'status-reminder';
+                                    pillClass = 'reminder';
+                                } else if (statusLower.includes('approve') || statusLower === 'completed' || statusLower === 'processed') {
+                                    cardClass = 'status-approved';
+                                    pillClass = 'approved';
+                                } else if (statusLower.includes('reject')) {
+                                    cardClass = 'status-rejected';
+                                    pillClass = 'rejected';
+                                } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                    cardClass = 'status-review';
+                                    pillClass = 'review';
+                                }
+
+                                const title = item.is_reminder
+                                    ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                    : `${item.type || 'Travel'} (${item.form_no || ''})`;
+
+                                const notiItem = document.createElement('a');
+                                notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || 'Travel')}`;
+                                notiItem.className = `noti-card ${cardClass}`;
+
+                                notiItem.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                        <div>
+                                            <p class="noti-card-title">${title}</p>
+                                            <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                            <p class="noti-card-date">${item.time || item.created_at || ''}</p>
+                                        </div>
+                                        <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                    </div>
+                                `;
+                                notiList.appendChild(notiItem);
+                            });
+                        }
+
+                        if (notiBadge) {
+                            if (unreadCount > 0) {
+                                notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                                notiBadge.style.display = 'flex';
+                                notiBadge.classList.remove('noti-badge-pop');
+                                void notiBadge.offsetWidth;
+                                notiBadge.classList.add('noti-badge-pop');
+                                if (notiBellBtn) {
+                                    notiBellBtn.classList.remove('noti-bell-shake');
+                                    void notiBellBtn.offsetWidth;
+                                    notiBellBtn.classList.add('noti-bell-shake');
+                                }
+                            } else {
+                                notiBadge.style.display = 'none';
+                            }
+                        }
+                    } else {
+                        if (notiBadge) notiBadge.style.display = 'none';
+                        if (notiList) {
+                            notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error fetching notifications:', err);
+                    if (notiList) {
+                        notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #ef4444; font-size: 13px;">Unable to load notifications.</div>`;
+                    }
+                }
+            }
+
+            if (refreshNotiBtn) {
+                refreshNotiBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fetchNotifications();
+                });
+            }
+
+            // Initial call and periodic background refresh
+            fetchNotifications();
+            setInterval(fetchNotifications, 5000);
+
+            // SEARCH BAR LOGIC
+            const searchBarInput = document.getElementById('searchInput');
+            const searchDropdown = document.getElementById('searchDropdown');
+
+            if (searchBarInput && searchDropdown) {
+                searchBarInput.addEventListener('input', async function(e) {
+                    const query = e.target.value.toLowerCase().trim();
+                    if (query.length === 0) {
+                        searchDropdown.style.display = 'none';
+                        return;
+                    }
+
+                    searchDropdown.innerHTML = `<div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Searching requests...</div>`;
+                    searchDropdown.style.display = 'block';
+
+                    try {
+                        const searchUrl = `${CONFIG.apiBaseUrl}/my-requests?employee_id=${encodeURIComponent(currentEmployeeId)}`;
+
+                        const response = await fetch(searchUrl);
+                        if (!response.ok) {
+                            searchDropdown.innerHTML = `<div style="padding: 14px; text-align: center; color: #ef4444; font-size: 13px;">Unable to load search results (Error ${response.status}).</div>`;
+                            return;
+                        }
+                        const result = await response.json();
+
+                        const reqData = result.requests || result.data || result;
+                        if (Array.isArray(reqData)) {
+                            allFetchedRequests = reqData;
+                            const filtered = allFetchedRequests.filter(row => {
+                                const matchUser = (row.employee_id && row.employee_id.toString().trim().toLowerCase() === currentEmployeeId.toString().trim().toLowerCase());
+                                const rowText = `${row.request_type || ''} REQ-${(row.request_type || '').toUpperCase()}-${row.id} ${row.status || ''} ${row.employee_name || ''} ${row.details || ''} ${row.reason || ''}`.toLowerCase();
+                                return matchUser && rowText.includes(query);
+                            });
+
+                            if (filtered.length > 0) {
+                                searchDropdown.innerHTML = '';
+                                filtered.forEach(row => {
+                                    const reqType = row.request_type || 'General';
+                                    const rawStatus = (row.status || '').toString().trim().toLowerCase();
+
+                                    let badgeBg = '#fef3c7';
+                                    let badgeColor = '#d97706';
+                                    
+                                    if (rawStatus.includes('approve') || rawStatus === 'completed' || rawStatus === 'processed') {
+                                        badgeBg = '#dcfce7';
+                                        badgeColor = '#15803d';
+                                    } else if (rawStatus.includes('reject')) {
+                                        badgeBg = '#fee2e2';
+                                        badgeColor = '#b91c1c';
+                                    } else if (rawStatus.includes('revision') || rawStatus === 'in review') {
+                                        badgeBg = '#fef3c7';
+                                        badgeColor = '#b45309';
+                                    }
+
+                                    const itemLink = document.createElement('a');
+                                    itemLink.href = `request-details.html?id=${row.id}&type=${encodeURIComponent(reqType)}`;
+                                    itemLink.style.cssText = 'display: block; padding: 12px 16px; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit; transition: background 0.2s;';
+                                    itemLink.onmouseover = () => itemLink.style.background = '#f8fafc';
+                                    itemLink.onmouseout = () => itemLink.style.background = 'transparent';
+
+                                    const displayTitle = `REQ-${reqType.toUpperCase()}-${row.id}`;
+                                    const displaySubtext = `${reqType} (${row.details || row.reason || row.form_name || 'No description'})`;
+
+                                    itemLink.innerHTML = `
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #0f172a;">${displayTitle}</div>
+                                                <div style="font-size: 12px; font-weight: 500; color: #64748b; margin-top: 2px;">${displaySubtext}</div>
+                                            </div>
+                                            <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; background: ${badgeBg}; color: ${badgeColor}; font-weight: 700; text-transform: uppercase;">
+                                                ${row.status || 'Pending'}
+                                            </span>
+                                        </div>
+                                    `;
+                                    searchDropdown.appendChild(itemLink);
+                                });
+                            } else {
+                                searchDropdown.innerHTML = `<div style="padding: 14px; text-align: center; color: #94a3b8; font-size: 13px;">No matching requests found.</div>`;
+                            }
+                        } else {
+                            searchDropdown.innerHTML = `<div style="padding: 14px; text-align: center; color: #94a3b8; font-size: 13px;">No requests available.</div>`;
+                        }
+                    } catch (err) {
+                        console.error('Search error:', err);
+                        searchDropdown.innerHTML = `<div style="padding: 14px; text-align: center; color: #ef4444; font-size: 13px;">Error loading search results.</div>`;
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!searchDropdown.contains(e.target) && !searchBarInput.contains(e.target)) {
+                        searchDropdown.style.display = 'none';
+                    }
+                });
+
+                searchDropdown.addEventListener('click', (e) => e.stopPropagation());
+            }
+
+        });
+    </script>
+</body>
+</html>

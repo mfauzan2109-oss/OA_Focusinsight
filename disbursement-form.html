@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA Portal - Disbursement Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-avatar img,
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        body { 
+            display: flex; 
+            background-color: #BCE3E6; 
+            min-height: 100vh; 
+            color: #333; 
+        }
+
+        .profile-avatar, .avatar-circle {
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-info h4 {
+            color: #ffffff !important;
+        }
+        .profile-info p {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .expenses-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 8px;
+            border: 1.2px solid #a3a3a3;
+            border-radius: 12px;
+            background-color: #ffffff;
+        }
+
+        .expenses-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            min-width: 850px;
+        }
+
+        .expenses-table th {
+            background-color: #bcdbe5;
+            color: #030c1b;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 10px 12px;
+            border: 1px solid #a3a3a3;
+            text-align: center;
+        }
+
+        .expenses-table td {
+            padding: 6px 8px;
+            border: 1px solid #a3a3a3;
+            vertical-align: middle;
+        }
+
+        .expenses-table td.center-align {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .expenses-table input {
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 8px 6px !important;
+            background-color: transparent !important;
+            font-size: 13px !important;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .expenses-table input:focus {
+            background-color: #f8fafc !important;
+            outline: none;
+        }
+
+        .btn-delete-row {
+            background-color: transparent;
+            color: #ef4444;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-delete-row:hover {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .section-trigger-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .btn-add-row {
+            background-color: #0b46be;
+            color: #ffffff;
+            border: none;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-row:hover {
+            background-color: #093796;
+        }
+
+        .total-claim-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #030c1b;
+        }
+
+        .total-claim-input {
+            width: 140px !important;
+            text-align: right;
+            font-weight: 700;
+            background-color: #f8fafc !important;
+        }
+
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background-color: #f97316;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        @keyframes navBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .nav-badge.noti-badge-pop {
+            animation: navBadgePop 0.4s ease-out;
+        }
+
+        .draft-indicator {
+            font-size: 12px;
+            color: #0284c7;
+            background-color: #e0f2fe;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-dropdown {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 45px;
+            width: 320px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            flex-direction: column;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .search-dropdown.active {
+            display: flex;
+        }
+
+        /* ============================================================
+           TOP BAR — matched to leave.html .page-header
+           ============================================================ */
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .page-header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .brand-logo img {
+            height: 36px;
+            width: auto;
+            display: block;
+        }
+
+        .main-inner .form-card {
+            margin-top: 0;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow-y: auto;
+            background: transparent;
+        }
+
+        .main-inner {
+            padding: 20px 32px 60px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000000;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* --- Search pill --- */
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        /* ============================================================
+           NOTIFICATION SYSTEM — matched directly to leave.html
+           ============================================================ */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid #ffffff;
+        }
+
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* --- Notification cards (exact match to leave.html) --- */
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .view-all-link:hover { text-decoration: underline; }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+
+        /* --- User profile menu --- */
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* --- Top accent strip --- */
+        .top-strip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background-color: #9f1c1c;
+            z-index: 2000;
+        }
+
+        body {
+            padding-top: 6px !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-strip"></div>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+        
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer">
+                <i class='bx bx-user'></i>
+            </div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header">
+            <h2 class="page-header-title">Disbursement Form</h2>
+            <div class="header-actions">
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
+                    </div>
+                </div>
+
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-inner">
+
+            <form class="form-card" id="disbursementForm">
+                
+                <div id="draftNotice" class="draft-indicator">
+                    💾 <strong>Draft Restored:</strong> Unsaved form changes were restored from your previous session.
+                </div>
+
+                <div class="form-section" id="sectionEmpInfo">
+                    <span class="form-section-title">Employee Information</span>
+                    <div class="form-grid form-grid-3">
+                        <div class="input-group">
+                            <label>Employee ID</label>
+                            <input type="text" id="empIdInput" readonly>
+                        </div>
+                        <div class="input-group">
+                            <label>Employee Name</label>
+                            <input type="text" id="empNameInput" readonly>
+                        </div>
+                        <div class="input-group">
+                            <label>Department</label>
+                            <input type="text" id="empDeptInput" readonly>
+                        </div>
+                    </div>
+                    <div class="form-grid form-grid-3">
+                        <div class="input-group">
+                            <label>Project Name</label>
+                            <input type="text" id="projNameInput" name="proj_name" placeholder="e.g. System Upgrade Phase 2">
+                        </div>
+                        <div class="input-group">
+                            <label>Model Number</label>
+                            <input type="text" id="modelNoInput" name="model_no" placeholder="e.g. MX-2200">
+                        </div>
+                        <div class="input-group">
+                            <label>Person in Charge</label>
+                            <input type="text" id="picInput" name="person_in_charge" placeholder="e.g. John Tan">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" id="sectionExpenses">
+                    <div class="section-trigger-row">
+                        <span class="form-section-title">Expenses Details</span>
+                        <button type="button" class="btn-add-row" id="addRowBtn"><i class='bx bx-plus'></i> Add Row</button>
+                    </div>
+
+                    <div class="expenses-table-wrapper">
+                        <table class="expenses-table" id="expensesTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;">No.</th>
+                                    <th style="width: 140px;">Invoice Date</th>
+                                    <th style="width: 140px;">Invoice No.</th>
+                                    <th style="width: 180px;">Supplier Name</th>
+                                    <th>Description</th>
+                                    <th style="width: 120px;">Amount</th>
+                                    <th style="width: 150px;">Reason / Remark</th>
+                                    <th style="width: 50px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="total-claim-container">
+                        <span>TOTAL CLAIM AMOUNT</span>
+                        <input type="text" class="total-claim-input" id="totalClaimAmount" value="0.00" readonly>
+                    </div>
+                </div>
+
+                <div class="form-section" id="sectionDoc">
+                    <span class="form-section-title">Supporting Document (if applicable)</span>
+                    <div class="upload-dropzone" id="dropzone">
+                        <i class='bx bx-upload'></i>
+                        <p>Drag & drop or <a href="#" id="browseLink">browse files</a></p>
+                        <span class="upload-hint">PDF, JPG, PNG up to 5MB</span>
+                        <input type="file" id="fileInput" hidden accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="file-name" id="fileNameDisplay"></div>
+                    </div>
+                </div>
+
+                <div class="form-actions-pill">
+                    <button type="button" class="btn-cancel-pill" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-submit-pill">Submit</button>
+                </div>
+
+            </form>
+        </div><!-- /.main-inner -->
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const userId = sessionStorage.getItem('userId');
+            const username = sessionStorage.getItem('username');
+            const department = sessionStorage.getItem('department');
+            const position = sessionStorage.getItem('position');
+
+            if (!userId) {
+                alert("Please log in first.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const formattedUserId = userId.toUpperCase();
+
+            const profileName = document.getElementById('sidebarName');
+            const profileMeta = document.getElementById('sidebarMeta');
+            const topAvatar = document.getElementById('topAvatar');
+            const empIdInput = document.getElementById('empIdInput');
+            const empNameInput = document.getElementById('empNameInput');
+            const empDeptInput = document.getElementById('empDeptInput');
+
+            if (profileName) profileName.textContent = username || formattedUserId;
+            if (profileMeta) profileMeta.textContent = `${formattedUserId} • ${department || 'General'}`;
+            
+            if (topAvatar) {
+                const initials = (username || formattedUserId).split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+                topAvatar.textContent = initials;
+            }
+            if (empIdInput) empIdInput.value = formattedUserId;
+            if (empNameInput) empNameInput.value = username || '';
+            if (empDeptInput) empDeptInput.value = department || 'General';
+
+            const specificAvatarKey = `userAvatar_${formattedUserId}`;
+
+            function updateAvatarDisplay(avatarBase64) {
+                if (!avatarBase64) return;
+                const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                const sidebarAvatar = document.getElementById('sidebarAvatarContainer');
+                if (sidebarAvatar) sidebarAvatar.innerHTML = imgHTML;
+                if (topAvatar) topAvatar.innerHTML = imgHTML;
+            }
+
+            const savedAvatar = localStorage.getItem(specificAvatarKey);
+            updateAvatarDisplay(savedAvatar);
+
+            window.addEventListener('storage', function(e) {
+                if (e.key === specificAvatarKey) {
+                    updateAvatarDisplay(e.newValue);
+                }
+            });
+
+            checkApprovalQueueAccess(formattedUserId, department, position);
+
+            // ==========================================
+            // SEARCH BAR LOGIC
+            // ==========================================
+            const searchInput = document.getElementById('searchInput');
+            const searchDropdown = document.getElementById('searchDropdown');
+            let userRequestsCache = [];
+
+            async function fetchUserRequestsForSearch() {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                    const data = await response.json();
+                    if (data.success && data.notifications) {
+                        userRequestsCache = data.notifications;
+                    }
+                } catch (err) {
+                    console.error('Error fetching requests for search:', err);
+                }
+            }
+
+            fetchUserRequestsForSearch();
+
+            if (searchInput && searchDropdown) {
+                searchInput.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+
+                    if (query === '') {
+                        searchDropdown.classList.remove('active');
+                        return;
+                    }
+
+                    const filtered = userRequestsCache.filter(item => {
+                        const type = (item.type || '').toLowerCase();
+                        const formNo = (item.form_no || '').toLowerCase();
+                        const status = (item.status || '').toLowerCase();
+                        return type.includes(query) || formNo.includes(query) || status.includes(query);
+                    });
+
+                    searchDropdown.innerHTML = '';
+
+                    if (filtered.length > 0) {
+                        filtered.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let badgeBg = '#fef3c7';
+                            let badgeColor = '#d97706';
+
+                            if (statusLower.includes('approve') || statusLower === 'completed') {
+                                badgeBg = '#dcfce7';
+                                badgeColor = '#15803d';
+                            } else if (statusLower.includes('reject')) {
+                                badgeBg = '#fee2e2';
+                                badgeColor = '#b91c1c';
+                            } else if (statusLower.includes('revision')) {
+                                badgeBg = '#e0f2fe';
+                                badgeColor = '#0284c7';
+                            }
+
+                            const searchItem = document.createElement('div');
+                            searchItem.className = 'noti-card status-pending';
+                            searchItem.style.marginBottom = '6px';
+
+                            searchItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">${item.type || 'Request'} Form</div>
+                                        <div style="font-size: 12px; font-weight: 600; color: #334155;">Form No: ${item.form_no || ''}</div>
+                                        <div style="font-size: 10px; color: #64748b; margin-top: 2px;">${item.time || ''}</div>
+                                    </div>
+                                    <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; background: ${badgeBg}; color: ${badgeColor}; font-weight: 700; text-transform: uppercase;">
+                                        ${item.status || 'Pending'}
+                                    </span>
+                                </div>
+                            `;
+
+                            searchItem.addEventListener('click', () => {
+                                searchDropdown.classList.remove('active');
+                                const reqId = item.id || item.form_id || item.form_no;
+                                const reqType = item.type || 'Disbursement';
+                                window.location.href = `request-details.html?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`;
+                            });
+
+                            searchDropdown.appendChild(searchItem);
+                        });
+                    } else {
+                        searchDropdown.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No matching forms found.</div>`;
+                    }
+
+                    searchDropdown.classList.add('active');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!searchDropdown.contains(e.target) && !searchInput.contains(e.target)) {
+                        searchDropdown.classList.remove('active');
+                    }
+                });
+            }
+
+            // ==========================================
+            // NOTIFICATION SYSTEM — matched to leave.html
+            // ==========================================
+            const notiBellBtn = document.getElementById('notiBellBtn');
+            const notiDropdown = document.getElementById('notiDropdown');
+            const notiList = document.getElementById('notiList');
+            const notiBadge = document.getElementById('notiBadge');
+            const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+            if (notiBellBtn && notiDropdown) {
+                notiBellBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notiDropdown.classList.toggle('active');
+                    if (notiDropdown.classList.contains('active')) {
+                        fetchNotifications();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                        notiDropdown.classList.remove('active');
+                    }
+                });
+
+                notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+            }
+
+            async function fetchNotifications() {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                    const data = await response.json();
+
+                    if (data.success && data.notifications && data.notifications.length > 0) {
+                        const unreadCount = data.notifications.filter(item => 
+                            item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                        ).length;
+
+                        if (notiList) {
+                            notiList.innerHTML = '';
+                            data.notifications.forEach(item => {
+                                const statusLower = (item.status || '').toLowerCase();
+                                let cardClass = 'status-pending';
+                                let pillClass = 'pending';
+
+                                if (item.is_reminder) {
+                                    cardClass = 'status-reminder';
+                                    pillClass = 'reminder';
+                                } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                    cardClass = 'status-approved';
+                                    pillClass = 'approved';
+                                } else if (statusLower.includes('reject')) {
+                                    cardClass = 'status-rejected';
+                                    pillClass = 'rejected';
+                                } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                    cardClass = 'status-review';
+                                    pillClass = 'review';
+                                }
+
+                                const title = item.is_reminder
+                                    ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                    : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                                const notiItem = document.createElement('a');
+                                notiItem.href = `request-details.html?id=${encodeURIComponent(item.id || item.form_id || item.form_no)}&type=${encodeURIComponent(item.type || '')}`;
+                                notiItem.className = `noti-card ${cardClass}`;
+
+                                notiItem.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                        <div>
+                                            <p class="noti-card-title">${title}</p>
+                                            <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                            <p class="noti-card-date">${item.time || ''}</p>
+                                        </div>
+                                        <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                    </div>
+                                `;
+                                notiList.appendChild(notiItem);
+                            });
+                        }
+
+                        if (notiBadge) {
+                            if (unreadCount > 0) {
+                                notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                                notiBadge.style.display = 'flex';
+                                notiBadge.classList.remove('noti-badge-pop');
+                                void notiBadge.offsetWidth;
+                                notiBadge.classList.add('noti-badge-pop');
+                                if (notiBellBtn) {
+                                    notiBellBtn.classList.remove('noti-bell-shake');
+                                    void notiBellBtn.offsetWidth;
+                                    notiBellBtn.classList.add('noti-bell-shake');
+                                }
+                            } else {
+                                notiBadge.style.display = 'none';
+                            }
+                        }
+
+                    } else {
+                        if (notiBadge) notiBadge.style.display = 'none';
+                        if (notiList) {
+                            notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error fetching notifications:', err);
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) {
+                        notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #ef4444; font-size: 13px;">Error fetching notifications.</div>`;
+                    }
+                }
+            }
+
+            if (refreshNotiBtn) {
+                refreshNotiBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fetchNotifications();
+                });
+            }
+
+            fetchNotifications();
+            setInterval(fetchNotifications, 5000);
+
+            // ==========================================
+            // FORM TABLE & DRAFT LOGIC
+            // ==========================================
+            const tableBody = document.querySelector('#expensesTable tbody');
+            const addRowBtn = document.getElementById('addRowBtn');
+            const totalClaimInput = document.getElementById('totalClaimAmount');
+            const form = document.getElementById('disbursementForm');
+
+            function calculateTotal() {
+                let total = 0;
+                const amountFields = document.querySelectorAll('.amount-field');
+                amountFields.forEach(field => {
+                    const val = parseFloat(field.value);
+                    if (!isNaN(val)) total += val;
+                });
+                totalClaimInput.value = total.toFixed(2);
+            }
+
+            function reindexRows() {
+                const rows = tableBody.querySelectorAll('tr');
+                rows.forEach((row, index) => {
+                    const numCell = row.querySelector('.row-num');
+                    if (numCell) numCell.textContent = index + 1;
+                });
+            }
+
+            function addExpenseRow(rowNumber, data = {}) {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td class="center-align row-num">${rowNumber}</td>
+                    <td><input type="date" class="inv-date" value="${data.invoice_date || ''}" required></td>
+                    <td><input type="text" class="inv-no" placeholder="e.g. INV-1022" value="${data.invoice_no || ''}" required></td>
+                    <td><input type="text" class="sup-name" placeholder="Supplier Ltd" value="${data.supplier_name || ''}" required></td>
+                    <td><input type="text" class="exp-desc" placeholder="Describe the item or service" value="${data.description || ''}" required></td>
+                    <td><input type="number" step="0.01" class="amount-field" placeholder="0.00" value="${data.amount || ''}" required></td>
+                    <td><input type="text" class="exp-remark" placeholder="Optional remark" value="${data.remark || ''}"></td>
+                    <td class="center-align">
+                        <button type="button" class="btn-delete-row" title="Delete Row"><i class='bx bx-trash'></i></button>
+                    </td>
+                `;
+                tableBody.appendChild(newRow);
+            }
+
+            const DRAFT_KEY = `draft_${formattedUserId}_disbursementForm`;
+            const draftNotice = document.getElementById('draftNotice');
+
+            function saveFormDraft() {
+                const draftData = { fields: {}, items: [] };
+
+                const inputs = form.querySelectorAll('input:not(.expenses-table input), select, textarea');
+                inputs.forEach(input => {
+                    if (input.id || input.name) {
+                        const key = input.id || input.name;
+                        if (input.type === 'checkbox') {
+                            draftData.fields[key] = input.checked;
+                        } else if (input.type !== 'file' && input.type !== 'password') {
+                            draftData.fields[key] = input.value;
+                        }
+                    }
+                });
+
+                const tableRows = form.querySelectorAll('#expensesTable tbody tr');
+                tableRows.forEach(row => {
+                    const item = {
+                        invoice_date: row.querySelector('.inv-date')?.value || '',
+                        invoice_no: row.querySelector('.inv-no')?.value || '',
+                        supplier_name: row.querySelector('.sup-name')?.value || '',
+                        description: row.querySelector('.exp-desc')?.value || '',
+                        amount: row.querySelector('.amount-field')?.value || '',
+                        remark: row.querySelector('.exp-remark')?.value || ''
+                    };
+                    draftData.items.push(item);
+                });
+
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+            }
+
+            function loadFormDraft() {
+                const rawData = localStorage.getItem(DRAFT_KEY);
+                if (!rawData) {
+                    addExpenseRow(1);
+                    return false;
+                }
+
+                try {
+                    const draftData = JSON.parse(rawData);
+                    let restored = false;
+
+                    if (draftData.fields) {
+                        Object.keys(draftData.fields).forEach(key => {
+                            const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+                            if (element && element.type !== 'file' && element.type !== 'password' && !element.readOnly) {
+                                element.value = draftData.fields[key];
+                                restored = true;
+                            }
+                        });
+                    }
+
+                    if (draftData.items && draftData.items.length > 0) {
+                        tableBody.innerHTML = '';
+                        draftData.items.forEach((item, idx) => {
+                            addExpenseRow(idx + 1, item);
+                        });
+                        restored = true;
+                    } else {
+                        addExpenseRow(1);
+                    }
+
+                    if (restored && draftNotice) {
+                        draftNotice.style.display = 'block';
+                    }
+                    calculateTotal();
+                    return restored;
+                } catch (e) {
+                    console.error("Failed to load form draft:", e);
+                    addExpenseRow(1);
+                    return false;
+                }
+            }
+
+            loadFormDraft();
+
+            form.addEventListener('input', saveFormDraft);
+            form.addEventListener('change', saveFormDraft);
+
+            tableBody.addEventListener('input', function(e) {
+                if (e.target.classList.contains('amount-field')) {
+                    calculateTotal();
+                }
+            });
+
+            tableBody.addEventListener('click', function(e) {
+                const deleteBtn = e.target.closest('.btn-delete-row');
+                if (deleteBtn) {
+                    const rows = tableBody.querySelectorAll('tr');
+                    if (rows.length > 1) {
+                        const row = deleteBtn.closest('tr');
+                        row.remove();
+                        reindexRows();
+                        calculateTotal();
+                        saveFormDraft();
+                    } else {
+                        alert("The table must have at least one expense entry.");
+                    }
+                }
+            });
+
+            if (addRowBtn) {
+                addRowBtn.addEventListener('click', function() {
+                    const rowCount = tableBody.querySelectorAll('tr').length + 1;
+                    addExpenseRow(rowCount);
+                    saveFormDraft();
+                });
+            }
+
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('fileInput');
+            const browseLink = document.getElementById('browseLink');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+            if (browseLink && fileInput) {
+                browseLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    fileInput.click();
+                });
+            }
+
+            if (dropzone && fileInput) {
+                dropzone.addEventListener('click', function(e) {
+                    if (e.target === dropzone || e.target.tagName === 'I' || e.target.tagName === 'P') {
+                        fileInput.click();
+                    }
+                });
+
+                fileInput.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        fileNameDisplay.textContent = `Selected: ${this.files[0].name}`;
+                    }
+                });
+
+                dropzone.addEventListener('dragover', function(e) { 
+                    e.preventDefault(); 
+                    this.classList.add('dragover'); 
+                });
+                dropzone.addEventListener('dragleave', function() { 
+                    this.classList.remove('dragover'); 
+                });
+                dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        fileNameDisplay.textContent = `Selected: ${e.dataTransfer.files[0].name}`;
+                    }
+                });
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const formData = new FormData();
+                formData.append('employee_id', formattedUserId);
+                formData.append('employee_name', username || '');
+                formData.append('department', department || 'General');
+                formData.append('proj_name', document.getElementById('projNameInput')?.value?.trim() || '');
+                formData.append('model_no', document.getElementById('modelNoInput')?.value?.trim() || '');
+                formData.append('person_in_charge', document.getElementById('picInput')?.value?.trim() || '');
+                formData.append('total_amount', totalClaimInput.value);
+
+                if (fileInput && fileInput.files.length > 0) {
+                    formData.append('attachment', fileInput.files[0]);
+                }
+
+                const itemsArray = [];
+                const rows = tableBody.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const dateVal = row.querySelector('.inv-date')?.value || '';
+                    const noVal = row.querySelector('.inv-no')?.value || '';
+                    const supVal = row.querySelector('.sup-name')?.value || '';
+                    const descVal = row.querySelector('.exp-desc')?.value || '';
+                    const amtVal = row.querySelector('.amount-field')?.value || '';
+                    const remVal = row.querySelector('.exp-remark')?.value || '';
+
+                    if (dateVal || noVal || supVal || descVal || amtVal) {
+                        itemsArray.push({
+                            invoice_date: dateVal,
+                            invoice_no: noVal,
+                            supplier_name: supVal,
+                            description: descVal,
+                            amount: amtVal,
+                            remark: remVal
+                        });
+                    }
+                });
+
+                formData.append('items', JSON.stringify(itemsArray));
+
+                try {
+                    const response = await fetch('http://localhost:3000/api/submit-disbursement', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        localStorage.removeItem(DRAFT_KEY);
+                        alert(result.message || 'Disbursement form submitted successfully!');
+                        fetchNotifications();
+                        window.location.href = 'my-request.html';
+                    } else {
+                        alert("Error: " + (result.message || 'Failed to submit disbursement form.'));
+                    }
+                } catch (err) {
+                    console.error("Submission Error:", err);
+                    alert("Failed to connect to Node.js server.");
+                }
+            });
+
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to cancel? Unsaved changes will be cleared.')) {
+                        localStorage.removeItem(DRAFT_KEY);
+                        window.location.href = 'dashboard.html';
+                    }
+                });
+            }
+        });
+
+        async function checkApprovalQueueAccess(userId, department, position) {
+            const queueItem = document.getElementById('approvalQueueItem');
+            const pos = (position || '').toLowerCase();
+            const dept = (department || '').toLowerCase();
+
+            if (pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userId || '').toUpperCase().startsWith('MGR')) {
+                if (queueItem) queueItem.style.display = 'flex';
+                try {
+                    const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        const pendingCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;
+                        const badge = document.getElementById('approvalQueueBadge');
+                        if (badge) {
+                            if (pendingCount > 0) {
+                                const wasHidden = badge.style.display === 'none' || badge.style.display === '';
+                                const prevCount = badge.textContent;
+                                badge.textContent = pendingCount;
+                                badge.style.display = 'inline-block';
+                                if (wasHidden || prevCount !== String(pendingCount)) {
+                                    badge.classList.remove('noti-badge-pop');
+                                    void badge.offsetWidth;
+                                    badge.classList.add('noti-badge-pop');
+                                }
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Approval queue badge check failed:', e);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

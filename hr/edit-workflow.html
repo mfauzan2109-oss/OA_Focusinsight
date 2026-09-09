@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Workflow - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #aedce2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- WHITE TOP HEADER BAR --- */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            width: 100%;
+        }
+
+        .brand-logo img {
+            height: 36px;
+            width: auto;
+            display: block;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .header-icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* --- MAIN FORM CONTAINER --- */
+        .form-container {
+            width: 92%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 0 40px 0;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 24px;
+        }
+
+        /* --- STEP CARD STYLING --- */
+        .steps-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .step-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .step-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .step-badge-pill {
+            background-color: #dbeafe;
+            color: #2563eb;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 6px 18px;
+            border-radius: 14px;
+            border: 1px solid #bfdbfe;
+            display: inline-block;
+        }
+
+        .step-label-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #000000;
+        }
+
+        .step-select-dropdown {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2064748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+            background-size: 16px;
+        }
+
+        .step-select-dropdown:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-remove-step {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
+        }
+
+        .btn-remove-step:hover {
+            opacity: 1;
+        }
+
+        /* --- ADD APPROVAL STEP BANNER BUTTON --- */
+        .btn-add-approval-step {
+            width: 100%;
+            background-color: #e0f2fe;
+            border: 2px solid #38bdf8;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #1d4ed8;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-add-approval-step:hover {
+            background-color: #bae6fd;
+            border-color: #0284c7;
+        }
+
+        /* --- BOTTOM ACTION BUTTONS --- */
+        .bottom-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn-action-back {
+            background-color: #c7d2fe;
+            color: #1e1b4b;
+            border: 1px solid #a5b4fc;
+            padding: 10px 48px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-back:hover {
+            background-color: #b4c6fc;
+        }
+
+        .btn-action-save {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 10px 48px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-save:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- WHITE HEADER BAR -->
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle" id="topAvatar">CJ</div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN FORM CONTAINER -->
+    <main class="form-container">
+        <h1 class="page-title" id="workflowPageTitle">Edit Workflow : Leave Application</h1>
+
+        <form id="workflowForm">
+            <!-- DYNAMIC STEPS CONTAINER -->
+            <div class="steps-wrapper" id="stepsWrapper">
+                <!-- Steps rendered via JS based on workflow type -->
+            </div>
+
+            <!-- ADD APPROVAL STEP BUTTON -->
+            <button type="button" class="btn-add-approval-step" id="addStepBtn">
+                + Add Approval Step
+            </button>
+
+            <!-- ACTION BUTTONS -->
+            <div class="bottom-actions">
+                <a href="workflow-settings.html" class="btn-action-back">Back</a>
+                <button type="submit" class="btn-action-save">Save Workflow</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const username = sessionStorage.getItem('username') || '';
+        const initials = username
+            ? username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+            : '';
+        document.getElementById('topAvatar').textContent = initials || '—';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const workflowType = (urlParams.get('type') || urlParams.get('workflow') || 'leave').toLowerCase();
+
+        const stepsWrapper = document.getElementById('stepsWrapper');
+        let currentSteps = [];
+        let currentWorkflowName = '';
+
+        const roleOptions = [
+            'Employee',
+            'Supervisor',
+            'Manager',
+            'Head of Department',
+            'Project Manager',
+            'HR Staff',
+            'HR Executive',
+            'HR / Finance',
+            'Finance / HR',
+            'CEO'
+        ];
+
+        function renderSteps() {
+            stepsWrapper.innerHTML = '';
+            currentSteps.forEach((step, index) => {
+                const stepCard = document.createElement('div');
+                stepCard.className = 'step-card';
+
+                const optionsHtml = roleOptions.map(role =>
+                    `<option value="${role}" ${role === step.value ? 'selected' : ''}>${role}</option>`
+                ).join('');
+
+                stepCard.innerHTML = `
+                    <div class="step-card-header">
+                        <span class="step-badge-pill">Step ${index + 1}</span>
+                        <span class="step-label-title">${step.label}</span>
+                    </div>
+                    ${index > 0 ? `<button type="button" class="btn-remove-step" onclick="removeStep(${index})" title="Remove Step"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                    <select class="step-select-dropdown" onchange="updateStepValue(${index}, this.value)">
+                        ${optionsHtml}
+                    </select>
+                `;
+                stepsWrapper.appendChild(stepCard);
+            });
+        }
+
+        window.updateStepValue = function(index, value) {
+            currentSteps[index].value = value;
+        };
+
+        window.removeStep = function(index) {
+            currentSteps.splice(index, 1);
+            renderSteps();
+        };
+
+        document.getElementById('addStepBtn').addEventListener('click', function() {
+            const nextStepNum = currentSteps.length + 1;
+            currentSteps.push({
+                label: `Approver Step ${nextStepNum}`,
+                value: 'Head of Department'
+            });
+            renderSteps();
+        });
+
+        async function loadWorkflow() {
+            try {
+                const response = await fetch(`/api/workflows/${encodeURIComponent(workflowType)}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(result.message || 'Workflow not found.');
+                    window.location.href = 'workflow-settings.html';
+                    return;
+                }
+
+                currentWorkflowName = result.workflow_name;
+                currentSteps = result.steps;
+                document.getElementById('workflowPageTitle').textContent = `Edit Workflow : ${currentWorkflowName}`;
+                renderSteps();
+            } catch (err) {
+                console.error('Error loading workflow:', err);
+                alert('Failed to connect to server. Ensure Node.js server is running.');
+            }
+        }
+
+        document.getElementById('workflowForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (currentSteps.length === 0) {
+                alert('A workflow must have at least one step.');
+                return;
+            }
+
+            const saveBtn = document.querySelector('.btn-action-save');
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch(`/api/workflows/${encodeURIComponent(workflowType)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workflow_name: currentWorkflowName,
+                        steps: currentSteps
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`Approval workflow for ${currentWorkflowName} saved successfully!`);
+                    window.location.href = 'workflow-settings.html';
+                } else {
+                    alert(result.message || 'Failed to save workflow.');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                }
+            } catch (err) {
+                console.error('Error saving workflow:', err);
+                alert('Error connecting to server. Please try again.');
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        });
+
+        loadWorkflow();
+    });
+    </script>
+</body>
+</html>

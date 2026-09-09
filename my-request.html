@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Request | Focusinsight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Inter', sans-serif; 
+        }
+
+        body { 
+            display: flex; 
+            background-color: #BCE3E6; 
+            min-height: 100vh; 
+            color: #333; 
+        }
+
+        .profile-avatar img,
+        .avatar-circle img,
+        .header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .profile-avatar, .avatar-circle, .header-avatar {
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-content { 
+            flex-grow: 1; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0; 
+            overflow-y: auto; 
+            background: transparent; 
+        }
+
+        .main-inner {
+            padding: 24px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* --- WHITE HEADER BAR --- */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .page-header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        /* --- SEARCH BAR --- */
+        .search-container { 
+            position: relative; 
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 220px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        /* --- NOTIFICATION BELL & DROPDOWN --- */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid #ffffff;
+        }
+
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .view-all-link:hover { text-decoration: underline; }
+
+        /* Metrics & Activity Cards */
+        .metrics-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 16px; 
+        }
+
+        .metric-card { 
+            background-color: #ffffff; 
+            border-radius: 16px; 
+            padding: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03); 
+        }
+
+        .metric-icon-box { 
+            width: 44px; 
+            height: 44px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 22px; 
+            border: 1px solid #E5E7EB; 
+        }
+
+        .metric-info { 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .metric-value { 
+            font-size: 28px; 
+            font-weight: 700; 
+            color: #000000; 
+            line-height: 1.1; 
+        }
+
+        .metric-label { 
+            font-size: 13px; 
+            color: #555555; 
+            margin-top: 2px; 
+        }
+
+        .activity-card { 
+            background-color: #ffffff; 
+            border-radius: 16px; 
+            padding: 24px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); 
+        }
+
+        .activity-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+        }
+
+        .activity-header h2 { 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: #000000; 
+        }
+
+        .activity-table-wrapper { 
+            width: 100%; 
+            overflow-x: auto; 
+        }
+
+        .data-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left; 
+        }
+
+        .data-table th { 
+            background-color: #C6ECEE; 
+            color: #4B6E9C; 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            padding: 12px 16px; 
+            letter-spacing: 0.05em; 
+        }
+
+        .data-table td { 
+            padding: 16px; 
+            font-size: 13.5px; 
+            color: #333333; 
+            border-bottom: 1px solid #F3F4F6; 
+        }
+
+        .status-badge { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            font-weight: 500; 
+            text-align: center; 
+            min-width: 80px; 
+            text-transform: capitalize; 
+        }
+
+        .status-badge.approve, .status-badge.approved, .status-badge.completed { 
+            background-color: #E6F7ED; 
+            color: #2E7D32; 
+        }
+
+        .status-badge.pending { 
+            background-color: #FFF7ED; 
+            color: #D97706; 
+        }
+
+        .status-badge.rejected { 
+            background-color: #FEE2E2; 
+            color: #DC2626; 
+        }
+
+        .status-badge.revision { 
+            background-color: #FEF3C7; 
+            color: #B45309; 
+        }
+
+        .view-action-link { 
+            color: #2563EB; 
+            text-decoration: underline; 
+            font-weight: 500; 
+        }
+
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background-color: #f97316;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        @keyframes navBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .nav-badge.noti-badge-pop {
+            animation: navBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+        
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item active"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item"><i class='bx bx-calendar-check'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- WHITE HEADER BAR -->
+        <header class="page-header">
+            <h2 class="page-header-title">My Request</h2>
+            <div class="header-actions">
+                <!-- Search Pill -->
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-inner">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="color: #D97706;"><i class='bx bx-alarm'></i></div>
+                    <div class="metric-info"><span class="metric-value" id="countPending">0</span><span class="metric-label">Pending Requests</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="color: #2E7D32;"><i class='bx bx-check-circle'></i></div>
+                    <div class="metric-info"><span class="metric-value" id="countApproved">0</span><span class="metric-label">Approved Requests</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="color: #DC2626;"><i class='bx bx-x-circle'></i></div>
+                    <div class="metric-info"><span class="metric-value" id="countRejected">0</span><span class="metric-label">Rejected</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon-box" style="color: #4F46E5;"><i class='bx bx-layer'></i></div> 
+                    <div class="metric-info"><span class="metric-value" id="countTotal">0</span><span class="metric-label">Total Submitted</span></div>
+                </div>
+            </div>
+
+            <div class="activity-card">
+                <div class="activity-header">
+                    <h2>Recent Activity</h2>
+                </div>
+                <div class="activity-table-wrapper">
+                    <table class="data-table" id="requestsTable">
+                        <thead>
+                            <tr>
+                                <th>REQUEST ID</th>
+                                <th>EMPLOYEE</th>
+                                <th>TYPE</th>
+                                <th>SUBMITTED</th>
+                                <th>AMOUNT</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 24px;">Loading requests...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const department = sessionStorage.getItem('department');
+        const position = sessionStorage.getItem('position');
+
+        if (!username || !userId) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        const formattedUserId = userId.toUpperCase();
+
+        // Profile Avatar Setup
+        const specificAvatarKey = `userAvatar_${formattedUserId}`;
+        const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+        const topAvatarEl = document.getElementById('topAvatar');
+
+        function updateAvatarDisplay(avatarBase64) {
+            if (!avatarBase64) return;
+            const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+            if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+        }
+
+        const savedAvatar = localStorage.getItem(specificAvatarKey);
+        updateAvatarDisplay(savedAvatar);
+
+        window.addEventListener('storage', function(e) {
+            if (e.key === specificAvatarKey) {
+                updateAvatarDisplay(e.newValue);
+            }
+        });
+
+        // Manager Approval Queue Check
+        const isManager = (userId && formattedUserId.startsWith('MGR')) || 
+                          (position && position.toLowerCase().includes('manager'));
+        if (isManager) {
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem) {
+                approvalQueueItem.style.display = 'flex';
+            }
+        }
+
+        async function checkApprovalQueueAccess(userIdParam, departmentParam, positionParam) {
+            const pos = (positionParam || '').toLowerCase();
+            const dept = (departmentParam || '').toLowerCase();
+
+            if (!(pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userIdParam || '').toUpperCase().startsWith('MGR'))) {
+                return;
+            }
+            try {
+                const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const pendingApprovalCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;
+                    const badge = document.getElementById('approvalQueueBadge');
+                    if (badge) {
+                        if (pendingApprovalCount > 0) {
+                            const wasHidden = badge.style.display === 'none' || badge.style.display === '';
+                            const prevCount = badge.textContent;
+                            badge.textContent = pendingApprovalCount;
+                            badge.style.display = 'inline-block';
+                            if (wasHidden || prevCount !== String(pendingApprovalCount)) {
+                                badge.classList.remove('noti-badge-pop');
+                                void badge.offsetWidth;
+                                badge.classList.add('noti-badge-pop');
+                            }
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Approval queue badge check failed:', e);
+            }
+        }
+
+        checkApprovalQueueAccess(userId, department, position);
+        setInterval(() => checkApprovalQueueAccess(userId, department, position), 5000);
+
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${formattedUserId} • ${department || 'General'}`;
+        
+        const initials = username.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+        if (topAvatarEl && !savedAvatar) topAvatarEl.textContent = initials;
+
+        // Notification Engine
+        const notiBellBtn = document.getElementById('notiBellBtn');
+        const notiDropdown = document.getElementById('notiDropdown');
+        const notiList = document.getElementById('notiList');
+        const notiBadge = document.getElementById('notiBadge');
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+        if (notiBellBtn && notiDropdown) {
+            notiBellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notiDropdown.classList.toggle('active');
+                if (notiDropdown.classList.contains('active')) {
+                    fetchNotifications();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                    notiDropdown.classList.remove('active');
+                }
+            });
+
+            notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const data = await response.json();
+
+                if (data.success && data.notifications && data.notifications.length > 0) {
+                    const unreadCount = data.notifications.filter(item => 
+                        item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                    ).length;
+
+                    if (notiList) {
+                        notiList.innerHTML = '';
+                        data.notifications.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let cardClass = 'status-pending';
+                            let pillClass = 'pending';
+
+                            if (item.is_reminder) {
+                                cardClass = 'status-reminder';
+                                pillClass = 'reminder';
+                            } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                cardClass = 'status-approved';
+                                pillClass = 'approved';
+                            } else if (statusLower.includes('reject')) {
+                                cardClass = 'status-rejected';
+                                pillClass = 'rejected';
+                            } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                cardClass = 'status-review';
+                                pillClass = 'review';
+                            }
+
+                            const title = item.is_reminder
+                                ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                            const notiItem = document.createElement('a');
+                            notiItem.href = `request-details.html?id=${item.id || item.form_id || item.form_no}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.className = `noti-card ${cardClass}`;
+
+                            notiItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <div>
+                                        <p class="noti-card-title">${title}</p>
+                                        <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                        <p class="noti-card-date">${item.time || ''}</p>
+                                    </div>
+                                    <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                </div>
+                            `;
+                            notiList.appendChild(notiItem);
+                        });
+                    }
+
+                    if (notiBadge) {
+                        if (unreadCount > 0) {
+                            notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                            notiBadge.style.display = 'flex';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
+                        } else {
+                            notiBadge.style.display = 'none';
+                        }
+                    }
+
+                } else {
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) {
+                        notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+                if (notiBadge) notiBadge.style.display = 'none';
+                if (notiList) {
+                    notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #ef4444; font-size: 13px;">Error fetching notifications.</div>`;
+                }
+            }
+        }
+
+        if (refreshNotiBtn) {
+            refreshNotiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fetchNotifications();
+            });
+        }
+
+        fetchNotifications();
+        setInterval(fetchNotifications, 5000);
+
+        function formatRequestAmount(row) {
+            let rawVal = row.amount_requested ?? 
+                         row.amount ?? 
+                         row.loan_amount ?? 
+                         row.total_amount ?? 
+                         row.amountRequested ?? 
+                         row.claim_amount;
+
+            if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'NaN') {
+                return '—';
+            }
+
+            if (typeof rawVal === 'string') {
+                rawVal = rawVal.replace(/[^0-9.-]+/g, '');
+            }
+
+            const num = parseFloat(rawVal);
+            if (isNaN(num)) {
+                return '—';
+            }
+
+            return `RM ${num.toFixed(2)}`;
+        }
+
+        async function fetchUserRequests() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                const result = await response.json();
+
+                if (result.success && Array.isArray(result.data)) {
+                    const tbody = document.querySelector('#requestsTable tbody');
+                    tbody.innerHTML = '';
+
+                    const userOnlyRequests = result.data.filter(row => 
+                        row.employee_id && row.employee_id.toString().trim().toLowerCase() === userId.toString().trim().toLowerCase()
+                    );
+
+                    let pending = 0, approved = 0, rejected = 0;
+                    
+                    userOnlyRequests.forEach(row => {
+                        const s = (row.status || '').toString().trim().toLowerCase();
+                        if (s.includes('pending') || s === 'in review' || s === 'submitted') {
+                            pending++;
+                        } else if (s.includes('approve') || s === 'completed' || s === 'processed') {
+                            approved++;
+                        } else if (s.includes('reject')) {
+                            rejected++;
+                        }
+                    });
+
+                    document.getElementById('countPending').textContent = pending;
+                    document.getElementById('countApproved').textContent = approved;
+                    document.getElementById('countRejected').textContent = rejected;
+                    document.getElementById('countTotal').textContent = userOnlyRequests.length;
+
+                    if (userOnlyRequests.length > 0) {
+                        userOnlyRequests.forEach(row => {
+                            const tr = document.createElement('tr');
+                            const reqType = row.request_type || 'General';
+                            const rawStatus = (row.status || '').toString().trim().toLowerCase();
+                            
+                            let sClass = 'pending';
+                            if (rawStatus.includes('approve') || rawStatus === 'completed') sClass = 'approved';
+                            else if (rawStatus.includes('reject')) sClass = 'rejected';
+                            else if (rawStatus.includes('revision')) sClass = 'revision';
+
+                            const detailsText = row.details || row.allowance_type || 'N/A';
+                            const dateSubmitted = row.date_submitted || row.claim_month || row.created_at || '—';
+                            const formattedAmount = formatRequestAmount(row);
+
+                            let bellIconHTML = '';
+                            if (rawStatus.includes('pending')) {
+                                const baselineTime = row.last_reminder_sent || row.created_at;
+                                if (baselineTime) {
+                                    const hoursSince = (new Date() - new Date(baselineTime)) / (1000 * 60 * 60);
+                                    if (hoursSince >= 24) {
+                                        bellIconHTML = `<i class='bx bxs-bell-ring' style='color:#ef4444; font-size:16px; margin-left:6px;' title='24 hours passed - reminder available'></i>`;
+                                    }
+                                }
+                            }
+
+                            tr.innerHTML = `
+                                <td>REQ-${reqType.toUpperCase()}-${row.id}</td>
+                                <td><strong>${row.employee_name}</strong> <small style="color:#64748b;">(${row.employee_id})</small></td>
+                                <td>${reqType} (${detailsText})</td>
+                                <td>${dateSubmitted}</td>
+                                <td>${formattedAmount}</td>
+                                <td><span class="status-badge ${sClass}">${row.status}</span>${bellIconHTML}</td>
+                                <td><a href="request-details.html?id=${row.id}&type=${encodeURIComponent(reqType)}" class="view-action-link">View</a></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: #64748b;">No applications submitted yet by you.</td></tr>`;
+                    }
+                } else {
+                    document.querySelector('#requestsTable tbody').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: #64748b;">No request records found.</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Error fetching user request logs:", err);
+                document.querySelector('#requestsTable tbody').innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: red;">Failed to retrieve records from server.</td></tr>`;
+            }
+        }
+
+        document.getElementById('searchInput')?.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('#requestsTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        await fetchUserRequests();
+    });
+    </script>
+</body>
+</html>

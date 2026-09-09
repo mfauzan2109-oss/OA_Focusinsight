@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Approval Queue - FocusInsight</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Boxicons & FontAwesome CDN -->
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Styling Profile Avatar */
+    .profile-avatar img,
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .profile-avatar, .avatar-circle {
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Top Header Exact Styling from Image Reference */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 24px;
+      margin-top: 0 !important;
+    }
+
+    /* Override main-content padding so header stretches full width */
+    .main-content {
+      padding-top: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    /* Restore side spacing to content sections below the header */
+    .request-carousel-wrapper {
+      padding-left: 24px !important;
+      padding-right: 24px !important;
+    }
+
+    .detail-panel-full {
+      margin-left: 24px !important;
+      margin-right: 24px !important;
+    }
+
+    .table-panel {
+      margin-left: 24px !important;
+      margin-right: 24px !important;
+    }
+
+    .top-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Vertical Divider matching the reference image */
+    .header-divider {
+      width: 1px;
+      height: 24px;
+      background-color: #cbd5e1;
+      margin: 0 2px;
+    }
+
+    /* Queue Item Styling */
+    .queue-item {
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .queue-item:hover {
+      background-color: #f8fafc;
+    }
+    .queue-item.active {
+      border-left: 4px solid #2563eb;
+      background-color: #eff6ff;
+    }
+
+    .view-action-link {
+      color: #2563eb;
+      text-decoration: underline;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .view-action-link:hover {
+      color: #1d4ed8;
+    }
+
+    /* Search Dropdown Styling */
+    .search-container {
+      position: relative;
+    }
+
+    .search-dropdown {
+      position: absolute;
+      right: 0;
+      top: 45px;
+      width: 320px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      z-index: 1000;
+      border: 1px solid #e2e8f0;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .search-dropdown.active {
+      display: block;
+    }
+
+    /* --- NOTIFICATION BELL & DROPDOWN --- */
+    .notification-container {
+      position: relative;
+    }
+
+    .noti-bell-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      color: #475569;
+      cursor: pointer;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+    .noti-bell-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .noti-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      background-color: #ef4444;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+      border: 2px solid #ffffff;
+    }
+
+    .noti-bell-btn.noti-bell-shake {
+      animation: notiBellShake 0.5s ease-in-out;
+    }
+
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      top: 42px;
+      right: 0;
+      width: 340px;
+      max-height: 420px;
+      overflow-y: auto;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      border: 1px solid #e2e8f0;
+      z-index: 1000;
+    }
+    .notification-dropdown.active {
+      display: block;
+    }
+
+    .noti-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .noti-header h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+    }
+    .btn-mark-read {
+      background: none;
+      border: none;
+      color: #2563eb;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .noti-body {
+      padding: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .noti-card {
+      display: block;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 10px 12px;
+      border-left: 4px solid #f59e0b;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+    }
+    .noti-card:hover {
+      transform: translateX(2px);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+    }
+    .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+    .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+    .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+    .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+    .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+    .noti-card-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 2px 0;
+    }
+    .noti-card-formno {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      margin: 0;
+    }
+    .noti-card-date {
+      font-size: 10.5px;
+      color: #94a3b8;
+      margin: 2px 0 0 0;
+    }
+    .noti-status-pill {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #ffffff;
+    }
+    .noti-status-pill.pending  { background: #f59e0b; }
+    .noti-status-pill.approved { background: #22c55e; }
+    .noti-status-pill.rejected { background: #ef4444; }
+    .noti-status-pill.review   { background: #3b82f6; }
+    .noti-status-pill.reminder { background: #ef4444; }
+
+    .noti-footer {
+      padding: 10px 16px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+    }
+    .view-all-link {
+      font-size: 12px;
+      font-weight: 700;
+      color: #2563eb;
+      text-decoration: none;
+    }
+    .view-all-link:hover { text-decoration: underline; }
+
+    .nav-item .nav-badge {
+      margin-left: auto;
+      background-color: #f97316;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 12px;
+    }
+
+    @keyframes navBadgePop {
+      0%   { transform: scale(0); opacity: 0; }
+      60%  { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .nav-badge.noti-badge-pop {
+      animation: navBadgePop 0.4s ease-out;
+    }
+
+    @keyframes notiBadgePop {
+      0%   { transform: scale(0); opacity: 0; }
+      60%  { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .noti-badge.noti-badge-pop {
+      animation: notiBadgePop 0.4s ease-out;
+    }
+
+    @keyframes notiBellShake {
+      0%, 100% { transform: rotate(0deg); }
+      20%      { transform: rotate(-12deg); }
+      40%      { transform: rotate(10deg); }
+      60%      { transform: rotate(-8deg); }
+      80%      { transform: rotate(6deg); }
+    }
+
+    /* ===================== Request Card Carousel ===================== */
+    .request-carousel-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .carousel-nav-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: #334155;
+      transition: background 0.15s ease;
+    }
+    .carousel-nav-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .request-cards-track {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      flex: 1;
+      padding: 4px 2px 8px 2px;
+    }
+    .request-cards-track::-webkit-scrollbar {
+      height: 6px;
+    }
+    .request-cards-track::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .request-card {
+      min-width: 190px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      color: #ffffff;
+      flex-shrink: 0;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+    }
+    .request-card:hover {
+      transform: translateY(-2px);
+    }
+    .request-card.active {
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.25), 0 6px 14px rgba(0,0,0,0.15);
+    }
+    .request-card h4 {
+      font-size: 13.5px;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+    }
+    .request-card p {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.92;
+      margin: 0 0 2px 0;
+    }
+    .request-card small {
+      font-size: 11px;
+      opacity: 0.85;
+      display: block;
+    }
+    .request-card .reminder-tag {
+      margin-top: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.25);
+      border-radius: 6px;
+      padding: 2px 6px;
+      display: inline-block;
+    }
+
+    .card-color-0 { background: #22c55e; }
+    .card-color-1 { background: #3b82f6; }
+    .card-color-2 { background: #14b8a6; }
+    .card-color-3 { background: #6366f1; }
+    .card-color-4 { background: #f97316; }
+    .card-color-5 { background: #ec4899; }
+
+    /* ===================== Full-width Detail Panel ===================== */
+    .detail-panel-full {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .detail-scroll-area {
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 6px;
+      margin-bottom: 14px;
+    }
+    .detail-scroll-area::-webkit-scrollbar {
+      width: 6px;
+    }
+    .detail-scroll-area::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .detail-section-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #1e293b;
+      margin: 18px 0 10px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 4px;
+    }
+    .detail-section-title:first-child {
+      margin-top: 0;
+    }
+
+    .detail-fields-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .detail-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .detail-field .field-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      min-height: 20px;
+      word-break: break-word;
+    }
+
+    /* Sub-table styling for itemized rows & employees */
+    .sub-data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .sub-data-table th {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 8px 10px;
+      text-align: left;
+      border: 1px solid #e2e8f0;
+    }
+    .sub-data-table td {
+      padding: 8px 10px;
+      font-size: 12.5px;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
+    }
+
+    .doc-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #2563eb;
+      font-weight: 700;
+      text-decoration: none;
+      background: #eff6ff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #bfdbfe;
+    }
+    .doc-link-btn:hover {
+      background: #dbeafe;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="images/company-logo.jpg" alt="Company Logo" class="clean-logo">
+    </div>
+
+    <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+      <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+      <div class="profile-info">
+        <h4 id="sidebarName">Loading...</h4>
+        <p id="sidebarMeta">Loading...</p>
+      </div>
+    </a>
+
+    <nav class="nav-menu">
+      <a href="approval-queue.html" class="nav-item active">
+        <i class='bx bx-check-shield'></i>
+        <span>Approval Queue</span>
+        <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+      </a>
+      <a href="dashboard.html" class="nav-item">
+        <i class='bx bx-grid-alt'></i> 
+        <span>Dashboard</span>
+      </a>
+      <a href="my-request.html" class="nav-item">
+        <i class='bx bx-file'></i> 
+        <span>My Request</span>
+      </a>
+      <a href="application-center.html" class="nav-item">
+        <i class='bx bx-calendar-check'></i>
+        <span>Application Center</span>
+      </a>
+</nav>
+
+    <div class="sidebar-footer">
+      <a href="index.html" class="sign-out" id="logoutBtn">
+        <i class='bx bx-log-out'></i> 
+        <span>Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Workspace -->
+  <main class="main-content">
+    <header class="top-header">
+      <h1>Approval Queue</h1>
+      <div class="header-actions">
+        
+        <!-- Search Container -->
+        <div class="search-container">
+          <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" id="searchInput" placeholder="Search request...">
+          </div>
+          <div class="search-dropdown" id="searchDropdown">
+            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search requests...</div>
+          </div>
+        </div>
+
+        <!-- Notification Container -->
+        <div class="notification-container">
+          <button class="noti-bell-btn" id="notiBellBtn">
+            <i class="fa-regular fa-bell"></i>
+            <span class="noti-badge" id="notiBadge">0</span>
+          </button>
+          <div class="notification-dropdown" id="notiDropdown">
+            <div class="noti-header">
+              <h3>Notifications</h3>
+              <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+            </div>
+            <div class="noti-body" id="notiList">
+              <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+            </div>
+            <div class="noti-footer">
+              <a href="my-request.html" class="view-all-link">View All Requests</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertical Divider (matching image reference) -->
+        <div class="header-divider"></div>
+
+        <!-- Top Avatar -->
+        <a href="profile.html" style="text-decoration: none;">
+          <div class="avatar-circle" id="topAvatar">--</div>
+        </a>
+      </div>
+    </header>
+
+    <!-- Request Card Carousel -->
+    <section class="request-carousel-wrapper">
+      <button type="button" class="carousel-nav-btn" id="carouselPrevBtn"><i class='bx bx-chevron-left'></i></button>
+      <div class="request-cards-track" id="queueList">
+        <!-- Dynamic Pending Request Cards Rendered Here -->
+      </div>
+      <button type="button" class="carousel-nav-btn" id="carouselNextBtn"><i class='bx bx-chevron-right'></i></button>
+    </section>
+
+    <!-- Detail Panel (Full Width) -->
+    <section class="detail-panel-full">
+      <div class="detail-header">
+        <div>
+          <h2 id="detailType">Select a Request</h2>
+          <span class="req-id" id="detailReqId">—</span>
+        </div>
+        <span class="status-pill status-pending" id="detailStatus">—</span>
+      </div>
+
+      <div class="detail-scroll-area">
+        <!-- 1. Employee Info Section -->
+        <div class="detail-section-title">Employee Information</div>
+        <div class="detail-fields-grid">
+          <div class="detail-field">
+            <label>Employee ID</label>
+            <div class="field-box" id="detailEmployeeId">—</div>
+          </div>
+          <div class="detail-field">
+            <label>Employee Name</label>
+            <div class="field-box" id="detailEmployee">—</div>
+          </div>
+          <div class="detail-field">
+            <label>Department</label>
+            <div class="field-box" id="detailDepartment">—</div>
+          </div>
+          <div class="detail-field">
+            <label>Phone Number</label>
+            <div class="field-box" id="detailPhone">—</div>
+          </div>
+          <div class="detail-field">
+            <label>Email Address</label>
+            <div class="field-box" id="detailEmail">—</div>
+          </div>
+          <div class="detail-field">
+            <label>Submitted Date</label>
+            <div class="field-box" id="detailSubmitted">—</div>
+          </div>
+        </div>
+
+        <!-- 2. Dynamic Form Specific Details -->
+        <div class="detail-section-title" id="detailSectionTitle">Request Details</div>
+        <div id="dynamicFormContainer">
+          <div style="color: #64748b; font-size: 13px;">Select a request card above to view full details.</div>
+        </div>
+      </div>
+
+      <div class="comment-section">
+        <label for="comment">Manager Comment <small>(optional)</small></label>
+        <textarea id="comment" placeholder="Add a comment or explanation before approving or rejecting..."></textarea>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="btn btn-approve" id="approveBtn"><i class='bx bx-check-circle'></i> Approve</button>
+        <button type="button" class="btn btn-revision" id="revisionBtn"><i class='bx bx-undo'></i> Return for Revision</button>
+        <button type="button" class="btn btn-reject" id="rejectBtn"><i class='bx bx-x-circle'></i> Reject</button>
+      </div>
+    </section>
+
+    <!-- All Approval History Section -->
+    <section class="table-panel">
+      <h3>All Approval</h3>
+      <div class="table-container">
+        <table class="approval-table">
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Type</th>
+              <th>Employee (Department)</th>
+              <th>Amount</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="completedTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">
+                Loading approval history...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <span id="paginationInfo">Showing 0 of 0 entries</span>
+        <div class="pagination" id="paginationControls"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const username = sessionStorage.getItem('username');
+      const userId = sessionStorage.getItem('userId');
+      const position = sessionStorage.getItem('position');
+      const department = sessionStorage.getItem('department');
+
+      if (!username || !userId) {
+        alert("Access Denied! Please log in first.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const formattedUserId = userId.toUpperCase();
+
+      document.getElementById('sidebarName').textContent = username;
+      document.getElementById('sidebarMeta').textContent = `${formattedUserId} • ${department || 'General'}`;
+
+      const initials = username.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+      const topAvatarEl = document.getElementById('topAvatar');
+      if (topAvatarEl) topAvatarEl.textContent = initials;
+
+      // 1. AVATAR DISPLAY
+      const specificAvatarKey = `userAvatar_${formattedUserId}`;
+      function updateAvatarDisplay(avatarBase64) {
+        if (!avatarBase64) return;
+        const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        const sidebarAvatar = document.getElementById('sidebarAvatarContainer');
+        if (sidebarAvatar) sidebarAvatar.innerHTML = imgHTML;
+        if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+      }
+
+      const savedAvatar = localStorage.getItem(specificAvatarKey);
+      updateAvatarDisplay(savedAvatar);
+
+      window.addEventListener('storage', function(e) {
+        if (e.key === specificAvatarKey) updateAvatarDisplay(e.newValue);
+      });
+
+      // Indicator badge di sebelah "Approval Queue"
+      async function checkApprovalQueueAccess(userIdParam, departmentParam, positionParam) {
+        const pos = (positionParam || '').toLowerCase();
+        const dept = (departmentParam || '').toLowerCase();
+
+        if (!(pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userIdParam || '').toUpperCase().startsWith('MGR'))) {
+          return;
+        }
+        try {
+          const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
+          const data = await res.json();
+          if (data.success && data.data) {
+            const pendingApprovalCount = data.data.filter(i => (i.status || '').toLowerCase() === 'pending').length;
+            const badge = document.getElementById('approvalQueueBadge');
+            if (badge) {
+              if (pendingApprovalCount > 0) {
+                const wasHidden = badge.style.display === 'none' || badge.style.display === '';
+                const prevCount = badge.textContent;
+                badge.textContent = pendingApprovalCount;
+                badge.style.display = 'inline-block';
+                if (wasHidden || prevCount !== String(pendingApprovalCount)) {
+                  badge.classList.remove('noti-badge-pop');
+                  void badge.offsetWidth;
+                  badge.classList.add('noti-badge-pop');
+                }
+              } else {
+                badge.style.display = 'none';
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Approval queue badge check failed:', e);
+        }
+      }
+
+      checkApprovalQueueAccess(userId, department, position);
+      setInterval(() => checkApprovalQueueAccess(userId, department, position), 5000);
+
+      let selectedRawId = null;
+      let selectedType = null;
+      let allRequestsData = [];
+
+      // ==========================================
+      // 2. NOTIFICATION SYSTEM 
+      // ==========================================
+      const notiBellBtn = document.getElementById('notiBellBtn');
+      const notiDropdown = document.getElementById('notiDropdown');
+      const notiList = document.getElementById('notiList');
+      const notiBadge = document.getElementById('notiBadge');
+      const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+      if (notiBellBtn && notiDropdown) {
+          notiBellBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              notiDropdown.classList.toggle('active');
+              if (notiDropdown.classList.contains('active')) {
+                  fetchNotifications();
+              }
+          });
+
+          document.addEventListener('click', (e) => {
+              if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                  notiDropdown.classList.remove('active');
+              }
+          });
+
+          notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+      }
+
+      async function fetchNotifications() {
+          try {
+              const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+              const data = await response.json();
+
+              if (data.success && data.notifications && data.notifications.length > 0) {
+                  const unreadCount = data.notifications.filter(item =>
+                      item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                  ).length;
+
+                  if (notiList) {
+                      notiList.innerHTML = '';
+                      data.notifications.forEach(item => {
+                          const statusLower = (item.status || '').toLowerCase();
+                          let cardClass = 'status-pending';
+                          let pillClass = 'pending';
+
+                          if (item.is_reminder) {
+                              cardClass = 'status-reminder';
+                              pillClass = 'reminder';
+                          } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                              cardClass = 'status-approved';
+                              pillClass = 'approved';
+                          } else if (statusLower.includes('reject')) {
+                              cardClass = 'status-rejected';
+                              pillClass = 'rejected';
+                          } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                              cardClass = 'status-review';
+                              pillClass = 'review';
+                          }
+
+                          const title = item.is_reminder
+                              ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                              : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                          const notiItem = document.createElement('a');
+                          notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                          notiItem.className = `noti-card ${cardClass}`;
+
+                          notiItem.innerHTML = `
+                              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                  <div>
+                                      <p class="noti-card-title">${title}</p>
+                                      <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                      <p class="noti-card-date">${item.time || ''}</p>
+                                  </div>
+                                  <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                              </div>
+                          `;
+                          notiList.appendChild(notiItem);
+                      });
+                  }
+
+                  if (notiBadge) {
+                      if (unreadCount > 0) {
+                          notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                          notiBadge.style.display = 'flex';
+                          notiBadge.classList.remove('noti-badge-pop');
+                          void notiBadge.offsetWidth;
+                          notiBadge.classList.add('noti-badge-pop');
+                          if (notiBellBtn) {
+                              notiBellBtn.classList.remove('noti-bell-shake');
+                              void notiBellBtn.offsetWidth;
+                              notiBellBtn.classList.add('noti-bell-shake');
+                          }
+                      } else {
+                          notiBadge.style.display = 'none';
+                      }
+                  }
+
+              } else {
+                  if (notiBadge) notiBadge.style.display = 'none';
+                  if (notiList) {
+                      notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                  }
+              }
+          } catch (err) {
+              console.error('Error fetching notifications:', err);
+          }
+      }
+
+      if (refreshNotiBtn) {
+          refreshNotiBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              fetchNotifications();
+          });
+      }
+
+      fetchNotifications();
+      setInterval(fetchNotifications, 5000);
+
+      // 3. SEARCH BAR DROPDOWN
+      const searchInput = document.getElementById('searchInput');
+      const searchDropdown = document.getElementById('searchDropdown');
+
+      if (searchInput && searchDropdown) {
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+
+          document.querySelectorAll('.request-card').forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(query) ? 'block' : 'none';
+          });
+
+          document.querySelectorAll('#completedTableBody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+          });
+
+          if (query === '') {
+            searchDropdown.classList.remove('active');
+            return;
+          }
+
+          const filtered = allRequestsData.filter(item => {
+            const type = (item.request_type || '').toLowerCase();
+            const empName = (item.employee_name || '').toLowerCase();
+            const formNo = `REQ-2026-${String(item.id).padStart(3, '0')}`.toLowerCase();
+            const status = (item.status || '').toLowerCase();
+            return type.includes(query) || empName.includes(query) || formNo.includes(query) || status.includes(query);
+          });
+
+          searchDropdown.innerHTML = '';
+
+          if (filtered.length > 0) {
+            filtered.forEach(item => {
+              const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
+              const searchItem = document.createElement('div');
+              searchItem.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s;";
+              searchItem.onmouseover = () => searchItem.style.background = '#f8fafc';
+              searchItem.onmouseout = () => searchItem.style.background = '#ffffff';
+
+              searchItem.innerHTML = `
+                <div>
+                  <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">${formattedId}</div>
+                  <div style="font-size: 13px; color: #64748b;">${item.request_type || 'General'}</div>
+                </div>
+                <span style="font-size: 11px; padding: 4px 12px; border-radius: 12px; background: #dcfce7; color: #15803d; font-weight: 600; text-transform: capitalize;">
+                  ${item.status || 'Pending'}
+                </span>
+              `;
+
+              searchItem.addEventListener('click', () => {
+                searchDropdown.classList.remove('active');
+                window.location.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.request_type || 'General')}`;
+              });
+
+              searchDropdown.appendChild(searchItem);
+            });
+          } else {
+            searchDropdown.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No matching requests found.</div>`;
+          }
+
+          searchDropdown.classList.add('active');
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!searchDropdown.contains(e.target) && !searchInput.contains(e.target)) {
+            searchDropdown.classList.remove('active');
+          }
+        });
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const then = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - then;
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        const diffDays = Math.floor(diffHours / 24);
+        return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+      }
+
+      // =========================================================================
+      // 4. MEMUATKAN MAKLUMAT TERPERINCI BORANG DARI DATABASE VIA API /api/request-details
+      // =========================================================================
+      async function loadFullFormDetails(reqId, reqType) {
+        const container = document.getElementById('dynamicFormContainer');
+        container.innerHTML = `<div style="padding: 12px; color: #2563eb; font-weight: 600;"><i class='bx bx-loader-alt bx-spin'></i> Fetching complete record from database...</div>`;
+
+        try {
+          const res = await fetch(`http://localhost:3000/api/request-details?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`);
+          const result = await res.json();
+
+          if (!result.success || !result.data) {
+            container.innerHTML = `<div style="padding: 12px; color: #ef4444;">Failed to load details from database.</div>`;
+            return;
+          }
+
+          const data = result.data;
+          
+          document.getElementById('detailEmployeeId').textContent = data.employee_id || data['Employee ID'] || '—';
+          document.getElementById('detailEmployee').textContent = data.employee_name || data['Employee Name'] || '—';
+          document.getElementById('detailDepartment').textContent = data.department || data['Department'] || '—';
+          document.getElementById('detailPhone').textContent = data.phone_no || '—';
+          document.getElementById('detailEmail').textContent = data.email || '—';
+
+          const rawDate = data.created_at || data['Created At'] || data['Start Date'] || '—';
+          let formattedSubmittedDate = '—';
+          if (rawDate !== '—') {
+            try { formattedSubmittedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+          }
+          document.getElementById('detailSubmitted').textContent = formattedSubmittedDate;
+
+          const docPath = data.supporting_document || data['Supporting Documen'];
+          const docHTML = docPath 
+            ? `<a href="http://localhost:3000/${docPath}" target="_blank" class="doc-link-btn"><i class='bx bx-file'></i> View Attachment</a>` 
+            : `<span style="color: #94a3b8;">No Attachment</span>`;
+
+          const lowerType = reqType.toLowerCase();
+          let htmlFields = '';
+
+          // A. LEAVE APPLICATION DETAILS
+          if (lowerType.includes('leave')) {
+            htmlFields = `
+              <div class="detail-fields-grid">
+                <div class="detail-field"><label>Leave Type</label><div class="field-box">${data['Leave Type'] || data.leave_type || '—'}</div></div>
+                <div class="detail-field"><label>Day Type</label><div class="field-box">${data['Day type'] || data.day_type || 'Full Day'}</div></div>
+                <div class="detail-field"><label>No. of Days</label><div class="field-box">${data['No of Days'] || data.no_of_days || '1'}</div></div>
+                <div class="detail-field"><label>Start Date</label><div class="field-box">${data['Start Date'] ? new Date(data['Start Date']).toISOString().split('T')[0] : '—'}</div></div>
+                <div class="detail-field"><label>End Date</label><div class="field-box">${data['End Date'] ? new Date(data['End Date']).toISOString().split('T')[0] : '—'}</div></div>
+                <div class="detail-field"><label>Supporting Document</label><div class="field-box" style="background:transparent; border:none; padding:0;">${docHTML}</div></div>
+              </div>
+              <div class="detail-field" style="margin-top: 14px;">
+                <label>Reason / Remarks</label>
+                <div class="field-box">${data['Reason'] || data.reason || 'N/A'}</div>
+              </div>
+            `;
+          } 
+          // B. DISBURSEMENT FORM DETAILS
+          else if (lowerType.includes('disbursement')) {
+            let itemsTableHTML = '';
+            if (data.items && data.items.length > 0) {
+              let rowsHTML = '';
+              data.items.forEach((item, idx) => {
+                rowsHTML += `
+                  <tr>
+                    <td>${idx + 1}</td>
+                    <td>${item.invoice_date ? new Date(item.invoice_date).toISOString().split('T')[0] : '—'}</td>
+                    <td>${item.invoice_no || '—'}</td>
+                    <td>${item.supplier_name || '—'}</td>
+                    <td>${item.description || '—'}</td>
+                    <td>RM ${parseFloat(item.amount || 0).toFixed(2)}</td>
+                    <td>${item.remark || '—'}</td>
+                  </tr>
+                `;
+              });
+
+              itemsTableHTML = `
+                <div style="margin-top: 14px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Itemized Claims</label>
+                  <table class="sub-data-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Invoice Date</th>
+                        <th>Invoice No</th>
+                        <th>Supplier Name</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Remark</th>
+                      </tr>
+                    </thead>
+                    <tbody>${rowsHTML}</tbody>
+                  </table>
+                </div>
+              `;
+            }
+
+            htmlFields = `
+              <div class="detail-fields-grid">
+                <div class="detail-field"><label>Total Claim Amount</label><div class="field-box">RM ${parseFloat(data.total_amount || 0).toFixed(2)}</div></div>
+                <div class="detail-field"><label>Supporting Document</label><div class="field-box" style="background:transparent; border:none; padding:0;">${docHTML}</div></div>
+              </div>
+              ${itemsTableHTML}
+            `;
+          } 
+          // C. TRAVEL REQUEST DETAILS
+          else if (lowerType.includes('travel')) {
+            let employeesTableHTML = '';
+            if (data.employees && data.employees.length > 0) {
+              let empRows = '';
+              data.employees.forEach((emp, idx) => {
+                empRows += `
+                  <tr>
+                    <td>${idx + 1}</td>
+                    <td>${emp.employee_id || '—'}</td>
+                    <td>${emp.name || '—'}</td>
+                    <td>${emp.phone_no || '—'}</td>
+                    <td>${emp.email || '—'}</td>
+                    <td>${emp.purpose_of_travel || 'Business trip'}</td>
+                  </tr>
+                `;
+              });
+
+              employeesTableHTML = `
+                <div style="margin-top: 14px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Assigned Employees</label>
+                  <table class="sub-data-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Purpose</th>
+                      </tr>
+                    </thead>
+                    <tbody>${empRows}</tbody>
+                  </table>
+                </div>
+              `;
+            }
+
+            htmlFields = `
+              <div class="detail-fields-grid">
+                <div class="detail-field"><label>Allowance / Destination</label><div class="field-box">${data.allowance_type || '—'}</div></div>
+                <div class="detail-field"><label>Company Name</label><div class="field-box">${data.company_name || '—'}</div></div>
+                <div class="detail-field"><label>Travel Destination</label><div class="field-box">${data.travel_destination || '—'}</div></div>
+                <div class="detail-field"><label>Travel Mode</label><div class="field-box">${data.travel_mode || '—'}</div></div>
+                <div class="detail-field"><label>Total Estimated Cost</label><div class="field-box">RM ${parseFloat(data.total_amount || 0).toFixed(2)}</div></div>
+                <div class="detail-field"><label>Departure Date</label><div class="field-box">${data.expected_departure_date || '—'}</div></div>
+                <div class="detail-field"><label>Arrival Date</label><div class="field-box">${data.expected_arrival_date || '—'}</div></div>
+                <div class="detail-field"><label>Primary Contact</label><div class="field-box">${data.primary_contact || '—'} (${data.contact_phone || '—'})</div></div>
+                <div class="detail-field"><label>Supporting Document</label><div class="field-box" style="background:transparent; border:none; padding:0;">${docHTML}</div></div>
+              </div>
+              <div class="detail-field" style="margin-top: 12px;">
+                <label>Venue Address & Reason</label>
+                <div class="field-box">${data.reason || 'N/A'}</div>
+              </div>
+              ${employeesTableHTML}
+            `;
+          } 
+          // D. OVERTIME CLAIM DETAILS
+          else if (lowerType.includes('overtime')) {
+            htmlFields = `
+              <div class="detail-fields-grid">
+                <div class="detail-field"><label>OT Date</label><div class="field-box">${data.ot_date ? new Date(data.ot_date).toISOString().split('T')[0] : '—'}</div></div>
+                <div class="detail-field"><label>Time Period</label><div class="field-box">${data.start_time || '—'} to ${data.end_time || '—'} (${data.period || '0'} hrs)</div></div>
+                <div class="detail-field"><label>Day Type</label><div class="field-box">${data.day_type || 'Normal Work Day'}</div></div>
+                <div class="detail-field"><label>OT Rate Multiplier</label><div class="field-box">${data.ot_rate || '1.5'}x</div></div>
+                <div class="detail-field"><label>Night Allowance</label><div class="field-box">${data.night_allowance ? 'Yes' : 'No'}</div></div>
+                <div class="detail-field"><label>Meal Allowance</label><div class="field-box">${data.meal_allowance ? 'Yes' : 'No'}</div></div>
+                <div class="detail-field"><label>Total Overtime Claim</label><div class="field-box">RM ${parseFloat(data.total_claim || 0).toFixed(2)}</div></div>
+              </div>
+              <div class="detail-field" style="margin-top: 12px;">
+                <label>Reason / Remarks</label>
+                <div class="field-box">${data.reason || 'N/A'}</div>
+              </div>
+            `;
+          } 
+          // E. LOAN APPLICATION DETAILS
+          else if (lowerType.includes('loan')) {
+            htmlFields = `
+              <div class="detail-fields-grid">
+                <div class="detail-field"><label>Loan Type</label><div class="field-box">${data.loan_type || '—'}</div></div>
+                <div class="detail-field"><label>Amount Requested</label><div class="field-box">RM ${parseFloat(data.amount_requested || 0).toFixed(2)}</div></div>
+                <div class="detail-field"><label>Repayment Period</label><div class="field-box">${data.repayment_period || '—'} Months</div></div>
+                <div class="detail-field"><label>Monthly Basic Salary</label><div class="field-box">RM ${parseFloat(data.monthly_salary || 0).toFixed(2)}</div></div>
+                <div class="detail-field"><label>Disbursement Method</label><div class="field-box">${data.disbursement_method || 'Bank Transfer'}</div></div>
+                <div class="detail-field"><label>Bank Details</label><div class="field-box">${data.bank_details || '—'} (Acc: ${data.account_number || '—'})</div></div>
+                <div class="detail-field"><label>Account Holder Name</label><div class="field-box">${data.account_holder || '—'}</div></div>
+                <div class="detail-field"><label>Supporting Document</label><div class="field-box" style="background:transparent; border:none; padding:0;">${docHTML}</div></div>
+              </div>
+            `;
+          }
+
+          container.innerHTML = htmlFields;
+
+        } catch (err) {
+          console.error("Load full form details error:", err);
+          container.innerHTML = `<div style="padding: 12px; color: #ef4444;">Error fetching detailed form data.</div>`;
+        }
+      }
+
+      // 5. MEMUATKAN SENARAI APPROVAL QUEUE
+      async function fetchApprovalQueue() {
+        try {
+          const queryParams = new URLSearchParams({
+            user_id: userId || '',
+            department: department || '',
+            position: position || ''
+          });
+
+          const res = await fetch(`http://localhost:3000/api/approval-queue?${queryParams.toString()}`);
+          const result = await res.json();
+
+          const queueList = document.getElementById('queueList');
+          const completedBody = document.getElementById('completedTableBody');
+          
+          queueList.innerHTML = '';
+          completedBody.innerHTML = '';
+
+          if (result.success && Array.isArray(result.data)) {
+            allRequestsData = result.data;
+
+            const pendingItems = allRequestsData.filter(item => {
+              const s = (item.status || '').trim().toLowerCase();
+              return s === 'pending' || s === 'in review' || s === 'submitted';
+            });
+
+            pendingItems.sort((a, b) => {
+              const aHasReminder = !!a.last_reminder_sent;
+              const bHasReminder = !!b.last_reminder_sent;
+              if (aHasReminder && !bHasReminder) return -1;
+              if (!aHasReminder && bHasReminder) return 1;
+              if (aHasReminder && bHasReminder) {
+                return new Date(b.last_reminder_sent) - new Date(a.last_reminder_sent);
+              }
+              return 0;
+            });
+
+            const completedItems = allRequestsData.filter(item => {
+              const s = (item.status || '').trim().toLowerCase();
+              return s !== 'pending' && s !== 'in review' && s !== 'submitted';
+            });
+
+            const cardColors = ['card-color-0', 'card-color-1', 'card-color-2', 'card-color-3', 'card-color-4', 'card-color-5'];
+
+            if (pendingItems.length > 0) {
+              pendingItems.forEach((item, index) => {
+                const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
+                const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
+
+                const div = document.createElement('div');
+                div.className = `request-card ${cardColors[index % cardColors.length]} ${index === 0 ? 'active' : ''}`;
+                div.dataset.rawId = item.id;
+                div.dataset.id = formattedId;
+                div.dataset.type = item.request_type;
+                div.dataset.employee = item.employee_name;
+                div.dataset.empId = item.employee_id;
+                div.dataset.dept = item.department;
+                div.dataset.date = dateStr;
+                div.dataset.amount = item.amount || '—';
+                div.dataset.status = item.status;
+
+                const reminderTag = item.last_reminder_sent
+                  ? `<span class="reminder-tag">🔔 Reminder sent ${timeAgo(item.last_reminder_sent)}</span>`
+                  : '';
+
+                div.innerHTML = `
+                  <h4>${item.employee_name}</h4>
+                  <p>${item.request_type} Application</p>
+                  <small>${formattedId}</small>
+                  ${reminderTag}
+                `;
+
+                div.addEventListener('click', function() {
+                  document.querySelectorAll('.request-card').forEach(i => i.classList.remove('active'));
+                  this.classList.add('active');
+
+                  selectedRawId = this.dataset.rawId;
+                  selectedType = this.dataset.type;
+
+                  document.getElementById('detailType').textContent = `${this.dataset.type} Application`;
+                  document.getElementById('detailReqId').textContent = this.dataset.id;
+                  document.getElementById('detailSectionTitle').textContent = `${this.dataset.type} Details`;
+
+                  const statusPill = document.getElementById('detailStatus');
+                  statusPill.textContent = this.dataset.status;
+                  statusPill.className = `status-pill status-${this.dataset.status.toLowerCase().replace(/\s+/g, '-')}`;
+
+                  loadFullFormDetails(selectedRawId, selectedType);
+                });
+
+                queueList.appendChild(div);
+              });
+
+              queueList.querySelector('.request-card')?.click();
+            } else {
+              queueList.innerHTML = `<div style="padding: 20px; text-align: center; color: #64748b;">No pending requests for ${department || 'this'} department.</div>`;
+              resetDetailCard();
+            }
+
+            if (completedItems.length > 0) {
+              completedItems.forEach(item => {
+                const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
+                const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
+                
+                let statusClass = 'approved';
+                const lowerStatus = (item.status || '').toLowerCase();
+                if (lowerStatus.includes('reject')) {
+                  statusClass = 'rejected';
+                } else if (lowerStatus.includes('revision')) {
+                  statusClass = 'revision';
+                }
+
+                const reqType = item.request_type || 'General';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td><strong>${formattedId}</strong></td>
+                  <td>${reqType}</td>
+                  <td>${item.employee_name} (${item.department})</td>
+                  <td>${item.amount || '—'}</td>
+                  <td>${dateStr}</td>
+                  <td><span class="table-badge ${statusClass}">${item.status}</span></td>
+                  <td><a href="request-details.html?id=${item.id}&type=${encodeURIComponent(reqType)}" class="view-action-link">View</a></td>
+                `;
+                completedBody.appendChild(tr);
+              });
+              document.getElementById('paginationInfo').textContent = `Showing ${completedItems.length} of ${completedItems.length} entries`;
+            } else {
+              completedBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No completed approval records found.</td></tr>`;
+              document.getElementById('paginationInfo').textContent = `Showing 0 of 0 entries`;
+            }
+
+          } else {
+            queueList.innerHTML = `<div style="padding: 20px; text-align: center; color: #64748b;">No requests found.</div>`;
+            completedBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No entries available.</td></tr>`;
+          }
+        } catch (err) {
+          console.error("Queue Fetch Error:", err);
+        }
+      }
+
+      function resetDetailCard() {
+        selectedRawId = null;
+        selectedType = null;
+        document.getElementById('detailType').textContent = 'Select a Request';
+        document.getElementById('detailReqId').textContent = '—';
+        document.getElementById('detailEmployeeId').textContent = '—';
+        document.getElementById('detailEmployee').textContent = '—';
+        document.getElementById('detailDepartment').textContent = '—';
+        document.getElementById('detailPhone').textContent = '—';
+        document.getElementById('detailEmail').textContent = '—';
+        document.getElementById('detailSubmitted').textContent = '—';
+        document.getElementById('detailSectionTitle').textContent = 'Request Details';
+        document.getElementById('dynamicFormContainer').innerHTML = `<div style="color: #64748b; font-size: 13px;">Select a request card above.</div>`;
+        document.getElementById('detailStatus').textContent = '—';
+        document.getElementById('detailStatus').className = 'status-pill status-pending';
+      }
+
+      async function updateRequestStatus(actionStatus) {
+        if (!selectedRawId || !selectedType) {
+          alert("Please select a pending request first.");
+          return;
+        }
+
+        const commentText = document.getElementById('comment').value.trim();
+
+        try {
+          const response = await fetch(`http://localhost:3000/api/approval-queue/${encodeURIComponent(selectedType)}/${selectedRawId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              status: actionStatus,
+              comment: commentText 
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            alert(`Request marked as '${actionStatus}'!`);
+            document.getElementById('comment').value = '';
+            fetchApprovalQueue();
+            fetchNotifications();
+          } else {
+            alert(`Error: ${result.message || 'Failed to update request.'}`);
+          }
+        } catch (error) {
+          console.error("API Error:", error);
+          alert("Failed to update status on server.");
+        }
+      }
+
+      document.getElementById('approveBtn')?.addEventListener('click', () => updateRequestStatus('Approved'));
+      document.getElementById('revisionBtn')?.addEventListener('click', () => updateRequestStatus('Revision'));
+      document.getElementById('rejectBtn')?.addEventListener('click', () => updateRequestStatus('Rejected'));
+
+      document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        sessionStorage.clear();
+      });
+
+      document.getElementById('carouselPrevBtn')?.addEventListener('click', () => {
+        document.getElementById('queueList')?.scrollBy({ left: -220, behavior: 'smooth' });
+      });
+      document.getElementById('carouselNextBtn')?.addEventListener('click', () => {
+        document.getElementById('queueList')?.scrollBy({ left: 220, behavior: 'smooth' });
+      });
+
+      fetchApprovalQueue();
+    });
+  </script>
+</body>
+</html>

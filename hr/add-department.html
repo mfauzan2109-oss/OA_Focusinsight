@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Department - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <!-- HR Security Guard -->
+    <script src="../js/auth_check.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #aedce2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* White Top Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            width: 100%;
+        }
+
+        .brand-logo img {
+            height: 36px;
+            width: auto;
+            display: block;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .header-icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Main Form Container */
+        .form-container {
+            width: 92%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 0 40px 0;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 16px;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background-color: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Employee List Section Card */
+        .table-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        .table-header-title {
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #000000;
+            border-bottom: 1px solid #cbd5e1;
+            background-color: #ffffff;
+        }
+
+        .btn-add-employee {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-add-employee:hover {
+            background-color: #1d4ed8;
+        }
+
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .employee-table th {
+            background-color: #a5b4fc;
+            color: #1e1b4b;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 12px 16px;
+            text-align: center;
+            border-bottom: 1px solid #cbd5e1;
+            border-right: 1px solid #cbd5e1;
+        }
+
+        .employee-table th:last-child {
+            border-right: none;
+        }
+
+        .employee-table td {
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: center;
+            border-bottom: 1px solid #cbd5e1;
+            border-right: 1px solid #cbd5e1;
+            height: 48px;
+        }
+
+        .employee-table td:last-child {
+            border-right: none;
+        }
+
+        .employee-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Bottom Action Buttons */
+        .bottom-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn-action-back {
+            background-color: #c7d2fe;
+            color: #1e1b4b;
+            border: 1px solid #a5b4fc;
+            padding: 10px 48px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-back:hover {
+            background-color: #b4c6fc;
+        }
+
+        .btn-action-save {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 10px 48px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-save:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER TOP BAR -->
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- FORM CONTAINER -->
+    <main class="form-container">
+        <h1 class="page-title">Add New Department</h1>
+
+        <div class="section-badge">Department Information</div>
+
+        <form id="addDepartmentForm">
+            <div class="form-group">
+                <label class="form-label" for="deptName">Department Name</label>
+                <input type="text" id="deptName" class="form-input" placeholder="Enter department name" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="deptHead">Head of Department</label>
+                <input type="text" id="deptHead" class="form-input" placeholder="Enter head of department" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="dateCreated">Date Created</label>
+                <input type="text" id="dateCreated" class="form-input" value="06 - Aug - 2026">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="deptDesc">Department Description</label>
+                <textarea id="deptDesc" class="form-textarea" placeholder="Enter department responsibilities and description..."></textarea>
+            </div>
+
+            <!-- EMPLOYEE LIST CARD -->
+            <div class="table-card">
+                <div class="table-header-title">
+                    <span>Employee List</span>
+                    <a href="add-employee.html" id="btnAddEmp" class="btn-add-employee">+ Add Employee</a>
+                </div>
+                <table class="employee-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Employee ID</th>
+                            <th style="width: 45%;">Employee Name</th>
+                            <th style="width: 30%;">Position</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                        <tr><td>&nbsp;</td><td></td><td></td></tr>
+                        <tr><td>&nbsp;</td><td></td><td></td></tr>
+                        <tr><td>&nbsp;</td><td></td><td></td></tr>
+                        <tr><td>&nbsp;</td><td></td><td></td></tr>
+                        <tr><td>&nbsp;</td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="bottom-actions">
+                <a href="departments.html" class="btn-action-back">Back</a>
+                <button type="submit" class="btn-action-save">Save</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fields = ['deptName', 'deptHead', 'dateCreated', 'deptDesc'];
+        const btnAddEmp = document.getElementById('btnAddEmp');
+        const employeeTableBody = document.getElementById('employeeTableBody');
+
+        // 1. PULIHKAN DATA BORANG DARIPADA SESSIONSTORAGE (JIKA WUJUD)
+        fields.forEach(fieldId => {
+            const inputEl = document.getElementById(fieldId);
+            if (inputEl) {
+                const savedValue = sessionStorage.getItem(`add_dept_${fieldId}`);
+                if (savedValue !== null) {
+                    inputEl.value = savedValue;
+                }
+
+                // SIMPAN AUTOMATIK APABILA PENGGUNA TAIP
+                inputEl.addEventListener('input', function() {
+                    sessionStorage.setItem(`add_dept_${fieldId}`, this.value);
+                    updateAddEmpLink();
+                });
+            }
+        });
+
+        // Kemaskini URL pautan "+ Add Employee" supaya menyertakan nama department
+        function updateAddEmpLink() {
+            const currentDeptName = document.getElementById('deptName').value.trim();
+            if (currentDeptName) {
+                btnAddEmp.href = `add-employee.html?dept=${encodeURIComponent(currentDeptName)}`;
+            } else {
+                btnAddEmp.href = `add-employee.html`;
+            }
+        }
+        updateAddEmpLink();
+
+        // 1b. PAPARKAN SENARAI STAFF YANG DI-STAGE DARI add-employee.html
+        function getStagedEmployees() {
+            try {
+                const stored = sessionStorage.getItem('add_dept_employees');
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error('Failed to parse staged employees:', e);
+                return [];
+            }
+        }
+
+        function renderStagedEmployees() {
+            const employees = getStagedEmployees();
+
+            if (employees.length === 0) {
+                employeeTableBody.innerHTML = `
+                    <tr><td colspan="3" style="text-align:center; color:#94a3b8; padding: 18px;">No employees added yet. Click "+ Add Employee" above.</td></tr>
+                `;
+                return;
+            }
+
+            employeeTableBody.innerHTML = employees.map(emp => `
+                <tr>
+                    <td>${emp.id}</td>
+                    <td>${emp.name}</td>
+                    <td>${emp.position}</td>
+                </tr>
+            `).join('');
+        }
+        renderStagedEmployees();
+
+        // 2. SUBMIT FORM: CIPTA DEPARTMENT + SEMUA STAFF YANG DI-STAGE SEKALI GUS
+        document.getElementById('addDepartmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const deptName = document.getElementById('deptName').value.trim();
+            const deptHead = document.getElementById('deptHead').value.trim();
+            const deptDesc = document.getElementById('deptDesc').value.trim();
+            const stagedEmployees = getStagedEmployees();
+
+            if (!deptName) {
+                alert('Please enter a department name.');
+                return;
+            }
+
+            const saveBtn = document.querySelector('.btn-action-save');
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                // Step 1: create the department itself
+                const response = await fetch('/api/departments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        department_name: deptName,
+                        head_of_department: deptHead,
+                        description: deptDesc
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(result.message || 'Failed to create department.');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                    return;
+                }
+
+                // Step 2: create every staged employee under this department
+                const today = new Date().toISOString().split('T')[0];
+                const failures = [];
+                let successCount = 0;
+
+                for (let i = 0; i < stagedEmployees.length; i++) {
+                    const emp = stagedEmployees[i];
+                    saveBtn.textContent = `Saving employee ${i + 1} of ${stagedEmployees.length}...`;
+
+                    try {
+                        const empRes = await fetch('/api/add-user', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fullName: emp.name,
+                                department: deptName,
+                                position: emp.position,
+                                employeeId: emp.id,
+                                employeePassword: emp.password,
+                                employmentType: 'Full Time',
+                                joinDate: today
+                            })
+                        });
+                        const empResult = await empRes.json();
+                        if (empResult.success) {
+                            successCount++;
+                        } else {
+                            failures.push(`${emp.id} (${emp.name}): ${empResult.message}`);
+                        }
+                    } catch (empErr) {
+                        console.error('Error saving employee:', emp.id, empErr);
+                        failures.push(`${emp.id} (${emp.name}): Server connection error`);
+                    }
+                }
+
+                // CLEAR SESSIONSTORAGE APABILA BERJAYA DISIMPAN
+                fields.forEach(fieldId => sessionStorage.removeItem(`add_dept_${fieldId}`));
+                sessionStorage.removeItem('add_dept_employees');
+
+                if (failures.length === 0) {
+                    alert(`Department created successfully!${stagedEmployees.length > 0 ? `\n${successCount} employee(s) added.` : ''}`);
+                } else {
+                    alert(`Department created, but some employees failed to save:\n${failures.join('\n')}`);
+                }
+                window.location.href = 'departments.html';
+
+            } catch (err) {
+                console.error('Error creating department:', err);
+                alert('Error connecting to server. Please try again.');
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        });
+    });
+    </script>
+</body>
+</html>

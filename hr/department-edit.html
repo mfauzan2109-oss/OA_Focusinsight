@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Department - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #aedce2; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 32px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); width: 100%; }
+        .brand-logo img { height: 36px; width: auto; display: block; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .search-pill { position: relative; display: flex; align-items: center; }
+        .search-pill i { position: absolute; left: 14px; color: #94a3b8; font-size: 13px; }
+        .search-pill input { padding: 7px 16px 7px 34px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; font-size: 12px; width: 200px; background-color: #f8fafc; color: #334155; }
+        .header-icon-btn { background: transparent; border: none; font-size: 16px; color: #475569; cursor: pointer; }
+        .user-profile-menu { display: flex; align-items: center; gap: 6px; text-decoration: none; }
+        .user-avatar-circle { width: 34px; height: 34px; border-radius: 50%; background-color: #2563eb; color: #ffffff; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .dropdown-chevron { font-size: 11px; color: #64748b; }
+
+        .form-container { width: 92%; max-width: 1400px; margin: 0 auto; padding: 24px 0 40px 0; }
+        .page-title { font-size: 24px; font-weight: 800; color: #000000; margin-bottom: 16px; }
+        .section-badge { display: inline-block; background-color: #ffffff; border: 1px solid #000000; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 800; color: #000000; margin-bottom: 16px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 12px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; font-size: 13px; font-weight: 600; color: #0f172a; outline: none; }
+        .form-input[readonly] { background-color: #f1f5f9; color: #475569; cursor: not-allowed; }
+        .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        .form-textarea { width: 100%; min-height: 160px; padding: 16px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; font-size: 13px; font-weight: 600; color: #0f172a; outline: none; line-height: 1.6; resize: vertical; font-family: 'Inter', sans-serif; }
+        .form-textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        .table-card { background-color: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; overflow: hidden; margin-bottom: 28px; }
+        .table-header-title { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 800; color: #000000; border-bottom: 1px solid #cbd5e1; background-color: #ffffff; }
+
+        .btn-add-employee { background-color: #2563eb; color: #ffffff; border: none; padding: 6px 16px; border-radius: 16px; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+        .btn-add-employee:hover { background-color: #1d4ed8; }
+
+        .employee-table { width: 100%; border-collapse: collapse; }
+        .employee-table th { background-color: #a5b4fc; color: #1e1b4b; font-size: 12px; font-weight: 700; padding: 12px 16px; text-align: center; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; }
+        .employee-table th:last-child { border-right: none; }
+        .employee-table td { padding: 14px 16px; font-size: 13px; font-weight: 600; color: #1e293b; text-align: center; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; height: 48px; }
+        .employee-table td:last-child { border-right: none; }
+        .employee-table tr:last-child td { border-bottom: none; }
+
+        .table-footer { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background-color: #ffffff; border-top: 1px solid #cbd5e1; }
+        .showing-text { font-size: 12px; color: #64748b; font-weight: 500; }
+        .pagination { display: flex; gap: 6px; }
+        .pagination button { border: 1px solid #cbd5e1; background: #ffffff; color: #334155; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; cursor: pointer; }
+        .pagination button.active { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .bottom-actions { display: flex; justify-content: center; gap: 16px; }
+        .btn-action-back { background-color: #c7d2fe; color: #1e1b4b; border: 1px solid #a5b4fc; padding: 10px 48px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s ease; }
+        .btn-action-back:hover { background-color: #b4c6fc; }
+        .btn-action-save { background-color: #2563eb; color: #ffffff; border: none; padding: 10px 48px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .btn-action-save:hover { background-color: #1d4ed8; }
+        .btn-action-save:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <div class="brand-logo"><img src="../images/company-logo.jpg" alt="FocusInsight Logo"></div>
+        <div class="header-actions">
+            <div class="search-pill"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search request"></div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle"><i class="fa-solid fa-user"></i></div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="form-container">
+        <h1 class="page-title">Edit Department</h1>
+        <div class="section-badge">Department Information</div>
+
+        <form id="editDepartmentForm">
+            <div class="form-group">
+                <label class="form-label" for="deptName">Department Name</label>
+                <input type="text" id="deptName" class="form-input" placeholder="Loading..." required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="deptHead">Head of Department</label>
+                <input type="text" id="deptHead" class="form-input" placeholder="Loading...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="dateCreated">Date Created</label>
+                <input type="text" id="dateCreated" class="form-input" value="Loading..." readonly>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="deptDesc">Department Description</label>
+                <textarea id="deptDesc" class="form-textarea" placeholder="Enter department responsibilities and description..."></textarea>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header-title">
+                    <span>Employee List</span>
+                    <a href="add-employee.html" class="btn-add-employee" id="addEmployeeBtn">+ Add Employee</a>
+                </div>
+                <table class="employee-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Employee ID</th>
+                            <th style="width: 45%;">Employee Name</th>
+                            <th style="width: 30%;">Position</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                        <tr><td colspan="3" style="color: #64748b;">Loading employees from database...</td></tr>
+                    </tbody>
+                </table>
+                <div class="table-footer">
+                    <span class="showing-text" id="showingText">Showing 0 records</span>
+                    <div class="pagination" id="paginationControls"></div>
+                </div>
+            </div>
+
+            <div class="bottom-actions">
+                <a href="departments.html" class="btn-action-back">Back</a>
+                <button type="submit" class="btn-action-save" id="saveBtn">Save</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const deptParam = urlParams.get('dept');
+
+        if (!deptParam) {
+            alert('No department specified.');
+            window.location.href = 'departments.html';
+            return;
+        }
+
+        let allEmployees = [];
+        let currentPage = 1;
+        const PAGE_SIZE = 5;
+        let originalDeptName = deptParam;
+
+        document.getElementById('addEmployeeBtn').href = `add-employee.html?department=${encodeURIComponent(deptParam)}`;
+
+        function renderEmployeePage() {
+            const tbody = document.getElementById('employeeTableBody');
+            const showingText = document.getElementById('showingText');
+            const paginationControls = document.getElementById('paginationControls');
+
+            if (allEmployees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="color: #94a3b8; padding: 18px;">No employees assigned to this department.</td></tr>`;
+                showingText.textContent = 'Showing 0 records';
+                paginationControls.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(allEmployees.length / PAGE_SIZE);
+            currentPage = Math.min(currentPage, totalPages);
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = allEmployees.slice(start, start + PAGE_SIZE);
+
+            tbody.innerHTML = pageItems.map(emp => `
+                <tr>
+                    <td>${emp.user_id}</td>
+                    <td>${emp.name}</td>
+                    <td>${emp.position || 'Employee'}</td>
+                </tr>
+            `).join('');
+
+            showingText.textContent = `Showing ${start + 1}-${Math.min(start + PAGE_SIZE, allEmployees.length)} of ${allEmployees.length} records`;
+
+            let pagHtml = `<button type="button" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>&lt;</button>`;
+            for (let p = 1; p <= totalPages; p++) {
+                pagHtml += `<button type="button" data-page="${p}" class="${p === currentPage ? 'active' : ''}">${p}</button>`;
+            }
+            pagHtml += `<button type="button" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>&gt;</button>`;
+            paginationControls.innerHTML = pagHtml;
+
+            paginationControls.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = parseInt(this.dataset.page, 10);
+                    if (page >= 1 && page <= totalPages) {
+                        currentPage = page;
+                        renderEmployeePage();
+                    }
+                });
+            });
+        }
+
+        async function loadDepartmentDetails() {
+            try {
+                const response = await fetch(`/api/departments/details/${encodeURIComponent(deptParam)}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(result.message || 'Department not found.');
+                    window.location.href = 'departments.html';
+                    return;
+                }
+
+                originalDeptName = result.department;
+                document.getElementById('deptName').value = result.department;
+                document.getElementById('deptHead').value = (result.hod && result.hod !== 'Unassigned') ? result.hod : '';
+                document.getElementById('dateCreated').value = result.date_created;
+                document.getElementById('deptDesc').value = result.description || '';
+
+                allEmployees = result.employees || [];
+                currentPage = 1;
+                renderEmployeePage();
+            } catch (err) {
+                console.error('Error loading department details:', err);
+                alert('Failed to connect to server. Ensure Node.js server is running.');
+            }
+        }
+
+        document.getElementById('editDepartmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const newDeptName = document.getElementById('deptName').value.trim();
+            const headOfDept = document.getElementById('deptHead').value.trim();
+            const description = document.getElementById('deptDesc').value.trim();
+
+            if (!newDeptName) {
+                alert('Please enter a department name.');
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch(`/api/departments/details/${encodeURIComponent(originalDeptName)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        newDeptName: newDeptName,
+                        head_of_department: headOfDept,
+                        description: description
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message || 'Department updated successfully!');
+                    window.location.href = 'departments.html';
+                } else {
+                    alert(result.message || 'Failed to update department.');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                }
+            } catch (err) {
+                console.error('Error updating department:', err);
+                alert('Error connecting to server. Please try again.');
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        });
+
+        loadDepartmentDetails();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Adjustment Request | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .main-content { padding: 0 !important; }
+        .page-body { padding: 0 24px 24px 24px; }
+
+        .profile-avatar img, .avatar-circle img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+        }
+        .profile-avatar, .avatar-circle {
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        
+        body { 
+            display: flex; 
+            background-color: #BCE3E6; 
+            min-height: 100vh; 
+            color: #333; 
+        }
+
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 24px; width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+        .top-bar-divider { width: 1px; height: 24px; background-color: #e2e8f0; margin: 0 4px; }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px 4px 14px;
+            margin-top: 6px;
+        }
+
+        /* Top Horizontal Form Navigation Tabs (matches leave-application-hr.html) */
+        .form-nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .tab-btn {
+            padding: 10px 12px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+        }
+
+        .tab-btn.active {
+            background-color: #f43f5e;
+            color: #ffffff;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: #f8fafc;
+            color: #2563eb;
+        }
+
+        /* ================= SALARY ADJUSTMENT FORM (page-specific) ================= */
+        .form-container { width: 100%; }
+
+        .sa-section {
+            background: #ffffff; border-radius: 14px; padding: 22px 24px;
+            margin-bottom: 20px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            border: 1px solid #eef2f7;
+        }
+        .sa-section-title {
+            font-size: 12.5px; font-weight: 800; letter-spacing: 0.5px; color: #0f172a;
+            margin: 0 0 16px 0; text-transform: uppercase;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .sa-section-title i { color: #2563eb; font-size: 16px; }
+
+        .sa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+        .sa-full { grid-column: span 2; }
+        .sa-input-group { display: flex; flex-direction: column; }
+        .sa-input-group label {
+            font-size: 12.5px; font-weight: 600; color: #475569; margin-bottom: 6px;
+        }
+        .sa-input-group label .req { color: #ef4444; margin-left: 2px; }
+
+        .sa-input-group input, .sa-input-group select, .sa-input-group textarea {
+            padding: 10px 12px; border: 1px solid #dde3ea; border-radius: 8px;
+            font-size: 13.5px; font-family: inherit; background: #fff; width: 100%;
+        }
+        .sa-input-group input:disabled, .sa-input-group select:disabled, .sa-input-group textarea:disabled {
+            background: #f1f5f9; color: #64748b; cursor: not-allowed;
+        }
+        .sa-input-group input:focus, .sa-input-group select:focus, .sa-input-group textarea:focus {
+            outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+        .sa-input-group textarea { resize: vertical; }
+
+        .sa-helper { font-size: 11.5px; color: #94a3b8; margin-top: 5px; }
+
+        /* Drag & drop */
+        .sa-dropzone {
+            border: 2px dashed #cbd5e1; border-radius: 10px; padding: 28px 20px;
+            text-align: center; color: #64748b; font-size: 13px; cursor: pointer;
+            transition: 0.15s; background: #f8fafc;
+        }
+        .sa-dropzone.dragover { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+        .sa-dropzone i { font-size: 27px; display: block; margin-bottom: 6px; color: #94a3b8; }
+        .sa-dropzone a { color: #2563eb; font-weight: 700; text-decoration: none; }
+        .sa-dropzone small { display: block; margin-top: 4px; color: #a3adba; }
+        .sa-file-preview {
+            margin-top: 10px; font-size: 12.5px; color: #0f172a; display: none;
+            align-items: center; gap: 8px;
+        }
+        .sa-file-preview i { color: #16a34a; font-size: 16px; }
+        #salaryAttachmentInput { display: none; }
+
+        .sa-btn-row { display: flex; justify-content: center; gap: 14px; margin-top: 4px; }
+        .sa-btn {
+            padding: 11px 30px; border: none; border-radius: 22px; font-size: 14px;
+            font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .sa-btn-cancel { background: #e2e8f0; color: #334155; }
+        .sa-btn-submit { background: #2563eb; color: #fff; }
+        .sa-btn:hover { opacity: 0.9; }
+        .sa-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="../images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i>
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+
+            <div class="sidebar-section-title" id="managementSectionTitle" style="display: none;">Management</div>
+            <a href="salary-adjustment.html" class="nav-item active" id="salaryAdjustmentItem" style="display: none;">
+                <i class='bx bx-trending-up'></i> Salary Adjustment
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Salary Adjustment Request</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="form-container">
+
+                <!-- FORM SWITCHER TABS -->
+                <div class="form-nav-tabs">
+                    <a href="leave-application-hr.html" class="tab-btn">Leave Application</a>
+                    <a href="loan-application-hr.html" class="tab-btn">Loan Application</a>
+                    <a href="travel-request-hr.html" class="tab-btn">Travel Request</a>
+                    <a href="disbursement-hr.html" class="tab-btn">Disbursement Form</a>
+                    <a href="overtime-claim-hr.html" class="tab-btn">Overtime Claim</a>
+                    <a href="Salary-adjustment-hr.html" class="tab-btn active">Salary Adjustment</a>
+                </div>
+
+                <form id="salaryAdjustmentForm" novalidate>
+
+                    <!-- REQUEST INFORMATION -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-file-blank'></i> Request Information</h3>
+                        <div class="sa-grid">
+                            <div class="sa-input-group">
+                                <label for="requestedBy">Requested By</label>
+                                <input type="text" id="requestedBy" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="requestDate">Request Date</label>
+                                <input type="text" id="requestDate" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="requesterDept">Department</label>
+                                <input type="text" id="requesterDept" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EMPLOYEE INFORMATION -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-id-card'></i> Employee Information</h3>
+                        <div class="sa-grid">
+                            <div class="sa-input-group sa-full">
+                                <label for="employeeId">Employee ID<span class="req">*</span></label>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <span class="sa-helper" id="employeeLookupStatus"></span>
+                            </div>
+                            <div class="sa-input-group sa-full">
+                                <label for="employeeName">Employee Name</label>
+                                <input type="text" id="employeeName" disabled placeholder="Auto-filled after Employee ID">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employeeDept">Department</label>
+                                <input type="text" id="employeeDept" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employeePosition">Position</label>
+                                <input type="text" id="employeePosition" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employmentType">Employment Type</label>
+                                <input type="text" id="employmentType" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employmentDate">Employment Date</label>
+                                <input type="text" id="employmentDate" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SALARY ADJUSTMENT -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-trending-up'></i> Salary Adjustment</h3>
+                        <div class="sa-grid">
+                            <div class="sa-input-group">
+                                <label for="currentSalary">Current Basic Salary</label>
+                                <input type="text" id="currentSalary" disabled placeholder="RM 0.00">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="adjustmentType">Adjustment Type<span class="req">*</span></label>
+                                <select id="adjustmentType" required>
+                                    <option value="">Select type</option>
+                                    <option value="Annual Increment">Annual Increment</option>
+                                    <option value="Promotion">Promotion</option>
+                                    <option value="Market Adjustment">Market Adjustment</option>
+                                    <option value="Performance-Based">Performance-Based</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="proposedSalary">Proposed Basic Salary<span class="req">*</span></label>
+                                <input type="number" id="proposedSalary" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="adjustmentAmount">Adjustment Amount</label>
+                                <input type="text" id="adjustmentAmount" disabled placeholder="Auto-calculated">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="adjustmentPercentage">Adjustment Percentage (%)</label>
+                                <input type="text" id="adjustmentPercentage" disabled placeholder="Auto-calculated">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="effectiveDate">Effective Date<span class="req">*</span></label>
+                                <input type="date" id="effectiveDate" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JUSTIFICATION -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-comment-detail'></i> Justification</h3>
+                        <div class="sa-input-group">
+                            <textarea id="justification" rows="4" placeholder="Insert your justification" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- SUPPORTING DOCUMENT -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-paperclip'></i> Supporting Document (if applicable)</h3>
+                        <input type="file" id="salaryAttachmentInput" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="sa-dropzone" id="dropzone">
+                            <i class='bx bx-cloud-upload'></i>
+                            Drag &amp; drop or <a href="#" id="browseFilesLink">browse files</a>
+                            <small>PDF, JPG, PNG up to 5MB</small>
+                        </div>
+                        <div class="sa-file-preview" id="filePreview">
+                            <i class='bx bx-check-circle'></i>
+                            <span id="fileNameText"></span>
+                            <a href="#" id="removeFileLink" style="margin-left:auto;color:#ef4444;font-size:12px;">Remove</a>
+                        </div>
+                    </div>
+
+                    <div class="sa-btn-row">
+                        <button type="button" class="sa-btn sa-btn-cancel" id="btnCancel">Cancel</button>
+                        <button type="submit" class="sa-btn sa-btn-submit" id="btnSubmit">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedFile = null;
+        let currentSalaryValue = 0;
+
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const position = sessionStorage.getItem('position');
+        const department = sessionStorage.getItem('department');
+
+        if (!username || !position) {
+            alert("Access Denied! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
+        // -------- Sidebar / top bar, same pattern as dashboard.html --------
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${userId ? userId.toUpperCase() : ''} . ${department || ''}`;
+
+        const isManager = (userId && userId.toUpperCase().startsWith('MGR')) ||
+                          (position && position.toLowerCase().includes('manager'));
+        if (isManager) {
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem) approvalQueueItem.style.display = 'flex';
+
+            const salaryAdjustmentItem = document.getElementById('salaryAdjustmentItem');
+            if (salaryAdjustmentItem) salaryAdjustmentItem.style.display = 'flex';
+
+            const managementSectionTitle = document.getElementById('managementSectionTitle');
+            if (managementSectionTitle) managementSectionTitle.style.display = 'block';
+        }
+
+        const initials = username.split(' ').map(name => name.charAt(0)).join('').substring(0, 2).toUpperCase();
+        const topAvatarEl = document.getElementById('topAvatar');
+        const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+        if (topAvatarEl) topAvatarEl.textContent = initials;
+
+        function updateAvatarDisplay(avatarBase64) {
+            if (avatarBase64) {
+                const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+                if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+            }
+        }
+        const formattedUserId = (userId || '').toUpperCase();
+        const savedAvatar = localStorage.getItem(`userAvatar_${formattedUserId}`);
+        updateAvatarDisplay(savedAvatar);
+
+        // -------- Form helpers --------
+        function setSafeText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+        function setSafeValue(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+        function formatMoney(num) {
+            return `RM ${parseFloat(num || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // -------- Request Information: auto-filled from the logged-in requester --------
+        async function loadRequesterInfo() {
+            if (!formattedUserId) return;
+            try {
+                const res = await fetch(`/api/profile/${formattedUserId}`);
+                const result = await res.json();
+                if (result.success && result.data) {
+                    const data = result.data;
+                    setSafeValue('requestedBy', `${data.name || username} (${data.user_id || formattedUserId})`);
+                    setSafeValue('requesterDept', data.department || department || '—');
+                }
+            } catch (err) {
+                console.error('Error loading requester profile:', err);
+                setSafeValue('requestedBy', `${username} (${formattedUserId})`);
+                setSafeValue('requesterDept', department || '—');
+            }
+            setSafeValue('requestDate', new Date().toISOString().split('T')[0]);
+        }
+
+        // -------- Employee Information: auto-filled once Employee ID is entered --------
+        let lookupTimer = null;
+        function clearEmployeeFields() {
+            setSafeValue('employeeName', '');
+            setSafeValue('employeeDept', '');
+            setSafeValue('employeePosition', '');
+            setSafeValue('employmentType', '');
+            setSafeValue('employmentDate', '');
+            setSafeValue('currentSalary', '');
+            currentSalaryValue = 0;
+            recalcAdjustment();
+        }
+
+        async function lookupEmployee(rawId) {
+            const statusEl = document.getElementById('employeeLookupStatus');
+            const empId = (rawId || '').trim().toUpperCase();
+            clearEmployeeFields();
+
+            if (!empId) { statusEl.textContent = ''; return; }
+
+            statusEl.textContent = 'Looking up employee...';
+            statusEl.style.color = '#94a3b8';
+
+            try {
+                const res = await fetch(`/api/profile/${empId}`);
+                const result = await res.json();
+
+                if (result.success && result.data) {
+                    const data = result.data;
+                    setSafeValue('employeeName', data.name || '');
+                    setSafeValue('employeeDept', data.department || '');
+                    setSafeValue('employeePosition', data.position || '');
+                    setSafeValue('employmentType', data.employment_type || '');
+                    setSafeValue('employmentDate', data.join_date || '—');
+
+                    currentSalaryValue = parseFloat(data.salary) || 0;
+                    setSafeValue('currentSalary', formatMoney(currentSalaryValue));
+
+                    statusEl.textContent = 'Employee found.';
+                    statusEl.style.color = '#16a34a';
+                    recalcAdjustment();
+                } else {
+                    statusEl.textContent = 'Employee ID not found.';
+                    statusEl.style.color = '#ef4444';
+                }
+            } catch (err) {
+                console.error('Employee lookup failed:', err);
+                statusEl.textContent = 'Could not reach the server.';
+                statusEl.style.color = '#ef4444';
+            }
+        }
+
+        // -------- Adjustment Amount / Percentage auto-calculate --------
+        function recalcAdjustment() {
+            const proposed = parseFloat(document.getElementById('proposedSalary').value) || 0;
+            const amount = proposed - currentSalaryValue;
+            const percentage = currentSalaryValue > 0 ? (amount / currentSalaryValue) * 100 : 0;
+
+            setSafeValue('adjustmentAmount', proposed ? formatMoney(amount) : '');
+            setSafeValue('adjustmentPercentage', proposed ? `${percentage.toFixed(2)}%` : '');
+        }
+
+        // -------- Drag & drop / file picker --------
+        function handleFileSelected(file) {
+            if (!file) return;
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) { alert('Only PDF, JPG, or PNG files are allowed.'); return; }
+            if (file.size > 5 * 1024 * 1024) { alert('File size must be 5MB or under.'); return; }
+
+            selectedFile = file;
+            document.getElementById('fileNameText').textContent = file.name;
+            document.getElementById('filePreview').style.display = 'flex';
+        }
+
+        function setupDropzone() {
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('salaryAttachmentInput');
+            const browseLink = document.getElementById('browseFilesLink');
+            const removeLink = document.getElementById('removeFileLink');
+
+            browseLink.addEventListener('click', (e) => { e.preventDefault(); fileInput.click(); });
+            dropzone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleFileSelected(e.target.files[0]));
+
+            ['dragenter', 'dragover'].forEach(evt => {
+                dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+            });
+            dropzone.addEventListener('drop', (e) => handleFileSelected(e.dataTransfer.files[0]));
+
+            removeLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                selectedFile = null;
+                fileInput.value = '';
+                document.getElementById('filePreview').style.display = 'none';
+            });
+        }
+
+        // -------- Submit --------
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const employeeId = document.getElementById('employeeId').value.trim();
+            const employeeName = document.getElementById('employeeName').value.trim();
+            const adjustmentType = document.getElementById('adjustmentType').value;
+            const proposedSalary = document.getElementById('proposedSalary').value;
+            const effectiveDate = document.getElementById('effectiveDate').value;
+            const justification = document.getElementById('justification').value.trim();
+
+            if (!employeeId || !employeeName) { alert('Please enter a valid Employee ID and wait for it to auto-fill.'); return; }
+            if (!adjustmentType) { alert('Please select an Adjustment Type.'); return; }
+            if (!proposedSalary || parseFloat(proposedSalary) <= 0) { alert('Please enter a valid Proposed Basic Salary.'); return; }
+            if (!effectiveDate) { alert('Please select an Effective Date.'); return; }
+            if (!justification) { alert('Please provide a justification for this request.'); return; }
+
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Submitting...';
+
+            const formData = new FormData();
+            formData.append('requested_by', formattedUserId);
+            formData.append('request_date', document.getElementById('requestDate').value);
+            formData.append('department', document.getElementById('requesterDept').value);
+            formData.append('employee_id', employeeId);
+            formData.append('employee_name', employeeName);
+            formData.append('employee_department', document.getElementById('employeeDept').value);
+            formData.append('position', document.getElementById('employeePosition').value);
+            formData.append('employment_type', document.getElementById('employmentType').value);
+            formData.append('employment_date', document.getElementById('employmentDate').value);
+            formData.append('current_basic_salary', currentSalaryValue);
+            formData.append('adjustment_type', adjustmentType);
+            formData.append('proposed_basic_salary', proposedSalary);
+            formData.append('effective_date', effectiveDate);
+            formData.append('justification', justification);
+            if (selectedFile) formData.append('attachment', selectedFile);
+
+            try {
+                const res = await fetch('/api/submit-salary-adjustment', { method: 'POST', body: formData });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert('Salary adjustment request submitted successfully!');
+                    window.location.href = '/hr/my-request-hr.html';
+                } else {
+                    alert('Error submitting request: ' + (result.message || 'Unknown error.'));
+                }
+            } catch (err) {
+                console.error('Submit failed:', err);
+                alert('Client error: ' + err.message);
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Submit';
+            }
+        }
+
+        loadRequesterInfo();
+        setupDropzone();
+
+        document.getElementById('employeeId').addEventListener('input', (e) => {
+            clearTimeout(lookupTimer);
+            lookupTimer = setTimeout(() => lookupEmployee(e.target.value), 500);
+        });
+        document.getElementById('proposedSalary').addEventListener('input', recalcAdjustment);
+        document.getElementById('salaryAdjustmentForm').addEventListener('submit', handleSubmit);
+        document.getElementById('btnCancel').addEventListener('click', () => { window.location.href = 'dashboard.html'; });
+    });
+    </script>
+
+</body>
+</html>

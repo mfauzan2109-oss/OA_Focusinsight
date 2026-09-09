@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Processing - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    
+    <!-- Client-side HR Access Guard -->
+    <script src="../js/auth_check.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #aedce2;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 250px !important;
+            flex-grow: 1;
+            width: calc(100% - 250px) !important;
+            display: flex;
+            flex-direction: column;
+            padding: 0 !important;
+            margin-top: 0 !important;
+            box-sizing: border-box;
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px 4px 14px;
+            margin-top: 6px;
+        }
+
+        /* --- WHITE HEADER BAR --- */
+        .page-header {
+            position: static !important;
+            top: unset !important;
+            left: unset !important;
+            right: unset !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .brand-logo img {
+            height: 36px;
+            width: auto;
+            display: block;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        .header-icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* --- FORM CONTAINER --- */
+        .form-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 24px 24px 40px 24px !important;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-sizing: border-box !important;
+        }
+
+        .lists-row {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 20px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .list-card {
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000000;
+        }
+
+        /* Lists Row */
+        .lists-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .list-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .list-card h3 {
+            font-size: 16px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 4px;
+        }
+
+        .request-item-list {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 360px;
+            overflow-y: auto;
+        }
+
+        .request-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .request-item:hover, .request-item.selected {
+            background-color: #f1f5f9;
+        }
+
+        /* --- REMINDER BELL & TEXT STYLING --- */
+        .reminder-bell-icon {
+            color: #ef4444;
+            font-size: 15px;
+            margin-right: 6px;
+            animation: bellShake 0.5s ease-in-out;
+        }
+
+        .reminder-text-sub {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #ef4444;
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+        }
+
+        @keyframes bellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+
+        /* Detailed Card Form View */
+        .detail-view-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+        }
+
+        .section-header-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        /* --- EMPLOYEE TABLE --- */
+        .table-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .emp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .emp-table th {
+            background-color: #dcfce7;
+            color: #065f46;
+            padding: 10px 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-align: center;
+            border-bottom: 1px solid #cbd5e1;
+            border-right: 1px solid #cbd5e1;
+        }
+
+        .emp-table th:last-child { border-right: none; }
+
+        .emp-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .emp-table td:last-child { border-right: none; }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: #ffffff;
+            font-size: 11px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* --- FORM FIELDS GRID --- */
+        .form-grid-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .field-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            min-width: 240px;
+        }
+
+        .field-label span { color: #ef4444; }
+
+        .form-input-pill {
+            flex-grow: 1;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 11px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+        }
+
+        .form-input-group {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .date-input-icon {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        .date-input-icon i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .date-input-icon input {
+            padding-left: 32px;
+            width: 100%;
+        }
+
+        /* --- MIDDLE CARDS GRID --- */
+        .middle-cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .card-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .attachment-item {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pdf-icon-badge {
+            background: #fca5a5;
+            color: #991b1b;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .dropzone-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            font-size: 10px;
+            color: #64748b;
+            cursor: pointer;
+            background: #ffffff;
+        }
+
+        /* --- APPROVAL TIMELINE --- */
+        .timeline-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .timeline-step {
+            display: flex;
+            gap: 10px;
+            position: relative;
+        }
+
+        .step-icon-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .step-icon-circle.done { background-color: #22c55e; color: #ffffff; }
+        .step-icon-circle.pending { background-color: #f97316; color: #ffffff; }
+
+        .step-info h5 { font-size: 11px; font-weight: 800; color: #1e293b; }
+        .step-info p { font-size: 10px; color: #64748b; }
+        .step-time { margin-left: auto; font-size: 9px; color: #94a3b8; font-weight: 600; text-align: right; }
+
+        /* --- COST SUMMARY CARD --- */
+        .cost-summary-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .cost-item-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .total-cost-blue-box {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .total-cost-blue-box h4 { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.9; }
+        .total-cost-blue-box h2 { font-size: 24px; font-weight: 900; }
+        .total-cost-blue-box p { font-size: 10px; opacity: 0.95; font-weight: 600; }
+
+        /* --- ACTION BUTTONS BAR --- */
+        .bottom-action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .btn-pill {
+            padding: 10px 36px;
+            border-radius: 20px;
+            border: none;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-pill:hover { opacity: 0.9; }
+        .btn-back { background-color: #93c5fd; color: #1e3a8a; }
+        .btn-save-draft { background-color: #16a34a; color: #ffffff; }
+        .btn-submit-ceo { background-color: #1d4ed8; color: #ffffff; }
+
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .table-custom th {
+            background-color: #a5b4fc;
+            color: #1e1b4b;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #cbd5e1;
+        }
+
+        .table-custom td {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+        }
+        /* --- NOTIFICATION BELL & DROPDOWN (matches hr-dashboard.html) --- */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid #ffffff;
+        }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .view-all-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">-</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item active"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- WHITE HEADER BAR -->
+        <header class="page-header">
+            <div class="brand-logo">
+                <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+            </div>
+            <div class="header-actions">
+                <div class="search-pill">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search request">
+                </div>
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request-hr.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="profile-hr.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatarContainer">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- FORM CONTAINER -->
+        <main class="form-container">
+            <h1 class="page-title">HR Processing</h1>
+
+            <div class="lists-row">
+                <div class="list-card">
+                    <h3>Pending Approval</h3>
+                    <p id="approvalCount" style="font-size: 12px; color: #64748b; margin-bottom: 12px;">0 Requests awaiting action</p>
+                    <div class="request-item-list" id="approvalListContainer"></div>
+                </div>
+
+                <div class="list-card">
+                    <h3>Pending Booking (HR Processing)</h3>
+                    <p id="bookingCount" style="font-size: 12px; color: #64748b; margin-bottom: 12px;">0 Requests awaiting action</p>
+                    <div class="request-item-list" id="bookingListContainer"></div>
+                </div>
+            </div>
+
+            <!-- Detailed Request View Container -->
+            <div class="detail-view-card" id="detailViewContainer" style="display: none;">
+
+                <!-- 1. STANDARD FORM VIEW (For Disbursements, Loans, etc.) -->
+                <div id="standardDetailsSection">
+                    <h3 class="section-header-title">REQUEST DETAILS</h3>
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Invoice Date</th>
+                                <th>Invoice No.</th>
+                                <th>Supplier Name</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody"></tbody>
+                    </table>
+                    <div style="text-align: right; margin-top: 12px; font-weight: 800; font-size: 13px;" id="totalClaimAmount">TOTAL: RM 0.00</div>
+                    
+                    <div class="bottom-action-buttons" style="margin-top: 20px;">
+                        <button class="btn-pill btn-save-draft" onclick="submitDecision('Approved')">Approve</button>
+                        <button class="btn-pill btn-back" onclick="submitDecision('Revision')">Revision</button>
+                        <button class="btn-pill" style="background: #ef4444; color: white;" onclick="submitDecision('Rejected')">Reject</button>
+                    </div>
+                </div>
+
+                <!-- 2. DYNAMIC TRAVEL APPLICATION VIEW -->
+                <div id="travelDetailsSection" style="display: none; flex-direction: column; gap: 24px;">
+                    
+                    <!-- EMPLOYEE LISTS TABLE (POPULATED FROM REQUEST JSON / DATABASE) -->
+                    <div>
+                        <h3 class="section-header-title">EMPLOYEE LISTS</h3>
+                        <div class="table-card">
+                            <table class="emp-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>NAME</th>
+                                        <th>CONTACT NO</th>
+                                        <th>EMAIL ADDRESS</th>
+                                        <th>PURPOSE OF TRAVEL</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="empTableBody">
+                                    <!-- Dynamic rows inserted by JS -->
+                                </tbody>
+                            </table>
+                            <div class="table-footer">
+                                <span id="empTableCount">showing 0 records</span>
+                                <div style="display:flex; gap:4px;" id="empPagination">
+                                    <span style="padding:2px 8px; background:#2563eb; color:white; border-radius:4px; font-weight:bold;">1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TRIP DETAILS (DYNAMICALLY BOUND) -->
+                    <div>
+                        <h3 class="section-header-title">TRIP DETAILS</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Travel Destination* <br><small style="color: #64748b; font-weight: normal;">(Please specify the company name)</small></label>
+                                <input type="text" class="form-input-pill" id="trvDestination" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Travel mode*</label>
+                                <input type="text" class="form-input-pill" id="trvMode" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Departure Destination*</label>
+                                <input type="text" class="form-input-pill" id="trvDepDest" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Arrival Destination*</label>
+                                <input type="text" class="form-input-pill" id="trvArrDest" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Expected Date Departure*</label>
+                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="trvDepDate" readonly></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Expected Date Arrival*</label>
+                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="trvArrDate" readonly></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Estimated Return Date*</label>
+                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="trvRetDate" readonly></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Mileage <br><small style="color: #64748b; font-weight: normal;">(For Domestic Travel Only)</small></label>
+                                <input type="text" class="form-input-pill" id="trvMileage" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Required Accommodation*</label>
+                                <input type="text" class="form-input-pill" id="trvAccommodation" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OVERSEA CONTACT DETAILS (DYNAMICALLY BOUND) -->
+                    <div>
+                        <h3 class="section-header-title">OVERSEA CONTACT DETAILS</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Primary Contact*</label>
+                                <input type="text" class="form-input-pill" id="trvContactName" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Phone Number*</label>
+                                <input type="text" class="form-input-pill" id="trvContactPhone" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Venue & Address*</label>
+                                <input type="text" class="form-input-pill" id="trvVenueAddress" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FLIGHT (Departure) -->
+                    <div>
+                        <h3 class="section-header-title">FLIGHT (Departure)</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Channel*</label>
+                                <input type="text" class="form-input-pill" id="fltDepChannel" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Departure Destination*</label>
+                                <input type="text" class="form-input-pill" id="fltDepFrom" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Arrival Destination*</label>
+                                <input type="text" class="form-input-pill" id="fltDepTo" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Departure Date & Time*</label>
+                                <div class="form-input-group">
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltDepDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltDepTime" readonly></div>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Arrival Date & Time*</label>
+                                <div class="form-input-group">
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltArrDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltArrTime" readonly></div>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Airline*</label>
+                                <div class="form-input-group">
+                                    <input type="text" class="form-input-pill" id="fltAirline" readonly>
+                                    <input type="text" class="form-input-pill" id="fltType" readonly>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Checked Baggage*</label>
+                                <input type="text" class="form-input-pill" id="fltBaggage" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Estimated Price*</label>
+                                <input type="text" class="form-input-pill" id="fltEstPrice" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FLIGHT (Return) -->
+                    <div>
+                        <h3 class="section-header-title">FLIGHT (Return)</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Channel*</label>
+                                <input type="text" class="form-input-pill" id="fltRetChannel" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Departure Destination*</label>
+                                <input type="text" class="form-input-pill" id="fltRetFrom" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Arrival Destination*</label>
+                                <input type="text" class="form-input-pill" id="fltRetTo" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Departure Date & Time*</label>
+                                <div class="form-input-group">
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltRetDepDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltRetDepTime" readonly></div>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Arrival Date & Time*</label>
+                                <div class="form-input-group">
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltRetArrDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltRetArrTime" readonly></div>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Airline*</label>
+                                <div class="form-input-group">
+                                    <input type="text" class="form-input-pill" id="fltRetAirline" readonly>
+                                    <input type="text" class="form-input-pill" id="fltRetType" readonly>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Checked Baggage*</label>
+                                <input type="text" class="form-input-pill" id="fltRetBaggage" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Estimated Price*</label>
+                                <input type="text" class="form-input-pill" id="fltRetEstPrice" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HOTEL -->
+                    <div>
+                        <h3 class="section-header-title">HOTEL</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Channel*</label>
+                                <input type="text" class="form-input-pill" id="htlChannel" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Hotel Name*</label>
+                                <input type="text" class="form-input-pill" id="htlName" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Duration*</label>
+                                <input type="text" class="form-input-pill" id="htlDuration" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Total Nights*</label>
+                                <input type="text" class="form-input-pill" id="htlNights" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Estimated Price*</label>
+                                <input type="text" class="form-input-pill" id="htlPrice" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ATTACHMENTS & APPROVAL TIMELINE -->
+                    <div class="middle-cards-grid">
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="card-box">
+                                <div class="card-title"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments (by employee)</div>
+                                <div class="attachment-item" id="empAttachmentBox">
+                                    <span class="pdf-icon-badge">DOC</span>
+                                    <div style="font-size: 10px; font-weight:700;" id="empAttachmentName">No Attachment</div>
+                                </div>
+                            </div>
+
+                            <div class="card-box">
+                                <div class="card-title"><i class="fa-solid fa-paperclip"></i> Upload Attachment</div>
+                                <div class="dropzone-box" onclick="document.getElementById('fileUpload').click()">
+                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 16px; margin-bottom: 4px;"></i>
+                                    <div>Drag & Drop or <span style="color:#2563eb; text-decoration:underline;">Browse Files</span></div>
+                                    <div style="font-size: 8px; color:#94a3b8; margin-top:2px;">PDF, PNG, JPG up to 10MB</div>
+                                    <input type="file" id="fileUpload" style="display:none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-box">
+                            <div class="card-title"><i class="fa-regular fa-clock"></i> Approval Timeline</div>
+                            <div class="timeline-wrapper" id="timelineContainer">
+                                <!-- Dynamic steps appended via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TRAVEL COST SUMMARY (DYNAMICALLY CALCULATED) -->
+                    <div class="cost-summary-card">
+                        <div>
+                            <h3 class="section-header-title" style="margin-bottom: 6px;">Travel Cost Summary</h3>
+                            <div class="cost-item-row">
+                                <span>Flight Cost</span>
+                                <span id="summaryFlightCost">RM 0.00</span>
+                            </div>
+                            <div class="cost-item-row">
+                                <span>Accommodation Cost</span>
+                                <span id="summaryHotelCost">RM 0.00</span>
+                            </div>
+                            <div class="cost-item-row">
+                                <span>Travel Allowance</span>
+                                <span id="summaryAllowance">RM 0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="total-cost-blue-box">
+                            <h4>TOTAL ESTIMATED COST</h4>
+                            <h2 id="totalEstimatedCost">RM 0.00</h2>
+                            <p id="summaryDurationText">-</p>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM BUTTONS -->
+                    <div class="bottom-action-buttons">
+                        <button type="button" class="btn-pill btn-back" onclick="document.getElementById('detailViewContainer').style.display='none'">Back</button>
+                        <button type="button" class="btn-pill btn-save-draft">Save draft</button>
+                        <button type="button" class="btn-pill btn-submit-ceo" onclick="submitToCEO()">Submit to CEO</button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        let selectedItem = { id: null, table: null, type: null, isTravelBooking: false };
+
+        document.addEventListener("DOMContentLoaded", function() {
+            loadLists();
+
+            const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '';
+            const username = sessionStorage.getItem('username') || '';
+            const department = sessionStorage.getItem('department') || '';
+            const position = sessionStorage.getItem('position') || '';
+
+            const sidebarName = document.getElementById('sidebarName');
+            const sidebarMeta = document.getElementById('sidebarMeta');
+            if (sidebarName) sidebarName.textContent = username || '—';
+            if (sidebarMeta) sidebarMeta.textContent = (userId || department) ? `${userId} . ${department}` : '—';
+
+            /* Load profile picture set on profile-hr.html into the sidebar and top bar */
+            (function loadSidebarAvatar() {
+                const formattedUserId = (userId || '').toUpperCase();
+                const avatarKey = `userAvatar_${formattedUserId}`;
+                const sidebarAvatar = document.getElementById('sidebarAvatarContainer');
+                const topAvatar = document.getElementById('topAvatarContainer');
+                if (!sidebarAvatar && !topAvatar) return;
+
+                function renderSidebarAvatar(base64Image) {
+                    const imgHtml = `<img src="${base64Image}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                    if (sidebarAvatar) sidebarAvatar.innerHTML = imgHtml;
+                    if (topAvatar) topAvatar.innerHTML = imgHtml;
+                }
+
+                const savedAvatar = localStorage.getItem(avatarKey);
+                if (savedAvatar) renderSidebarAvatar(savedAvatar);
+
+                window.addEventListener('storage', (e) => {
+                    if (e.key === avatarKey && e.newValue) renderSidebarAvatar(e.newValue);
+                });
+            })();
+
+            // --- NOTIFICATIONS (matches hr-dashboard.html) ---
+            const notiBellBtn = document.getElementById('notiBellBtn');
+            const notiDropdown = document.getElementById('notiDropdown');
+            const notiList = document.getElementById('notiList');
+            const notiBadge = document.getElementById('notiBadge');
+            const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+            if (notiBellBtn && notiDropdown) {
+                notiBellBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notiDropdown.classList.toggle('active');
+                    if (notiDropdown.classList.contains('active')) {
+                        fetchNotifications();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                        notiDropdown.classList.remove('active');
+                    }
+                });
+
+                notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+            }
+
+            async function fetchNotifications() {
+                if (!userId) return;
+                try {
+                    const response = await fetch(`${API_BASE_URL}/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                    const data = await response.json();
+
+                    if (data.success && data.notifications && data.notifications.length > 0) {
+                        const unreadCount = data.notifications.filter(item =>
+                            item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                        ).length;
+
+                        if (notiList) {
+                            notiList.innerHTML = '';
+                            data.notifications.forEach(item => {
+                                const statusLower = (item.status || '').toLowerCase();
+                                let cardClass = 'status-pending';
+                                let pillClass = 'pending';
+
+                                if (item.is_reminder) {
+                                    cardClass = 'status-reminder';
+                                    pillClass = 'reminder';
+                                } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                    cardClass = 'status-approved';
+                                    pillClass = 'approved';
+                                } else if (statusLower.includes('reject')) {
+                                    cardClass = 'status-rejected';
+                                    pillClass = 'rejected';
+                                } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                    cardClass = 'status-review';
+                                    pillClass = 'review';
+                                }
+
+                                const title = item.is_reminder
+                                    ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                    : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                                const notiItem = document.createElement('a');
+                                notiItem.href = `request-details-hr.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                                notiItem.className = `noti-card ${cardClass}`;
+
+                                notiItem.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                        <div>
+                                            <p class="noti-card-title">${title}</p>
+                                            <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                            <p class="noti-card-date">${item.time || ''}</p>
+                                        </div>
+                                        <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                    </div>
+                                `;
+                                notiList.appendChild(notiItem);
+                            });
+                        }
+
+                        if (notiBadge) {
+                            if (unreadCount > 0) {
+                                notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                                notiBadge.style.display = 'flex';
+                            } else {
+                                notiBadge.style.display = 'none';
+                            }
+                        }
+                    } else {
+                        if (notiBadge) notiBadge.style.display = 'none';
+                        if (notiList) {
+                            notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error fetching notifications:', err);
+                }
+            }
+
+            if (refreshNotiBtn) {
+                refreshNotiBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fetchNotifications();
+                });
+            }
+
+            fetchNotifications();
+            setInterval(fetchNotifications, 5000);
+        });
+
+        // 1. Load pending approval & booking lists
+        async function loadLists() {
+            const userId = sessionStorage.getItem('userId') || 'HR4001';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/hr/processing-lists?user_id=${userId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderItems('approvalListContainer', data.pending_approvals, 'approvalCount', false);
+                    renderItems('bookingListContainer', data.pending_bookings, 'bookingCount', true);
+                } else {
+                    alert(data.message || 'Access Denied');
+                    window.location.href = '../index.html';
+                }
+            } catch (err) {
+                console.error("Error fetching HR lists:", err);
+            }
+        }
+
+        // Render request cards with Bell Icon & Reminder subtext if present
+        function renderItems(containerId, items, countId, isBookingList) {
+            document.getElementById(countId).innerText = `${items.length} Request awaiting action`;
+            const container = document.getElementById(containerId);
+
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div style="padding:12px; font-size:12px; color:#94a3b8;">No pending items</div>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const reminderHTML = item.has_reminder ? `
+                    <div class="reminder-text-sub">
+                        ${item.reminder_text || 'Reminder sent recently.'}
+                    </div>
+                ` : '';
+
+                const bellIconHTML = item.has_reminder ? `
+                    <i class="fa-solid fa-bell reminder-bell-icon" title="Reminder received from requester"></i>
+                ` : '';
+
+                return `
+                    <div class="request-item" onclick="selectRequest('${item.source_table}', '${item.request_type}', ${item.id}, this, ${isBookingList})">
+                        <div>
+                            <h4 style="font-size: 13px; font-weight: 700; color: #1e293b;">${item.employee_name}</h4>
+                            <p style="font-size: 11px; color:#64748b;">${item.request_type} | ${item.formatted_id}</p>
+                            ${reminderHTML}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            ${bellIconHTML}
+                            <div style="color: #94a3b8; font-weight: bold; font-size: 16px;">&rsaquo;</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 2. Select Request & Dynamically Bind Database Payload
+        async function selectRequest(table, type, id, el, isBookingList = false) {
+            selectedItem = { id, table, type, isTravelBooking: isBookingList || type.toLowerCase().includes('travel') };
+            document.querySelectorAll('.request-item').forEach(e => e.classList.remove('selected'));
+            if(el) el.classList.add('selected');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/request-details?id=${id}&type=${encodeURIComponent(type)}`);
+                const result = await res.json();
+
+                if (result.success) {
+                    const req = result.data;
+                    document.getElementById('detailViewContainer').style.display = 'flex';
+
+                    if (selectedItem.isTravelBooking) {
+                        document.getElementById('standardDetailsSection').style.display = 'none';
+                        document.getElementById('travelDetailsSection').style.display = 'flex';
+
+                        // Render employee list dynamically from req.employees array
+                        const empList = req.employees || [];
+                        const empTbody = document.getElementById('empTableBody');
+
+                        if (empList.length > 0) {
+                            empTbody.innerHTML = empList.map(emp => `
+                                <tr>
+                                    <td>${emp.employee_id}</td>
+                                    <td>${emp.name}</td>
+                                    <td>${emp.phone_no || '—'}</td>
+                                    <td>${emp.email || '—'}</td>
+                                    <td>${emp.purpose_of_travel || 'Business trip'}</td>
+                                </tr>
+                            `).join('');
+                            document.getElementById('empTableCount').innerText = `showing ${empList.length} of ${empList.length} records`;
+                        } else {
+                            empTbody.innerHTML = `<tr><td colspan="5" style="padding: 12px; text-align: center;">No employees assigned to this trip</td></tr>`;
+                            document.getElementById('empTableCount').innerText = `showing 0 records`;
+                        }
+
+                        // Trip Details
+                        document.getElementById('trvDestination').value = req.travel_destination || req.allowance_type || req.reason || 'N/A';
+                        document.getElementById('trvMode').value = req.travel_mode || 'Flight';
+                        document.getElementById('trvDepDest').value = req.departure_destination || 'Penang International Airport (PEN), Malaysia';
+                        document.getElementById('trvArrDest').value = req.arrival_destination || 'Changzhou Benniu International Airport (CZX), China';
+                        document.getElementById('trvDepDate').value = req.expected_departure_date || req.claim_month || '—';
+                        document.getElementById('trvArrDate').value = req.expected_arrival_date || req.claim_month || '—';
+                        document.getElementById('trvRetDate').value = req.estimated_return_date || '—';
+                        document.getElementById('trvMileage').value = req.mileage || '-';
+                        document.getElementById('trvAccommodation').value = req.required_accommodation || 'Yes';
+
+                        // Oversea Contacts
+                        document.getElementById('trvContactName').value = req.primary_contact || req.employee_name || '—';
+                        document.getElementById('trvContactPhone').value = req.contact_phone || req.phone_no || '—';
+                        document.getElementById('trvVenueAddress').value = req.venue_address || req.reason || '—';
+
+                        // Flight (Departure)
+                        document.getElementById('fltDepChannel').value = req.departure_channel || 'N/A';
+                        document.getElementById('fltDepFrom').value = req.departure_destination || 'PEN, Malaysia';
+                        document.getElementById('fltDepTo').value = req.arrival_destination || 'CZX, China';
+                        document.getElementById('fltDepDate').value = req.departure_date || req.expected_departure_date || '—';
+                        document.getElementById('fltDepTime').value = req.departure_time || '08:45 AM';
+                        document.getElementById('fltArrDate').value = req.arrival_date || req.expected_arrival_date || '—';
+                        document.getElementById('fltArrTime').value = req.arrival_time || '02:15 PM';
+                        document.getElementById('fltAirline').value = req.airline || 'AirAsia';
+                        document.getElementById('fltType').value = req.flight_type || 'Direct flight';
+                        document.getElementById('fltBaggage').value = req.checked_baggage || '25kg';
+                        document.getElementById('fltEstPrice').value = req.flight_cost ? `RM ${parseFloat(req.flight_cost).toFixed(2)}` : 'RM 1,250.00';
+
+                        // Flight (Return)
+                        document.getElementById('fltRetChannel').value = req.return_channel || 'N/A';
+                        document.getElementById('fltRetFrom').value = req.arrival_destination || 'CZX, China';
+                        document.getElementById('fltRetTo').value = req.departure_destination || 'PEN, Malaysia';
+                        document.getElementById('fltRetDepDate').value = req.return_departure_date || req.estimated_return_date || '—';
+                        document.getElementById('fltRetDepTime').value = req.return_departure_time || '02:30 PM';
+                        document.getElementById('fltRetArrDate').value = req.return_arrival_date || req.estimated_return_date || '—';
+                        document.getElementById('fltRetArrTime').value = req.return_arrival_time || '09:05 PM';
+                        document.getElementById('fltRetAirline').value = req.return_airline || req.airline || 'AirAsia';
+                        document.getElementById('fltRetType').value = req.return_flight_type || 'Direct flight';
+                        document.getElementById('fltRetBaggage').value = req.return_checked_baggage || '25kg';
+                        document.getElementById('fltRetEstPrice').value = req.return_flight_cost ? `RM ${parseFloat(req.return_flight_cost).toFixed(2)}` : 'RM 1,250.00';
+
+                        // Hotel
+                        document.getElementById('htlChannel').value = req.hotel_channel || 'N/A';
+                        document.getElementById('htlName').value = req.hotel_name || 'Hilton Garden Inn';
+                        document.getElementById('htlDuration').value = req.hotel_duration || '14 days';
+                        document.getElementById('htlNights').value = req.hotel_nights || '13 days';
+                        document.getElementById('htlPrice').value = req.hotel_cost ? `RM ${parseFloat(req.hotel_cost).toFixed(2)}` : 'RM 1,250.00';
+
+                        // Attachment Box
+                        const attName = document.getElementById('empAttachmentName');
+                        if (req.supporting_document) {
+                            attName.innerHTML = `<a href="http://localhost:3000/${req.supporting_document}" target="_blank" style="color:#0284c7;">📄 View Uploaded Document</a>`;
+                        } else {
+                            attName.innerText = 'No File Uploaded';
+                        }
+
+                        // Approval Timeline
+                        const timeline = document.getElementById('timelineContainer');
+                        const statusVal = req.status || 'Pending';
+                        timeline.innerHTML = `
+                            <div class="timeline-step">
+                                <div class="step-icon-circle done"><i class="fa-solid fa-check"></i></div>
+                                <div class="step-info">
+                                    <h5>Dato Hj. Kamaruddin</h5>
+                                    <p>Head of Department - Stage 1</p>
+                                </div>
+                                <div class="step-time">Approved</div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-icon-circle ${statusVal !== 'Pending' ? 'done' : 'pending'}"><i class="fa-solid fa-${statusVal !== 'Pending' ? 'check' : 'user'}"></i></div>
+                                <div class="step-info">
+                                    <h5>Chen Jun</h5>
+                                    <p>Project Management / HR - Stage 2</p>
+                                </div>
+                                <div class="step-time">${statusVal}</div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-icon-circle pending"><i class="fa-solid fa-user"></i></div>
+                                <div class="step-info">
+                                    <h5 style="color: #ef4444;">Michael Cao</h5>
+                                    <p>Chief Executive Officer - Stage 3</p>
+                                </div>
+                            </div>
+                        `;
+
+                        // Cost Summary Calculations
+                        const fltVal = parseFloat(req.flight_cost || 1250);
+                        const htlVal = parseFloat(req.hotel_cost || 1250);
+                        const totalVal = parseFloat(req.total_amount || 4600);
+                        const allowanceVal = Math.max(0, totalVal - (fltVal + htlVal));
+
+                        document.getElementById('summaryFlightCost').innerText = `RM ${fltVal.toFixed(2)}`;
+                        document.getElementById('summaryHotelCost').innerText = `RM ${htlVal.toFixed(2)}`;
+                        document.getElementById('summaryAllowance').innerText = `RM ${allowanceVal.toFixed(2)}`;
+                        document.getElementById('totalEstimatedCost').innerText = `RM ${totalVal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                        document.getElementById('summaryDurationText').innerText = `${req.hotel_duration || '14 travel days'} . ${req.travel_mode || 'International'}`;
+
+                    } else {
+                        document.getElementById('standardDetailsSection').style.display = 'block';
+                        document.getElementById('travelDetailsSection').style.display = 'none';
+
+                        const tbody = document.getElementById('itemsTableBody');
+                        if (req.items && req.items.length > 0) {
+                            tbody.innerHTML = req.items.map(i => `
+                                <tr>
+                                    <td>${i.invoice_date}</td>
+                                    <td>${i.invoice_no}</td>
+                                    <td>${i.supplier_name}</td>
+                                    <td>${i.description}</td>
+                                    <td>RM ${parseFloat(i.amount).toFixed(2)}</td>
+                                    <td>${i.remark || '-'}</td>
+                                </tr>
+                            `).join('');
+                        } else {
+                            tbody.innerHTML = `<tr><td colspan="6" style="padding: 12px; text-align: center;">${req.reason || 'No itemized breakdown'}</td></tr>`;
+                        }
+
+                        const amountVal = req.total_amount || req.amount_requested || 0;
+                        document.getElementById('totalClaimAmount').innerText = `TOTAL: RM ${parseFloat(amountVal).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    }
+
+                    document.getElementById('detailViewContainer').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (err) {
+                console.error("Error fetching request details:", err);
+            }
+        }
+
+        async function submitDecision(action) {
+            if (!selectedItem.id || !selectedItem.table) return;
+
+            const userId = sessionStorage.getItem('userId') || 'HR4001';
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/hr/process-action`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        id: selectedItem.id,
+                        table: selectedItem.table,
+                        action: action
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    document.getElementById('detailViewContainer').style.display = 'none';
+                    loadLists();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (err) {
+                console.error("Error submitting action:", err);
+            }
+        }
+
+        async function submitToCEO() {
+            if (!selectedItem.id) return;
+
+            const userId = sessionStorage.getItem('userId') || 'HR4001';
+            const formData = new FormData();
+            formData.append('user_id', userId);
+            formData.append('request_id', selectedItem.id);
+            formData.append('action', 'Submit_To_CEO');
+
+            const fileInput = document.getElementById('fileUpload');
+            if (fileInput && fileInput.files[0]) {
+                formData.append('quotation_file', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/hr/submit-booking-to-ceo`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert("Booking details successfully verified and forwarded to CEO for final approval.");
+                    document.getElementById('detailViewContainer').style.display = 'none';
+                    loadLists();
+                } else {
+                    alert("Error submitting to CEO: " + data.message);
+                }
+            } catch (err) {
+                console.error("Error forwarding booking to CEO:", err);
+                alert("Failed to submit booking details to CEO.");
+            }
+        }
+    </script>
+</body>
+</html>

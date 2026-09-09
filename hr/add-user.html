@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #aedce2; min-height: 100vh; display: flex; flex-direction: column; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 32px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); width: 100%; }
+        .brand-logo img { height: 36px; width: auto; display: block; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .search-pill { position: relative; display: flex; align-items: center; }
+        .search-pill i { position: absolute; left: 14px; color: #94a3b8; font-size: 13px; }
+        .search-pill input { padding: 7px 16px 7px 34px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; font-size: 12px; width: 200px; background-color: #f8fafc; color: #334155; }
+        .header-icon-btn { background: transparent; border: none; font-size: 16px; color: #475569; cursor: pointer; }
+        .user-profile-menu { display: flex; align-items: center; gap: 6px; text-decoration: none; }
+        .user-avatar-circle { width: 34px; height: 34px; border-radius: 50%; background-color: #2563eb; color: #ffffff; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .dropdown-chevron { font-size: 11px; color: #64748b; }
+        .form-container { width: 92%; max-width: 1400px; margin: 0 auto; padding: 24px 0 40px 0; }
+        .page-title { font-size: 24px; font-weight: 800; color: #000000; margin-bottom: 20px; text-decoration: underline; }
+        .profile-header-wrapper { display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 28px; }
+        .avatar-upload-block { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .avatar-circle-lg { width: 84px; height: 84px; border-radius: 50%; background-color: #3b82f6; color: #ffffff; font-size: 42px; display: flex; align-items: center; justify-content: center; }
+        .add-picture-link { font-size: 11px; color: #2563eb; text-decoration: underline; font-weight: 600; cursor: pointer; }
+        .status-badge-position { position: absolute; right: 15%; top: 10px; }
+        .badge-active-pill { background-color: #00e619; color: #ffffff; font-size: 14px; font-weight: 800; padding: 8px 36px; border-radius: 20px; display: inline-block; box-shadow: 0 2px 8px rgba(0, 230, 25, 0.2); }
+        .section-badge { display: inline-block; background-color: #ffffff; border: 1px solid #000000; border-radius: 8px; padding: 6px 16px; font-size: 14px; font-weight: 800; color: #000000; margin-bottom: 16px; margin-top: 8px; text-decoration: underline; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px; text-decoration: underline; }
+        .form-input { width: 100%; padding: 12px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; font-size: 13px; font-weight: 600; color: #0f172a; outline: none; transition: border-color 0.2s ease; }
+        .form-input[readonly] { background-color: #f1f5f9; color: #475569; cursor: not-allowed; }
+        .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .form-textarea { width: 100%; min-height: 120px; padding: 14px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; font-size: 13px; font-weight: 600; color: #0f172a; outline: none; line-height: 1.6; resize: vertical; font-family: 'Inter', sans-serif; }
+        .form-textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .bottom-actions { display: flex; justify-content: center; gap: 16px; margin-top: 32px; }
+        .btn-action-cancel { background-color: #c7d2fe; color: #1e1b4b; border: 1px solid #a5b4fc; padding: 10px 48px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s ease; }
+        .btn-action-cancel:hover { background-color: #b4c6fc; }
+        .btn-action-submit { background-color: #2563eb; color: #ffffff; border: none; padding: 10px 48px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .btn-action-submit:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="form-container">
+        <h1 class="page-title">New User Profile</h1>
+
+        <div class="profile-header-wrapper">
+            <div class="avatar-upload-block">
+                <div class="avatar-circle-lg"><i class="fa-solid fa-user"></i></div>
+                <a href="#" class="add-picture-link">Add Picture</a>
+            </div>
+
+            <div class="status-badge-position">
+                <div class="badge-active-pill">Active</div>
+            </div>
+        </div>
+
+        <form id="addUserForm">
+
+            <div class="section-badge">Personal Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="fullName">Full Name</label>
+                <input type="text" id="fullName" class="form-input" required placeholder="e.g. Ahmad Razak">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" class="form-input" required placeholder="e.g. ahmad@focusinsight.my">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="icPassport">IC/Passport No.</label>
+                <input type="text" id="icPassport" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="phoneNo">Phone No.</label>
+                <input type="text" id="phoneNo" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="emergencyContact">Emergency Contact</label>
+                <input type="text" id="emergencyContact" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="address">Address</label>
+                <textarea id="address" class="form-textarea"></textarea>
+            </div>
+
+            <div class="section-badge">Employment Information</div>
+
+            <div class="form-group">
+                <label class="form-label" for="department">Department</label>
+                <input type="text" id="department" class="form-input" required placeholder="e.g. Software">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="position">Position</label>
+                <input type="text" id="position" class="form-input" required placeholder="e.g. Manager / Head of Department / CEO / Engineer">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="employmentType">Employment Type</label>
+                <input type="text" id="employmentType" class="form-input" placeholder="Full Time / Part Time / Contract / Internship">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="supervisor">Manager/Supervisor</label>
+                <input type="text" id="supervisor" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="joinDate">Join date</label>
+                <input type="date" id="joinDate" class="form-input" required>
+            </div>
+
+            <!-- Salary input field placed directly below Join Date -->
+            <div class="form-group">
+                <label class="form-label" for="salary">Salary</label>
+                <input type="number" step="0.01" id="salary" class="form-input" placeholder="e.g. 3500.00">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="employeeId">Employee ID (Auto-Generated)</label>
+                <input type="text" id="employeeId" class="form-input" placeholder="Generating next ID..." readonly required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="employeePassword">Employee Password</label>
+                <input type="password" id="employeePassword" class="form-input" required>
+            </div>
+
+            <div class="bottom-actions">
+                <a href="user-management.html" class="btn-action-cancel">Cancel</a>
+                <button type="submit" class="btn-action-submit">Add User</button>
+            </div>
+
+        </form>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        async function fetchNextEmployeeId() {
+            try {
+                const res = await fetch('/api/next-employee-id');
+                const data = await res.json();
+                if (data.success && data.nextEmployeeId) {
+                    document.getElementById('employeeId').value = data.nextEmployeeId;
+                } else {
+                    document.getElementById('employeeId').value = 'EMP001';
+                }
+            } catch (err) {
+                console.error('Failed to fetch next Employee ID:', err);
+                document.getElementById('employeeId').value = 'EMP001';
+            }
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('joinDate').value = today;
+
+        fetchNextEmployeeId();
+
+        document.getElementById('addUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const payload = {
+                fullName: document.getElementById('fullName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                icPassport: document.getElementById('icPassport').value.trim(),
+                phoneNo: document.getElementById('phoneNo').value.trim(),
+                emergencyContact: document.getElementById('emergencyContact').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                department: document.getElementById('department').value.trim(),
+                position: document.getElementById('position').value.trim(),
+                employmentType: document.getElementById('employmentType').value.trim() || 'Full Time',
+                supervisor: document.getElementById('supervisor').value.trim(),
+                joinDate: document.getElementById('joinDate').value,
+                salary: document.getElementById('salary').value.trim(),
+                employeeId: document.getElementById('employeeId').value.trim(),
+                employeePassword: document.getElementById('employeePassword').value
+            };
+
+            try {
+                const response = await fetch('/api/add-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(result.message || 'New employee added successfully!');
+                    window.location.href = 'departments.html';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (err) {
+                console.error('Submission error:', err);
+                alert('Server connection error. Ensure Node server is running on port 3000.');
+            }
+        });
+    });
+    </script>
+</body>
+</html>

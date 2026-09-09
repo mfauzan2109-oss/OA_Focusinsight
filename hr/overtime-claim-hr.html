@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overtime Claim - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- FIX: Updated relative CSS path -->
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #bcdbe5;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 24px 32px;
+            width: calc(100% - 250px);
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px 4px 14px;
+            margin-top: 6px;
+        }
+
+        .form-nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .tab-btn {
+            padding: 10px 12px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+        }
+
+        .tab-btn.active {
+            background-color: #f43f5e;
+            color: #ffffff;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: #f8fafc;
+            color: #2563eb;
+        }
+
+        .form-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 28px 32px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 20px 0 14px 0;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-group label span.required {
+            color: #ef4444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            color: #0f172a;
+            transition: border-color 0.15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #2563eb;
+        }
+
+        .form-control[readonly] {
+            background-color: #f8fafc;
+            color: #64748b;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .summary-card {
+            background-color: #fef9c3;
+            border: 1px solid #fde047;
+            border-radius: 12px;
+            padding: 20px 24px;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .summary-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #a16207;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .summary-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .summary-item-label {
+            font-size: 11px;
+            color: #854d0e;
+            font-weight: 600;
+        }
+
+        .summary-item-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: #713f12;
+            margin-top: 2px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 13px;
+            color: #713f12;
+        }
+
+        .summary-row.total-row {
+            border-top: 1px solid #facc15;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #854d0e;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-start;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .btn-cancel {
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            background-color: #1d4ed8;
+            color: #ffffff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .error-banner {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* ==================================================================
+           NOTIFICATION DROPDOWN PANEL — matches my-request-hr.html design
+           ================================================================== */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+        }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .noti-footer a {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <!-- FIX: Updated relative logo image path -->
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Chen Jun</h4>
+                <p id="sidebarMeta">HR4001 . Human Resources</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="administration.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
+            <a href="hr-operations.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="overtime-claim-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER TOP BAR -->
+        <header class="top-header">
+            <h1>Overtime Claim</h1>
+            <div class="header-right">
+                <div class="search-box-wrapper">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="headerSearchInput" placeholder="Search request">
+                    </div>
+                </div>
+
+                <!-- NOTIFICATION BELL + DROPDOWN (data comes from /api/notifications) -->
+                <div class="notification-container">
+                    <button class="icon-btn noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request-hr.html" id="notiViewAllBtn">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">CJ</div>
+                </a>
+            </div>
+        </header>
+
+        <!-- FORM SWITCHER TABS -->
+        <div class="form-nav-tabs">
+            <a href="leave-application-hr.html" class="tab-btn">Leave Application</a>
+            <a href="loan-application-hr.html" class="tab-btn">Loan Application</a>
+            <a href="travel-request-hr.html" class="tab-btn">Travel Request</a>
+            <a href="disbursement-hr.html" class="tab-btn">Disbursement Form</a>
+            <a href="overtime-claim-hr.html" class="tab-btn active">Overtime Claim</a>
+            <a href="Salary-adjustment-hr.html" class="tab-btn">Salary Adjustment</a>
+        </div>
+
+        <!-- FORM CARD -->
+        <section class="form-card">
+            <div id="errorBanner" class="error-banner"></div>
+
+            <form id="hrOvertimeForm">
+
+                <!-- 1. EMPLOYEE INFORMATION -->
+                <div class="section-title">Employee Information</div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>Employee ID</label>
+                        <input type="text" id="empId" name="employee_id" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Employee Name</label>
+                        <input type="text" id="empName" name="employee_name" readonly class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="empDept" name="department" readonly class="form-control">
+                    </div>
+                </div>
+
+                <!-- 2. OVERTIME DETAILS -->
+                <div class="section-title">Overtime Details</div>
+
+                <div class="form-grid-2">
+                    <div>
+                        <div class="form-group">
+                            <label>Date <span class="required">*</span></label>
+                            <input type="date" id="otDate" name="ot_date" required class="form-control">
+                            <small style="color:#94a3b8; font-size:11px;">OT must be requested before working — backdated claims are not accepted as OT.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Start Time <span class="required">*</span></label>
+                            <input type="time" id="startTime" name="start_time" required class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>End Time <span class="required">*</span></label>
+                            <input type="time" id="endTime" name="end_time" required class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Period</label>
+                            <input type="text" id="period" name="period" readonly class="form-control" placeholder="0.0 hrs">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Day Type <span class="required">*</span></label>
+                            <select id="dayType" name="day_type" required class="form-control">
+                                <option value="Weekdays & Saturday">Weekdays & Saturday (x1.5)</option>
+                                <option value="Sunday & Public Holiday">Sunday & Public Holiday (x2.0)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Allowances</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="nightCheck" name="night_allowance_check"> Night Allowance (RM 50.00)
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="mealCheck" name="meal_allowance_check"> Meal Allowance (RM 5.00)
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label>OT Allowance (RM)</label>
+                            <input type="text" id="otAllowanceInput" name="ot_allowance" readonly class="form-control" value="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label>OT Rate</label>
+                            <input type="text" id="otRateInput" name="ot_rate" readonly class="form-control" value="RM 15.00/hr">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="summary-card">
+                            <div>
+                                <div class="summary-title"><i class="fa-solid fa-calculator"></i> Overtime Summary</div>
+                                
+                                <div class="summary-grid-3">
+                                    <div>
+                                        <div class="summary-item-label">Total Hours</div>
+                                        <div class="summary-item-val" id="sumTotalHours">0.0h</div>
+                                    </div>
+                                    <div>
+                                        <div class="summary-item-label">Hourly Rate</div>
+                                        <div class="summary-item-val" id="sumHourlyRate">RM 15.00</div>
+                                    </div>
+                                    <div>
+                                        <div class="summary-item-label">Multiplier</div>
+                                        <div class="summary-item-val" id="sumMultiplier">x 1.5</div>
+                                    </div>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>OT Payment</span>
+                                    <span id="sumOtPayment" style="font-weight:700;">RM 0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Meal Allowance</span>
+                                    <span id="sumMealAllowance" style="font-weight:700;">RM 0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Night Allowance</span>
+                                    <span id="sumNightAllowance" style="font-weight:700;">RM 0.00</span>
+                                </div>
+                            </div>
+
+                            <div class="summary-row total-row">
+                                <span>Total Claim</span>
+                                <span id="sumTotalClaim">RM 0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Reason / Description <span class="required">*</span></label>
+                            <textarea id="reason" name="reason" rows="4" required class="form-control" placeholder="Provide a brief description of your overtime reason..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORM ACTIONS -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+                </div>
+
+            </form>
+        </section>
+
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const API_BASE = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+
+        const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || 'HR4001';
+        const username = sessionStorage.getItem('username') || 'Chen Jun';
+        const department = sessionStorage.getItem('department') || 'Human Resources';
+        const position = sessionStorage.getItem('position') || sessionStorage.getItem('userPosition') || '';
+
+        document.getElementById('empId').value = userId;
+        document.getElementById('empName').value = username;
+        document.getElementById('empDept').value = department;
+
+        // Business rule: OT must be requested before working, so backdated dates aren't allowed
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('otDate').setAttribute('min', todayStr);
+
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${userId} . ${department}`;
+        
+        const initials = username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        document.getElementById('topAvatar').textContent = initials || 'HR';
+
+        /* Load profile picture set on profile-hr.html into the sidebar and top bar */
+        (function loadSidebarAvatar() {
+            const formattedUserId = (userId || '').toUpperCase();
+            const avatarKey = `userAvatar_${formattedUserId}`;
+            const sidebarAvatar = document.getElementById('sidebarAvatarContainer');
+            const topAvatar = document.getElementById('topAvatar');
+
+            function renderSavedAvatar(base64Image) {
+                const imgHtml = `<img src="${base64Image}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                if (sidebarAvatar) sidebarAvatar.innerHTML = imgHtml;
+                if (topAvatar) topAvatar.innerHTML = imgHtml;
+            }
+
+            const savedAvatar = localStorage.getItem(avatarKey);
+            if (savedAvatar) renderSavedAvatar(savedAvatar);
+
+            window.addEventListener('storage', (e) => {
+                if (e.key === avatarKey && e.newValue) renderSavedAvatar(e.newValue);
+            });
+        })();
+
+        /* ==============================================================
+           NOTIFICATION DROPDOWN LOGIC
+           ============================================================== */
+        const notiDropdown = document.getElementById('notiDropdown');
+        const notiList     = document.getElementById('notiList');
+        const notiBadge    = document.getElementById('notiBadge');
+        const notiBellBtn  = document.getElementById('notiBellBtn');
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+        if (notiBellBtn && notiDropdown) {
+            notiBellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notiDropdown.classList.toggle('active');
+                if (notiDropdown.classList.contains('active')) {
+                    fetchNotifications();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                    notiDropdown.classList.remove('active');
+                }
+            });
+
+            notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`${API_BASE}/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                const data = await response.json();
+
+                if (data.success && data.notifications && data.notifications.length > 0) {
+                    const unreadCount = data.notifications.filter(item =>
+                        item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                    ).length;
+
+                    if (notiList) {
+                        notiList.innerHTML = '';
+                        data.notifications.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let cardClass = 'status-pending';
+                            let pillClass = 'pending';
+
+                            if (item.is_reminder) {
+                                cardClass = 'status-reminder';
+                                pillClass = 'reminder';
+                            } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                cardClass = 'status-approved';
+                                pillClass = 'approved';
+                            } else if (statusLower.includes('reject')) {
+                                cardClass = 'status-rejected';
+                                pillClass = 'rejected';
+                            } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                cardClass = 'status-review';
+                                pillClass = 'review';
+                            }
+
+                            const title = item.is_reminder
+                                ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                            const notiItem = document.createElement('a');
+                            notiItem.href = `request-details-hr.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.className = `noti-card ${cardClass}`;
+
+                            notiItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <div>
+                                        <p class="noti-card-title">${title}</p>
+                                        <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                        <p class="noti-card-date">${item.time || ''}</p>
+                                    </div>
+                                    <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                </div>
+                            `;
+                            notiList.appendChild(notiItem);
+                        });
+                    }
+
+                    if (notiBadge) {
+                        if (unreadCount > 0) {
+                            notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                            notiBadge.style.display = 'flex';
+                        } else {
+                            notiBadge.style.display = 'none';
+                        }
+                    }
+                } else {
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) {
+                        notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+                if (notiList) {
+                    notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Unable to load notifications.</div>`;
+                }
+            }
+        }
+
+        if (refreshNotiBtn) {
+            refreshNotiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fetchNotifications();
+            });
+        }
+
+        fetchNotifications();
+        setInterval(fetchNotifications, 5000);
+
+        let baseHourlyRate = 15.00;
+        let employeeSalary = 3500;
+        let isFixedRateTier = false;
+        let isExempt = false;
+
+        try {
+            const res = await fetch(`/api/profile/${userId}`);
+            const resData = await res.json();
+            if (resData.success && resData.data) {
+                if (resData.data.basic_salary) {
+                    employeeSalary = parseFloat(resData.data.basic_salary) || 3500;
+                }
+                // Business rule: EXEMP (managerial/professional) employees cannot claim OT
+                const empPosition = (resData.data.position || position || '').toLowerCase();
+                isExempt = /manager|head|hod|ceo|director|supervisor|lead|executive|professional/i.test(empPosition);
+            }
+        } catch (e) {
+            console.warn('Hourly rate fallback active.');
+        }
+
+        // Business rule: RM4000.00 and above uses fixed rates, not ORP
+        isFixedRateTier = employeeSalary >= 4000;
+        baseHourlyRate = employeeSalary / 26 / 8;
+
+        if (isExempt) {
+            const earlyBanner = document.getElementById('errorBanner');
+            earlyBanner.textContent = 'Overtime claims are not applicable to managerial/professional (EXEMP) employees per company policy.';
+            earlyBanner.style.display = 'block';
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').style.opacity = '0.5';
+            document.getElementById('submitBtn').style.cursor = 'not-allowed';
+        }
+
+        const startTimeInput = document.getElementById('startTime');
+        const endTimeInput = document.getElementById('endTime');
+        const periodInput = document.getElementById('period');
+        const dayTypeSelect = document.getElementById('dayType');
+        const nightCheck = document.getElementById('nightCheck');
+        const mealCheck = document.getElementById('mealCheck');
+
+        const sumTotalHours = document.getElementById('sumTotalHours');
+        const sumHourlyRate = document.getElementById('sumHourlyRate');
+        const sumMultiplier = document.getElementById('sumMultiplier');
+        const sumOtPayment = document.getElementById('sumOtPayment');
+        const sumMealAllowance = document.getElementById('sumMealAllowance');
+        const sumNightAllowance = document.getElementById('sumNightAllowance');
+        const sumTotalClaim = document.getElementById('sumTotalClaim');
+        const otAllowanceInput = document.getElementById('otAllowanceInput');
+        const otRateInput = document.getElementById('otRateInput');
+
+        function calculateOT() {
+            const startVal = startTimeInput.value;
+            const endVal = endTimeInput.value;
+
+            let hours = 0;
+            if (startVal && endVal) {
+                const [sH, sM] = startVal.split(':').map(Number);
+                const [eH, eM] = endVal.split(':').map(Number);
+
+                let startMins = sH * 60 + sM;
+                let endMins = eH * 60 + eM;
+
+                if (endMins < startMins) {
+                    endMins += 24 * 60;
+                }
+
+                hours = (endMins - startMins) / 60;
+            }
+
+            periodInput.value = `${hours.toFixed(1)} hrs`;
+            sumTotalHours.textContent = `${hours.toFixed(1)}h`;
+
+            const isPublicHol = dayTypeSelect.value.includes('Sunday');
+
+            let effectiveRate, multiplier, otPayment;
+
+            if (isFixedRateTier) {
+                // Salary RM4000.00 and above: fixed RM15/hr (weekday/Sat) or RM20/hr (Sunday/PH)
+                effectiveRate = isPublicHol ? 20.00 : 15.00;
+                multiplier = 1;
+                otPayment = hours * effectiveRate;
+                sumHourlyRate.textContent = `RM ${effectiveRate.toFixed(2)} (Fixed)`;
+                sumMultiplier.textContent = `Fixed Rate`;
+            } else {
+                // Salary RM3999.99 and below: ORP-based, x1.5 weekday/Sat, x2.0 Sunday/PH
+                effectiveRate = baseHourlyRate;
+                multiplier = isPublicHol ? 2.0 : 1.5;
+                otPayment = hours * effectiveRate * multiplier;
+                sumHourlyRate.textContent = `RM ${effectiveRate.toFixed(2)}`;
+                sumMultiplier.textContent = `x ${multiplier.toFixed(1)}`;
+            }
+
+            otRateInput.value = isFixedRateTier
+                ? `RM ${effectiveRate.toFixed(2)}/hr (Fixed)`
+                : `RM ${effectiveRate.toFixed(2)}/hr`;
+
+            // Business rule: meal allowance only applies if OT is 3 hours or more
+            const mealEligible = hours >= 3;
+            if (mealCheck.checked && !mealEligible) {
+                mealCheck.checked = false;
+            }
+            mealCheck.disabled = !mealEligible;
+
+            const mealAllow = mealCheck.checked ? 5.00 : 0.00;
+            const nightAllow = nightCheck.checked ? 50.00 : 0.00;
+
+            const totalClaim = otPayment + mealAllow + nightAllow;
+
+            sumOtPayment.textContent = `RM ${otPayment.toFixed(2)}`;
+            sumMealAllowance.textContent = `RM ${mealAllow.toFixed(2)}`;
+            sumNightAllowance.textContent = `RM ${nightAllow.toFixed(2)}`;
+            sumTotalClaim.textContent = `RM ${totalClaim.toFixed(2)}`;
+
+            otAllowanceInput.value = otPayment.toFixed(2);
+        }
+
+        startTimeInput.addEventListener('change', calculateOT);
+        endTimeInput.addEventListener('change', calculateOT);
+        dayTypeSelect.addEventListener('change', calculateOT);
+        nightCheck.addEventListener('change', calculateOT);
+        mealCheck.addEventListener('change', calculateOT);
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = 'hr-dashboard.html';
+        });
+
+        const form = document.getElementById('hrOvertimeForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorBanner = document.getElementById('errorBanner');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            errorBanner.style.display = 'none';
+
+            if (isExempt) {
+                errorBanner.textContent = 'Overtime claims are not applicable to managerial/professional (EXEMP) employees per company policy.';
+                errorBanner.style.display = 'block';
+                return;
+            }
+
+            const selectedDate = document.getElementById('otDate').value;
+            if (selectedDate && selectedDate < todayStr) {
+                errorBanner.textContent = 'OT must be requested before working. Backdated dates are not accepted as overtime.';
+                errorBanner.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const payload = {
+                employee_id: userId,
+                employee_name: username,
+                department: department,
+                ot_date: document.getElementById('otDate').value,
+                start_time: startTimeInput.value,
+                end_time: endTimeInput.value,
+                period: periodInput.value,
+                day_type: dayTypeSelect.value,
+                ot_allowance: otAllowanceInput.value,
+                ot_rate: otRateInput.value,
+                night_allowance_check: nightCheck.checked ? 1 : 0,
+                meal_allowance_check: mealCheck.checked ? 1 : 0,
+                total_claim: sumTotalClaim.textContent.replace('RM ', ''),
+                reason: document.getElementById('reason').value
+            };
+
+            try {
+                const response = await fetch('/api/submit-overtime', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Overtime Claim submitted successfully!');
+                    window.location.href = '/hr/my-request-hr.html';
+                } else {
+                    errorBanner.textContent = 'Submission error: ' + (result.message || 'Server error.');
+                    errorBanner.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Error submitting overtime claim:', err);
+                errorBanner.textContent = 'Failed to submit form. Please verify server connection.';
+                errorBanner.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            }
+        });
+    });
+    </script>
+</body>
+</html>

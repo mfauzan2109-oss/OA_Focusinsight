@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printing &amp; Production Request</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .main-content { padding: 0 !important; }
+        .form-body { padding: 0 24px 40px 24px; max-width: 900px; margin: 0 auto; }
+
+        .profile-avatar img, .avatar-circle img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+        }
+        .profile-avatar, .avatar-circle {
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 24px;
+            width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        /* --- NOTIFICATION BELL & DROPDOWN (matches loan.html) --- */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid #ffffff;
+        }
+
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .view-all-link:hover { text-decoration: underline; }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+
+        .form-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 22px 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-card-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #030c1b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .type-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 18px 4px 18px;
+            margin-bottom: 4px;
+        }
+
+        .sub-block-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin: 4px 0 12px 0;
+        }
+
+        /* ---- Generic field grid ---- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 640px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+        }
+        .input-group label span.required {
+            color: #ef4444;
+        }
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            color: #0f172a;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.15s ease;
+        }
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            border-color: #2563eb;
+        }
+        .input-group input[readonly] {
+            background-color: #f8fafc;
+            color: #64748b;
+        }
+        .input-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .radio-row {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+        }
+        .radio-option input[type="radio"] {
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+
+        /* ---- Dropzone ---- */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 26px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .dropzone:hover, .dropzone.dragover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .dropzone i {
+            font-size: 22px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .dropzone .dz-text {
+            font-size: 13px;
+            color: #475569;
+        }
+        .dropzone .dz-text a {
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+        .dropzone .dz-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .dropzone .dz-filename {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #16a34a;
+            word-break: break-all;
+        }
+
+        /* ---- Request type sections ---- */
+        .type-section { display: none; }
+        .type-section.active { display: block; }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .btn-cancel {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 10px 22px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-submit {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-submit:hover { background: #1d4ed8; }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .error-banner {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i>
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Printing &amp; Production Request</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request...">
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="form-body">
+
+            <div id="errorBanner" class="error-banner"></div>
+
+            <!-- REQUESTER INFORMATION -->
+            <section class="form-card">
+                <div class="form-card-title">Requester Information</div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Name</label>
+                        <input type="text" id="reqName" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Position</label>
+                        <input type="text" id="reqPosition" readonly>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Department</label>
+                        <input type="text" id="reqDepartment" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Request Date</label>
+                        <input type="date" id="reqDate" readonly>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REQUEST DETAILS -->
+            <section class="form-card">
+                <div class="form-card-title">Request Details</div>
+                <div class="input-group">
+                    <label>Request Type <span class="required">*</span></label>
+                    <select id="requestType">
+                        <option value="">-- Select Request Type --</option>
+                        <option value="Business Card">Business Card</option>
+                        <option value="Perfect Binding">Perfect Binding</option>
+                        <option value="Banner / Poster">Banner / Poster</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="input-group" id="pleaseSpecifyGroup" style="display: none;">
+                    <label>Please Specify <span class="required">*</span></label>
+                    <input type="text" id="pleaseSpecify" placeholder="Describe the request type">
+                </div>
+
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Quantity <span class="required">*</span></label>
+                        <input type="number" min="1" id="genQuantity">
+                    </div>
+                    <div class="input-group">
+                        <label>Required Size <span class="required">*</span></label>
+                        <input type="text" id="genRequiredSize">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Material / Specification <span class="required">*</span></label>
+                    <input type="text" id="genMaterialSpec">
+                </div>
+                <div class="input-group">
+                    <label>Content / Title <span class="required">*</span></label>
+                    <input type="text" id="genContentTitle">
+                </div>
+                <div class="input-group">
+                    <label>Design / Artwork Attachment <span class="required">*</span></label>
+                    <div class="dropzone" id="artworkDropzone">
+                        <i class='bx bx-cloud-upload'></i>
+                        <div class="dz-text">Drag &amp; drop or <a href="javascript:void(0)">browse files</a></div>
+                        <div class="dz-hint">PDF, JPG, PNG up to 5MB</div>
+                        <div class="dz-filename" id="artworkFilename"></div>
+                    </div>
+                    <input type="file" id="artworkFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                </div>
+            </section>
+
+            <!-- REQUEST SPECIFIC DETAILS (dynamic) -->
+            <section class="form-card" id="specificDetailsCard" style="display: none;">
+                <div class="form-card-title">Request Specific Details</div>
+
+                <!-- BUSINESS CARD -->
+                <div class="type-box type-section" id="section-BusinessCard">
+                    <div class="sub-block-title">Business Card</div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Name</label>
+                            <input type="text" id="bcName">
+                        </div>
+                        <div class="input-group">
+                            <label>Position</label>
+                            <input type="text" id="bcPosition">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Department</label>
+                            <input type="text" id="bcDepartment">
+                        </div>
+                        <div class="input-group">
+                            <label>Email</label>
+                            <input type="email" id="bcEmail">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Phone</label>
+                            <input type="text" id="bcPhone">
+                        </div>
+                        <div class="input-group">
+                            <label>No. of Cards</label>
+                            <input type="number" min="1" id="bcNoOfCards">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BANNER / POSTER -->
+                <div class="type-box type-section" id="section-BannerPoster">
+                    <div class="sub-block-title">Banner / Poster</div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Width</label>
+                            <input type="text" id="bpWidth" placeholder="e.g. 3 ft">
+                        </div>
+                        <div class="input-group">
+                            <label>Height</label>
+                            <input type="text" id="bpHeight" placeholder="e.g. 6 ft">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Material</label>
+                            <input type="text" id="bpMaterial">
+                        </div>
+                        <div class="input-group">
+                            <label>Installation Required (Yes / No)</label>
+                            <select id="bpInstallationRequired">
+                                <option value="">-- Select --</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Installation Location</label>
+                        <textarea id="bpInstallationLocation" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <!-- PERFECT BINDING -->
+                <div class="type-box type-section" id="section-PerfectBinding">
+                    <div class="sub-block-title">Perfect Binding</div>
+                    <div class="input-group">
+                        <label>Document Title</label>
+                        <input type="text" id="pbDocumentTitle">
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>No. of Copies</label>
+                            <input type="number" min="1" id="pbNoOfCopies">
+                        </div>
+                        <div class="input-group">
+                            <label>Page Count</label>
+                            <input type="number" min="1" id="pbPageCount">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Paper</label>
+                            <input type="text" id="pbPaper">
+                        </div>
+                        <div class="input-group">
+                            <label>Cover</label>
+                            <input type="text" id="pbCover">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Binding Specification</label>
+                        <textarea id="pbBindingSpecification" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <!-- OTHER -->
+                <div class="type-box type-section" id="section-Other">
+                    <div class="sub-block-title">Other</div>
+                    <div class="input-group">
+                        <label>Item / Service Name</label>
+                        <input type="text" id="othItemName">
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Quantity</label>
+                            <input type="number" min="1" id="othQuantity">
+                        </div>
+                        <div class="input-group">
+                            <label>Unit</label>
+                            <input type="text" id="othUnit" placeholder="e.g. pcs, sets, rolls">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Required Size / Dimension</label>
+                            <input type="text" id="othRequiredSize">
+                        </div>
+                        <div class="input-group">
+                            <label>Material / Other Requirements</label>
+                            <input type="text" id="othMaterial">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Specification</label>
+                        <textarea id="othSpecification" rows="3"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>References / Design Attachment</label>
+                        <div class="dropzone" id="othDropzone">
+                            <i class='bx bx-cloud-upload'></i>
+                            <div class="dz-text">Drag &amp; drop or <a href="javascript:void(0)">browse files</a></div>
+                            <div class="dz-hint">PDF, JPG, PNG up to 5MB</div>
+                            <div class="dz-filename" id="othFilename"></div>
+                        </div>
+                        <input type="file" id="othFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                    </div>
+                </div>
+            </section>
+
+            <!-- DELIVERY & COST -->
+            <section class="form-card">
+                <div class="form-card-title">Delivery &amp; Cost</div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Required Completion Date <span class="required">*</span></label>
+                        <input type="date" id="requiredCompletionDate">
+                    </div>
+                    <div class="input-group">
+                        <label>Delivery / Collection Location <span class="required">*</span></label>
+                        <input type="text" id="deliveryLocation">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Estimated Cost (RM) <span class="required">*</span></label>
+                        <input type="number" min="0" step="0.01" id="estimatedCost">
+                    </div>
+                    <div class="input-group">
+                        <label>Vendor / Supplier</label>
+                        <input type="text" id="vendorSupplier">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Attach Quotation</label>
+                    <div class="dropzone" id="quotationDropzone">
+                        <i class='bx bx-cloud-upload'></i>
+                        <div class="dz-text">Drag &amp; drop or <a href="javascript:void(0)">browse files</a></div>
+                        <div class="dz-hint">PDF, JPG, PNG up to 5MB</div>
+                        <div class="dz-filename" id="quotationFilename"></div>
+                    </div>
+                    <input type="file" id="quotationFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                </div>
+            </section>
+
+            <!-- PURPOSE & REMARKS -->
+            <section class="form-card">
+                <div class="form-card-title">Purpose &amp; Remarks</div>
+                <div class="input-group">
+                    <label>Purpose <span class="required">*</span></label>
+                    <input type="text" id="purpose">
+                </div>
+                <div class="input-group">
+                    <label>Remarks</label>
+                    <textarea id="remarks" rows="3"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="btnCancel">Cancel</button>
+                    <button type="button" class="btn-submit" id="btnSubmit">Submit</button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const position = sessionStorage.getItem('position');
+        const department = sessionStorage.getItem('department');
+
+        if (!username || !userId) {
+            alert("Access Denied! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
+        const formattedUserId = userId.toUpperCase();
+
+        // ==============================================================
+        // SIDEBAR / TOP HEADER + REQUESTER INFORMATION AUTOFILL
+        // ==============================================================
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${formattedUserId} . ${department || 'General'}`;
+        document.getElementById('reqName').value = username;
+        document.getElementById('reqPosition').value = position || '';
+        document.getElementById('reqDepartment').value = department || '';
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('reqDate').value = todayStr;
+
+        const isManager = (userId && formattedUserId.startsWith('MGR')) ||
+                          (position && position.toLowerCase().includes('manager'));
+        if (isManager) {
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem) approvalQueueItem.style.display = 'flex';
+        }
+
+        const initials = username.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+        const topAvatarEl = document.getElementById('topAvatar');
+        const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+        if (topAvatarEl) topAvatarEl.textContent = initials;
+
+        try {
+            const profRes = await fetch(`/api/profile/${formattedUserId}`);
+            const profData = await profRes.json();
+            if (profData.success && profData.data && profData.data.profile_picture) {
+                const d = profData.data;
+                const src = d.profile_picture.startsWith('http') ? d.profile_picture : `/${d.profile_picture}`;
+                const imgHTML = `<img src="${src}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+                if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+            }
+        } catch (err) {
+            console.error('Error loading profile:', err);
+        }
+
+        // ==============================================================
+        // NOTIFICATION SYSTEM
+        // ==============================================================
+        const notiBellBtn = document.getElementById('notiBellBtn');
+        const notiDropdown = document.getElementById('notiDropdown');
+        const notiList = document.getElementById('notiList');
+        const notiBadge = document.getElementById('notiBadge');
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const data = await response.json();
+
+                if (data.success && data.notifications && data.notifications.length > 0) {
+                    const unreadCount = data.notifications.filter(item =>
+                        item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                    ).length;
+
+                    if (notiList) {
+                        notiList.innerHTML = '';
+                        data.notifications.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let cardClass = 'status-pending';
+                            let pillClass = 'pending';
+
+                            if (item.is_reminder) {
+                                cardClass = 'status-reminder';
+                                pillClass = 'reminder';
+                            } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                cardClass = 'status-approved';
+                                pillClass = 'approved';
+                            } else if (statusLower.includes('reject')) {
+                                cardClass = 'status-rejected';
+                                pillClass = 'rejected';
+                            } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                cardClass = 'status-review';
+                                pillClass = 'review';
+                            }
+
+                            const title = item.is_reminder
+                                ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                            const notiItem = document.createElement('a');
+                            notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.className = `noti-card ${cardClass}`;
+
+                            notiItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <div>
+                                        <p class="noti-card-title">${title}</p>
+                                        <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                        <p class="noti-card-date">${item.time || ''}</p>
+                                    </div>
+                                    <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                </div>
+                            `;
+                            notiList.appendChild(notiItem);
+                        });
+                    }
+
+                    if (notiBadge) {
+                        if (unreadCount > 0) {
+                            notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                            notiBadge.style.display = 'flex';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
+                        } else {
+                            notiBadge.style.display = 'none';
+                        }
+                    }
+
+                } else {
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) {
+                        notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+            }
+        }
+
+        if (notiBellBtn && notiDropdown) {
+            notiBellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notiDropdown.classList.toggle('active');
+                if (notiDropdown.classList.contains('active')) {
+                    fetchNotifications();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                    notiDropdown.classList.remove('active');
+                }
+            });
+
+            notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        if (refreshNotiBtn) {
+            refreshNotiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fetchNotifications();
+            });
+        }
+
+        fetchNotifications();
+        setInterval(fetchNotifications, 5000);
+
+
+        // ==============================================================
+        // REQUEST TYPE SWITCHING
+        // ==============================================================
+        const requestTypeSelect = document.getElementById('requestType');
+        const pleaseSpecifyGroup = document.getElementById('pleaseSpecifyGroup');
+        const specificDetailsCard = document.getElementById('specificDetailsCard');
+
+        const typeSectionMap = {
+            'Business Card': 'section-BusinessCard',
+            'Banner / Poster': 'section-BannerPoster',
+            'Perfect Binding': 'section-PerfectBinding',
+            'Other': 'section-Other'
+        };
+
+        requestTypeSelect.addEventListener('change', () => {
+            const selected = requestTypeSelect.value;
+
+            // Toggle "Please Specify" field for Other
+            pleaseSpecifyGroup.style.display = (selected === 'Other') ? 'flex' : 'none';
+
+            // Hide all sections first
+            document.querySelectorAll('.type-section').forEach(sec => sec.classList.remove('active'));
+
+            if (selected && typeSectionMap[selected]) {
+                specificDetailsCard.style.display = 'block';
+                document.getElementById(typeSectionMap[selected]).classList.add('active');
+            } else {
+                specificDetailsCard.style.display = 'none';
+            }
+        });
+
+        // ==============================================================
+        // DROPZONES (Other > References/Design Attachment, Attach Quotation)
+        // ==============================================================
+        const uploadedFiles = { artwork: null, othReference: null, quotation: null };
+
+        function wireDropzone(dropzoneId, fileInputId, filenameId, storeKey) {
+            const dz = document.getElementById(dropzoneId);
+            const input = document.getElementById(fileInputId);
+            const filenameEl = document.getElementById(filenameId);
+
+            dz.addEventListener('click', () => input.click());
+            dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+            dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+            dz.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dz.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+            input.addEventListener('change', () => {
+                if (input.files && input.files[0]) handleFile(input.files[0]);
+            });
+
+            function handleFile(file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must not exceed 5MB.');
+                    return;
+                }
+                uploadedFiles[storeKey] = file;
+                filenameEl.textContent = file.name;
+            }
+        }
+
+        wireDropzone('artworkDropzone', 'artworkFileInput', 'artworkFilename', 'artwork');
+        wireDropzone('othDropzone', 'othFileInput', 'othFilename', 'othReference');
+        wireDropzone('quotationDropzone', 'quotationFileInput', 'quotationFilename', 'quotation');
+
+        // ==============================================================
+        // FORM ACTIONS
+        // ==============================================================
+        const errorBanner = document.getElementById('errorBanner');
+        function showError(msg) {
+            errorBanner.textContent = msg;
+            errorBanner.style.display = 'block';
+            errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        document.getElementById('btnCancel').addEventListener('click', () => {
+            window.location.href = 'application-center.html';
+        });
+
+        document.getElementById('btnSubmit').addEventListener('click', async () => {
+            errorBanner.style.display = 'none';
+
+            const requestType = requestTypeSelect.value;
+            if (!requestType) {
+                showError('Please select a Request Type.');
+                return;
+            }
+            if (requestType === 'Other' && !document.getElementById('pleaseSpecify').value.trim()) {
+                showError('Please specify the request type in the "Please Specify" field.');
+                return;
+            }
+            if (!document.getElementById('genQuantity').value ||
+                !document.getElementById('genRequiredSize').value.trim() ||
+                !document.getElementById('genMaterialSpec').value.trim() ||
+                !document.getElementById('genContentTitle').value.trim()) {
+                showError('Please complete all required fields (marked *) in Request Details.');
+                return;
+            }
+            if (!uploadedFiles.artwork) {
+                showError('Please upload a Design / Artwork Attachment.');
+                return;
+            }
+            if (!document.getElementById('requiredCompletionDate').value ||
+                !document.getElementById('deliveryLocation').value ||
+                !document.getElementById('estimatedCost').value) {
+                showError('Please complete all required fields (marked *) in Delivery & Cost.');
+                return;
+            }
+            if (!document.getElementById('purpose').value.trim()) {
+                showError('Please state the Purpose of this request.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('employee_id', formattedUserId);
+            formData.append('name', username);
+            formData.append('position', position || '');
+            formData.append('department', department || '');
+            formData.append('request_date', document.getElementById('reqDate').value);
+            formData.append('request_type', requestType);
+            formData.append('please_specify', requestType === 'Other' ? document.getElementById('pleaseSpecify').value : '');
+            formData.append('quantity', document.getElementById('genQuantity').value);
+            formData.append('required_size', document.getElementById('genRequiredSize').value);
+            formData.append('material_specification', document.getElementById('genMaterialSpec').value);
+            formData.append('content_title', document.getElementById('genContentTitle').value);
+            if (uploadedFiles.artwork) formData.append('artwork_attachment', uploadedFiles.artwork);
+
+            // Type-specific fields
+            if (requestType === 'Business Card') {
+                formData.append('bc_name', document.getElementById('bcName').value);
+                formData.append('bc_position', document.getElementById('bcPosition').value);
+                formData.append('bc_department', document.getElementById('bcDepartment').value);
+                formData.append('bc_email', document.getElementById('bcEmail').value);
+                formData.append('bc_phone', document.getElementById('bcPhone').value);
+                formData.append('bc_no_of_cards', document.getElementById('bcNoOfCards').value);
+            } else if (requestType === 'Banner / Poster') {
+                formData.append('bp_width', document.getElementById('bpWidth').value);
+                formData.append('bp_height', document.getElementById('bpHeight').value);
+                formData.append('bp_material', document.getElementById('bpMaterial').value);
+                formData.append('bp_installation_required', document.getElementById('bpInstallationRequired').value);
+                formData.append('bp_installation_location', document.getElementById('bpInstallationLocation').value);
+            } else if (requestType === 'Perfect Binding') {
+                formData.append('pb_document_title', document.getElementById('pbDocumentTitle').value);
+                formData.append('pb_no_of_copies', document.getElementById('pbNoOfCopies').value);
+                formData.append('pb_page_count', document.getElementById('pbPageCount').value);
+                formData.append('pb_paper', document.getElementById('pbPaper').value);
+                formData.append('pb_cover', document.getElementById('pbCover').value);
+                formData.append('pb_binding_specification', document.getElementById('pbBindingSpecification').value);
+            } else if (requestType === 'Other') {
+                formData.append('oth_item_name', document.getElementById('othItemName').value);
+                formData.append('oth_quantity', document.getElementById('othQuantity').value);
+                formData.append('oth_unit', document.getElementById('othUnit').value);
+                formData.append('oth_required_size', document.getElementById('othRequiredSize').value);
+                formData.append('oth_material', document.getElementById('othMaterial').value);
+                formData.append('oth_specification', document.getElementById('othSpecification').value);
+                if (uploadedFiles.othReference) formData.append('oth_reference_attachment', uploadedFiles.othReference);
+            }
+
+            // Delivery & Cost
+            formData.append('required_completion_date', document.getElementById('requiredCompletionDate').value);
+            formData.append('delivery_location', document.getElementById('deliveryLocation').value);
+            formData.append('estimated_cost', document.getElementById('estimatedCost').value);
+            formData.append('vendor_supplier', document.getElementById('vendorSupplier').value);
+            if (uploadedFiles.quotation) formData.append('quotation_attachment', uploadedFiles.quotation);
+
+            // Purpose & Remarks
+            formData.append('purpose', document.getElementById('purpose').value);
+            formData.append('remarks', document.getElementById('remarks').value);
+
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Submitting...';
+
+            try {
+                const res = await fetch('/api/submit-printing-production-request', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert('Printing & Production Request submitted successfully!');
+                    window.location.href = 'my-request.html';
+                } else {
+                    showError(result.message || 'Failed to submit request. Please try again.');
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Submit';
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+                showError('Failed to submit request. Please verify server connection.');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Submit';
+            }
+        });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA Portal Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Buang padding asal main-content supaya top bar rapat sepenuhnya */
+        .main-content {
+            padding: 0 !important;
+        }
+
+        /* Bekas kandungan bawah top bar */
+        .dashboard-body {
+            padding: 0 24px 24px 24px;
+        }
+
+        .profile-avatar img,
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .profile-avatar, .avatar-circle {
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- STICKY TOP BAR (FULL WIDTH & RAPAT 100%) --- */
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px;
+            margin-bottom: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .top-bar-divider {
+            width: 1px;
+            height: 24px;
+            background-color: #e2e8f0;
+            margin: 0 4px;
+        }
+
+        /* --- NOTIFICATION BELL & DROPDOWN --- */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid #ffffff;
+        }
+
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+        }
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .noti-header h3 {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+        .btn-mark-read {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .noti-body {
+            padding: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .noti-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-footer {
+            padding: 10px 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .view-all-link:hover { text-decoration: underline; }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background-color: #f97316;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        @keyframes navBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .nav-badge.noti-badge-pop {
+            animation: navBadgePop 0.4s ease-out;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 320px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-height: 280px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 6px;
+        }
+
+        .search-results-dropdown.active {
+            display: block;
+        }
+
+        .search-result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.15s ease;
+        }
+
+        .search-result-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .search-result-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .search-result-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: capitalize;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .status-badge.approved {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-badge.pending {
+            background-color: #fef9c3;
+            color: #a16207;
+        }
+
+        .status-badge.rejected {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 0 !important;
+            width: calc(100% - 250px);
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .activity-table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+        }
+
+        .metrics-grid,
+        .quick-access-grid,
+        .app-grid {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+        
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item"><i class='bx bx-calendar-check'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- TOP BAR HEADER (FULL WIDTH WITHOUT GAP) -->
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Dashboard</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request...">
+                    <div class="search-results-dropdown" id="searchResults"></div>
+                </div>
+                
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTENT WRAPPER -->
+        <div class="dashboard-body">
+            <section class="welcome-banner">
+                <div class="welcome-text">
+                    <p class="current-date" id="currentDateDisplay">Tuesday, 28 July 2026</p>
+                    <h2>Good Morning, <span id="bannerName">User</span></h2>
+                    <p class="pending-alert">You have <span class="highlight-count" id="pendingCounter">0 pending requests</span> awaiting action.</p>
+                </div>
+            </section>
+
+            <section class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon pending-icon"><i class='bx bx-alarm'></i></div>
+                    <div class="metric-data"><h3 id="metricPending">0</h3><p>Pending Requests</p></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon approved-icon"><i class='bx bx-check-circle'></i></div>
+                    <div class="metric-data"><h3 id="metricApproved">0</h3><p>Approved Requests</p></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon rejected-icon"><i class='bx bx-x-circle'></i></div>
+                    <div class="metric-data"><h3 id="metricRejected">0</h3><p>Rejected</p></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon total-icon"><i class='bx bx-layer'></i></div>
+                    <div class="metric-data"><h3 id="metricTotal">0</h3><p>Total Submitted</p></div>
+                </div>
+            </section>
+
+            <section class="quick-access">
+                <h3>Quick Access</h3>
+                <div class="quick-access-grid">
+                    <a href="leave.html" class="qa-card">
+                        <i class='bx bx-calendar-event qa-icon' style="color: #2563eb;"></i>
+                        <span>Leave Application</span>
+                    </a>
+                    <a href="travel-request.html" class="qa-card">
+                        <i class='bx bx-paper-plane qa-icon' style="color: #059669;"></i>
+                        <span>Travel Request</span>
+                    </a>
+                    <a href="overtime-claim.html" class="qa-card">
+                        <i class='bx bx-time qa-icon' style="color: #d97706;"></i>
+                        <span>Overtime Claim</span>
+                    </a>
+                    <a href="loan.html" class="qa-card">
+                        <i class='bx bx-wallet qa-icon' style="color: #7c3aed;"></i>
+                        <span>Loan Application</span>
+                    </a>
+                    <a href="disbursement-form.html" class="qa-card">
+                        <i class='bx bx-receipt qa-icon' style="color: #dc2626;"></i>
+                        <span>Disbursement Form</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="recent-activity">
+                <div class="section-header">
+                    <h3>Recent Activity</h3>
+                    <a href="my-request.html" class="view-all">View all</a>
+                </div>
+                
+                <div class="table-container">
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>REQUEST ID</th>
+                                <th>EMPLOYEE</th>
+                                <th>TYPE</th>
+                                <th>SUBMITTED</th>
+                                <th>AMOUNT</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 24px;">Loading dynamic activities...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        let allUserRequests = []; 
+
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const position = sessionStorage.getItem('position');
+        const department = sessionStorage.getItem('department');
+
+        if (!username || !position) {
+            alert("Access Denied! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${userId ? userId.toUpperCase() : ''} . ${department}`;
+        document.getElementById('bannerName').textContent = username;
+        
+        const isManager = (userId && userId.toUpperCase().startsWith('MGR')) || 
+                          (position && position.toLowerCase().includes('manager'));
+        
+        if (isManager) {
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem) {
+                approvalQueueItem.style.display = 'flex';
+            }
+        }
+
+        const initials = username.split(' ').map(name => name.charAt(0)).join('').substring(0, 2).toUpperCase();
+        
+        const topAvatarEl = document.getElementById('topAvatar');
+        const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+        
+        if (topAvatarEl) topAvatarEl.textContent = initials;
+
+        function updateAvatarDisplay(avatarBase64) {
+            if (avatarBase64) {
+                const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+                if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+            }
+        }
+
+        const formattedUserId = (userId || '').toUpperCase();
+        const specificAvatarKey = `userAvatar_${formattedUserId}`;
+        const savedAvatar = localStorage.getItem(specificAvatarKey);
+        updateAvatarDisplay(savedAvatar);
+
+        window.addEventListener('storage', function(e) {
+            if (e.key === specificAvatarKey) {
+                updateAvatarDisplay(e.newValue);
+            }
+        });
+
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDateDisplay').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        if (searchInput && searchResults) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+
+                if (!query) {
+                    searchResults.innerHTML = '';
+                    searchResults.classList.remove('active');
+                    return;
+                }
+
+                const matches = allUserRequests.filter(item => {
+                    const reqType = (item.request_type || 'Travel').toLowerCase();
+                    const reqId = `req-${reqType}-${item.id}`.toLowerCase();
+                    const status = (item.status || '').toLowerCase();
+                    const details = (item.details || item.allowance_type || '').toLowerCase();
+
+                    return reqId.includes(query) || 
+                           reqType.includes(query) || 
+                           status.includes(query) || 
+                           details.includes(query);
+                });
+
+                if (matches.length > 0) {
+                    let html = '';
+                    matches.slice(0, 6).forEach(item => {
+                        const reqType = item.request_type || 'Travel';
+                        const formattedReqId = `REQ-${reqType.toUpperCase()}-${item.id}`;
+                        const cleanStatus = (item.status || '').trim().toLowerCase();
+                        const sClass = cleanStatus.includes('approve') ? 'approved' : cleanStatus;
+
+                        html += `
+                            <a href="request-details.html?id=${item.id}&type=${encodeURIComponent(reqType)}" class="search-result-item">
+                                <div>
+                                    <div class="search-result-title">${formattedReqId} - ${reqType}</div>
+                                    <div class="search-result-sub">${item.date_submitted || item.created_at || '—'}</div>
+                                </div>
+                                <span class="status-badge ${sClass}">${item.status}</span>
+                            </a>
+                        `;
+                    });
+                    searchResults.innerHTML = html;
+                    searchResults.classList.add('active');
+                } else {
+                    searchResults.innerHTML = `<div style="padding: 12px; text-align: center; color: #64748b; font-size: 12px;">No matching requests found</div>`;
+                    searchResults.classList.add('active');
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.remove('active');
+                }
+            });
+        }
+
+        function formatRequestAmount(row) {
+            let rawVal = row.amount_requested ?? 
+                         row.amount ?? 
+                         row.loan_amount ?? 
+                         row.total_amount ?? 
+                         row.amountRequested ?? 
+                         row.claim_amount;
+
+            if (rawVal === undefined || rawVal === null || rawVal === '' || rawVal === 'NaN') {
+                return '—';
+            }
+
+            if (typeof rawVal === 'string') {
+                rawVal = rawVal.replace(/[^0-9.-]+/g, '');
+            }
+
+            const num = parseFloat(rawVal);
+            if (isNaN(num)) {
+                return '—';
+            }
+
+            return `RM ${num.toFixed(2)}`;
+        }
+
+        // ==========================================
+        // NOTIFICATION SYSTEM
+        // ==========================================
+        const notiBellBtn = document.getElementById('notiBellBtn');
+        const notiDropdown = document.getElementById('notiDropdown');
+        const notiList = document.getElementById('notiList');
+        const notiBadge = document.getElementById('notiBadge');
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+        if (notiBellBtn && notiDropdown) {
+            notiBellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notiDropdown.classList.toggle('active');
+                if (notiDropdown.classList.contains('active')) {
+                    fetchNotifications();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                    notiDropdown.classList.remove('active');
+                }
+            });
+
+            notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const data = await response.json();
+
+                if (data.success && data.notifications && data.notifications.length > 0) {
+                    const unreadCount = data.notifications.filter(item =>
+                        item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                    ).length;
+
+                    if (notiList) {
+                        notiList.innerHTML = '';
+                        data.notifications.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let cardClass = 'status-pending';
+                            let pillClass = 'pending';
+
+                            if (item.is_reminder) {
+                                cardClass = 'status-reminder';
+                                pillClass = 'reminder';
+                            } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                cardClass = 'status-approved';
+                                pillClass = 'approved';
+                            } else if (statusLower.includes('reject')) {
+                                cardClass = 'status-rejected';
+                                pillClass = 'rejected';
+                            } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                cardClass = 'status-review';
+                                pillClass = 'review';
+                            }
+
+                            const title = item.is_reminder
+                                ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                            const notiItem = document.createElement('a');
+                            notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.className = `noti-card ${cardClass}`;
+
+                            notiItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <div>
+                                        <p class="noti-card-title">${title}</p>
+                                        <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                        <p class="noti-card-date">${item.time || ''}</p>
+                                    </div>
+                                    <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                </div>
+                            `;
+                            notiList.appendChild(notiItem);
+                        });
+                    }
+
+                    if (notiBadge) {
+                        if (unreadCount > 0) {
+                            notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                            notiBadge.style.display = 'flex';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
+                        } else {
+                            notiBadge.style.display = 'none';
+                        }
+                    }
+
+                } else {
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) {
+                        notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+            }
+        }
+
+        if (refreshNotiBtn) {
+            refreshNotiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fetchNotifications();
+            });
+        }
+
+        async function fetchMetricsAndQueue() {
+            try {
+                if (isManager) {
+                    const response = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                    const result = await response.json();
+                    
+                    if (result.success && Array.isArray(result.data)) {
+                        const queueData = result.data;
+                        const pendingCount = queueData.filter(item => {
+                            const s = (item.status || '').trim().toLowerCase();
+                            return s === 'pending' || s === 'in review' || s === 'submitted';
+                        }).length;
+
+                        const approvedCount = queueData.filter(item => {
+                            const s = (item.status || '').trim().toLowerCase();
+                            return s.includes('approve') || s === 'completed' || s === 'processed';
+                        }).length;
+
+                        const rejectedCount = queueData.filter(item => {
+                            const s = (item.status || '').trim().toLowerCase();
+                            return s.includes('reject');
+                        }).length;
+
+                        document.getElementById('pendingCounter').textContent = `${pendingCount} pending requests`;
+                        document.getElementById('metricPending').textContent = pendingCount;
+                        document.getElementById('metricApproved').textContent = approvedCount;
+                        document.getElementById('metricRejected').textContent = rejectedCount;
+                        document.getElementById('metricTotal').textContent = queueData.length;
+
+                        const queueBadge = document.getElementById('approvalQueueBadge');
+                        if (queueBadge) {
+                            const wasHidden = queueBadge.style.display === 'none' || queueBadge.style.display === '';
+                            const prevCount = queueBadge.textContent;
+                            queueBadge.textContent = pendingCount;
+                            queueBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+                            if (pendingCount > 0 && (wasHidden || prevCount !== String(pendingCount))) {
+                                queueBadge.classList.remove('noti-badge-pop');
+                                void queueBadge.offsetWidth;
+                                queueBadge.classList.add('noti-badge-pop');
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching approval metrics:", err);
+            }
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                const result = await response.json();
+
+                if (result.success && Array.isArray(result.data)) {
+                    const tbody = document.querySelector('.activity-table tbody');
+                    tbody.innerHTML = ''; 
+
+                    const userOnlyRequests = result.data.filter(row => 
+                        row.employee_id && row.employee_id.toString().trim().toLowerCase() === userId.toString().trim().toLowerCase()
+                    );
+
+                    allUserRequests = userOnlyRequests;
+
+                    if (!isManager) {
+                        let pendingCount = 0, approvedCount = 0, rejectedCount = 0;
+                        userOnlyRequests.forEach(row => {
+                            const s = (row.status || '').trim().toLowerCase();
+                            if (s === 'pending') pendingCount++;
+                            else if (s.includes('approve')) approvedCount++;
+                            else if (s.includes('reject')) rejectedCount++;
+                        });
+
+                        document.getElementById('pendingCounter').textContent = `${pendingCount} pending requests`;
+                        document.getElementById('metricPending').textContent = pendingCount;
+                        document.getElementById('metricApproved').textContent = approvedCount;
+                        document.getElementById('metricRejected').textContent = rejectedCount;
+                        document.getElementById('metricTotal').textContent = userOnlyRequests.length;
+                    }
+
+                    if (userOnlyRequests.length > 0) {
+                        const recentData = userOnlyRequests.slice(0, 5);
+
+                        recentData.forEach((row) => {
+                            const tr = document.createElement('tr');
+                            const cleanStatus = (row.status || '').trim().toLowerCase();
+                            const sClass = cleanStatus.includes('approve') ? 'approved' : cleanStatus;
+                            const reqType = row.request_type || 'Travel';
+                            const formattedAmount = formatRequestAmount(row);
+
+                            tr.innerHTML = `
+                                <td>REQ-${reqType.toUpperCase()}-${row.id}</td>
+                                <td><strong>${row.employee_name}</strong> <small style="color:#64748b;">(${row.employee_id})</small></td>
+                                <td>${reqType} (${row.details || row.allowance_type || 'N/A'})</td>
+                                <td>${row.date_submitted || row.claim_month || row.created_at || '—'}</td>
+                                <td>${formattedAmount}</td>
+                                <td><span class="status-badge ${sClass}">${row.status}</span></td>
+                                <td><a href="request-details.html?id=${row.id}&type=${encodeURIComponent(reqType)}" class="view-action-link">View</a></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 24px;">No submitted requests found.</td></tr>`;
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading recent activity:", error);
+                document.querySelector('.activity-table tbody').innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444; padding: 24px;">Failed to load activities.</td></tr>`;
+            }
+        }
+
+        await fetchMetricsAndQueue();
+        await loadRecentActivity();
+        await fetchNotifications();
+
+        setInterval(async () => {
+            await fetchMetricsAndQueue();
+            await loadRecentActivity();
+            await fetchNotifications();
+        }, 5000);
+    });
+    </script>
+</body>
+</html>

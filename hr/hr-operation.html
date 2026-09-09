@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Operations | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .main-content { padding: 0 !important; }
+        .page-body { padding: 24px; }
+
+        .profile-avatar img, .avatar-circle img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+        }
+        .profile-avatar, .avatar-circle {
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        
+        body { 
+            display: flex; 
+            background-color: #BCE3E6; 
+            min-height: 100vh; 
+            color: #333; 
+        }
+
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 0; width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+        .top-bar-divider { width: 1px; height: 24px; background-color: #e2e8f0; margin: 0 4px; }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 14px 6px 14px;
+            margin-top: 4px;
+        }
+
+        /* ================= HR OPERATIONS CARDS GRID ================= */
+        .operations-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .ops-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .ops-card {
+            background-color: #e8d0f6;
+            border: 1px solid #d4b5ed;
+            border-radius: 14px;
+            padding: 32px 24px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            text-decoration: none;
+            color: #1e1b4b;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .ops-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+            background-color: #e1c4f5;
+            border-color: #c99fe5;
+        }
+
+        @media (max-width: 768px) {
+            .ops-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="../images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item active"><i class='bx bx-briefcase'></i> HR Operations</a>
+            
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="/hr/my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>HR Operations</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="operations-container">
+                <div class="ops-grid">
+                    <a href="payroll-payment-request.html" class="ops-card">
+                        PAYROLL PAYMENT<br>REQUEST FORM
+                    </a>
+                    <a href="hiring-approval-form.html" class="ops-card">
+                        HIRING APPROVAL<br>FORM
+                    </a>
+                    <a href="probation-confirmation-form.html" class="ops-card">
+                        PROBATION CONFIRMATION<br>FORM
+                    </a>
+                    <a href="contract-renewal-form.html" class="ops-card">
+                        CONTRACT RENEWAL<br>FORM
+                    </a>
+                    <a href="manpower-outsourcing-request.html" class="ops-card">
+                        MANPOWER OUTSOURCING<br>REQUEST FORM
+                    </a>
+                    <a href="resignation-form.html" class="ops-card">
+                        RESIGNATION<br>REQUEST FORM
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const position = sessionStorage.getItem('position');
+        const department = sessionStorage.getItem('department');
+
+        if (!username || !position) {
+            alert("Access Denied! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
+        // -------- Sidebar / Top bar initialization --------
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${userId ? userId.toUpperCase() : ''} . ${department || ''}`;
+
+        const initials = username.split(' ').map(name => name.charAt(0)).join('').substring(0, 2).toUpperCase();
+        const topAvatarEl = document.getElementById('topAvatar');
+        const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+        if (topAvatarEl) topAvatarEl.textContent = initials;
+
+        function updateAvatarDisplay(avatarBase64) {
+            if (avatarBase64) {
+                const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+                if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+            }
+        }
+        const formattedUserId = (userId || '').toUpperCase();
+        const savedAvatar = localStorage.getItem(`userAvatar_${formattedUserId}`);
+        updateAvatarDisplay(savedAvatar);
+    });
+    </script>
+
+</body>
+</html>
