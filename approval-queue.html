@@ -677,7 +677,6 @@
 
       <div class="action-buttons">
         <button type="button" class="btn btn-approve" id="approveBtn"><i class='bx bx-check-circle'></i> Approve</button>
-        <button type="button" class="btn btn-revision" id="revisionBtn"><i class='bx bx-undo'></i> Return for Revision</button>
         <button type="button" class="btn btn-reject" id="rejectBtn"><i class='bx bx-x-circle'></i> Reject</button>
       </div>
     </section>
@@ -1398,7 +1397,6 @@
       }
 
       document.getElementById('approveBtn')?.addEventListener('click', () => updateRequestStatus('Approved'));
-      document.getElementById('revisionBtn')?.addEventListener('click', () => updateRequestStatus('Revision'));
       document.getElementById('rejectBtn')?.addEventListener('click', () => updateRequestStatus('Rejected'));
 
       document.getElementById('logoutBtn')?.addEventListener('click', () => {
