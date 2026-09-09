@@ -1270,7 +1270,7 @@ router.post(
     }
 );
 
-router.get('/api/request-details', (req, res) => {
+router.get('/api/request-details', requireLogin, (req, res) => {
     const { id, type } = req.query;
 
     if (!id || !type) {
@@ -1301,6 +1301,73 @@ router.get('/api/request-details', (req, res) => {
         }
 
         const record = { ...results[0] };
+        const sessionUser = req.session.user;
+
+        const sessionUserId =
+            String(sessionUser.user_id || '')
+                .trim()
+                .toLowerCase();
+
+        const sessionDepartment =
+            String(sessionUser.department || '')
+                .trim()
+                .toLowerCase();
+
+        const sessionPosition =
+            String(sessionUser.position || '')
+                .trim()
+                .toLowerCase();
+
+        const recordEmployeeId =
+            String(
+                record.employee_id ||
+                record['Employee ID'] ||
+                ''
+            )
+                .trim()
+                .toLowerCase();
+
+        const recordDepartment =
+            String(
+                record.department ||
+                record['Department'] ||
+                ''
+            )
+                .trim()
+                .toLowerCase();
+
+        const isOwner =
+            recordEmployeeId === sessionUserId;
+
+        const isHR =
+            sessionDepartment === 'hr' ||
+            sessionDepartment.includes('human resources') ||
+            sessionPosition === 'hr' ||
+            sessionPosition.includes('human resources');
+
+        const isGlobalApprover =
+            sessionPosition.includes('ceo') ||
+            sessionDepartment === 'management';
+
+        const isDepartmentApprover =
+            (
+                sessionPosition.includes('manager') ||
+                sessionPosition.includes('supervisor')
+            ) &&
+            sessionDepartment === recordDepartment;
+
+        if (
+            !isOwner &&
+            !isHR &&
+            !isGlobalApprover &&
+            !isDepartmentApprover
+        ) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    'Access Denied: You cannot view this request.'
+            });
+        }
 
         // 2. Normalize attachment file path
         const rawDoc = record.supporting_document || record['Supporting Documen'] || record.attachment_path;
@@ -1342,12 +1409,8 @@ router.get('/api/request-details', (req, res) => {
     });
 });
 
-router.get('/api/my-requests', (req, res) => {
-    const req_user_id = req.query.employee_id;
-
-    if (!req_user_id) {
-        return res.status(400).json({ success: false, message: 'Employee ID parameter is required.' });
-    }
+router.get('/api/my-requests', requireLogin, (req, res) => {
+    const req_user_id = req.session.user.user_id;
 
     const roleQuery = 'SELECT position FROM users WHERE LOWER(user_id) = LOWER(?)';
 
