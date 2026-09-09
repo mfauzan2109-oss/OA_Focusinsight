@@ -1,7 +1,10 @@
 const express = require('express');
 
 const db = require('../config/database');
-const { requireLogin } = require('../middleware/auth');
+const {
+    requireLogin,
+    requireHRAccess
+} = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { normalizeFilePath, safeVal, safeNum } = require('../utils/helpers');
 
@@ -823,66 +826,190 @@ router.post(
     }
 );
 
-router.post('/api/submit-probation-confirmation', upload.single('attachment'), (req, res) => {
-    const {
-        requested_by, request_date, department,
-        employee_id, employee_name, employee_department, position,
-        employment_type, employment_date,
-        probation_period, probation_end_date,
-        overall_performance, work_performance,
-        attendance_punctuality, work_attitude_teamwork,
-        recommendation, justification
-    } = req.body;
+router.post(
+    '/api/submit-probation-confirmation',
+    requireHRAccess,
+    upload.single('attachment'),
+    (req, res) => {
 
-    if (!employee_id || !employee_name || !probation_period || !probation_end_date) {
-        return res.status(400).json({ success: false, message: 'Employee ID, Probation Period, and Probation End Date are required.' });
-    }
-    if (!overall_performance || !work_performance || !attendance_punctuality || !work_attitude_teamwork || !recommendation) {
-        return res.status(400).json({ success: false, message: 'Please complete all Probation Assessment fields.' });
-    }
+        const {
+            employee_id,
+            probation_period,
+            probation_end_date,
+            overall_performance,
+            work_performance,
+            attendance_punctuality,
+            work_attitude_teamwork,
+            recommendation,
+            justification
+        } = req.body;
 
-    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
-
-    const query = `
-        INSERT INTO \`probation_confirmations\`
-        (\`requested_by\`, \`request_date\`, \`department\`,
-         \`employee_id\`, \`employee_name\`, \`employee_department\`, \`position\`,
-         \`employment_type\`, \`employment_date\`,
-         \`probation_period\`, \`probation_end_date\`,
-         \`overall_performance\`, \`work_performance\`,
-         \`attendance_punctuality\`, \`work_attitude_teamwork\`,
-         \`recommendation\`, \`justification\`, \`supporting_document\`,
-         \`status\`, \`created_at\`)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
-
-    db.query(query, [
-        safeVal(requested_by, 20),
-        safeVal(request_date, 20) || new Date().toISOString().split('T')[0],
-        safeVal(department, 100),
-        safeVal(employee_id, 20),
-        safeVal(employee_name, 100),
-        safeVal(employee_department, 100),
-        safeVal(position, 100),
-        safeVal(employment_type, 50),
-        safeVal(employment_date, 50),
-        safeVal(probation_period, 50),
-        safeVal(probation_end_date, 20),
-        safeVal(overall_performance, 50),
-        safeVal(work_performance, 50),
-        safeVal(attendance_punctuality, 50),
-        safeVal(work_attitude_teamwork, 50),
-        safeVal(recommendation, 50),
-        safeVal(justification, 0),
-        attachment_path
-    ], (err, result) => {
-        if (err) {
-            console.error('Probation Confirmation SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        if (
+            !employee_id ||
+            !probation_period ||
+            !probation_end_date
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee ID, Probation Period, and Probation End Date are required.'
+            });
         }
-        return res.json({ success: true, message: 'Probation confirmation form submitted successfully!', id: result.insertId });
-    });
-});
+
+        if (
+            !overall_performance ||
+            !work_performance ||
+            !attendance_punctuality ||
+            !work_attitude_teamwork ||
+            !recommendation
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Probation Assessment fields.'
+            });
+        }
+
+        const employeeQuery = `
+            SELECT
+                user_id,
+                name,
+                department,
+                position,
+                employment_type,
+                join_date
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            employeeQuery,
+            [employee_id],
+            (employeeErr, employeeResults) => {
+
+                if (employeeErr) {
+                    console.error(
+                        'Probation Employee Lookup Error:',
+                        employeeErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to retrieve employee information.'
+                    });
+                }
+
+                if (
+                    !employeeResults ||
+                    employeeResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee not found.'
+                    });
+                }
+
+                const employee = employeeResults[0];
+
+                const attachment_path =
+                    req.file
+                        ? `uploads/${req.file.filename}`
+                        : null;
+
+                const requestDate =
+                    new Date()
+                        .toISOString()
+                        .split('T')[0];
+
+                const requester =
+                    req.session.user;
+
+                const query = `
+                    INSERT INTO probation_confirmations
+                    (
+                        requested_by,
+                        request_date,
+                        department,
+                        employee_id,
+                        employee_name,
+                        employee_department,
+                        position,
+                        employment_type,
+                        employment_date,
+                        probation_period,
+                        probation_end_date,
+                        overall_performance,
+                        work_performance,
+                        attendance_punctuality,
+                        work_attitude_teamwork,
+                        recommendation,
+                        justification,
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?,
+                        'Pending',
+                        NOW()
+                    )
+                `;
+
+                db.query(
+                    query,
+                    [
+                        requester.user_id,
+                        requestDate,
+                        requester.department,
+
+                        employee.user_id,
+                        employee.name,
+                        employee.department,
+                        employee.position,
+                        employee.employment_type,
+                        employee.join_date,
+
+                        probation_period,
+                        probation_end_date,
+                        overall_performance,
+                        work_performance,
+                        attendance_punctuality,
+                        work_attitude_teamwork,
+                        recommendation,
+                        justification || '',
+                        attachment_path
+                    ],
+                    (err, result) => {
+
+                        if (err) {
+                            console.error(
+                                'Probation Confirmation SQL Error:',
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Database Error: ' +
+                                    err.message
+                            });
+                        }
+
+                        return res.json({
+                            success: true,
+                            message:
+                                'Probation confirmation form submitted successfully!',
+                            id: result.insertId
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
 
 router.post('/api/submit-contract-renewal', upload.single('attachment'), (req, res) => {
     const {
