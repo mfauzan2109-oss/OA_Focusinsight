@@ -594,64 +594,234 @@ router.post(
     }
 );
 
-router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, res) => {
-    const {
-        requested_by, request_date, department,
-        employee_id, employee_name, employee_department, position,
-        employment_type, employment_date,
-        current_basic_salary, adjustment_type, proposed_basic_salary,
-        effective_date, justification
-    } = req.body;
+router.post(
+    '/api/submit-salary-adjustment',
+    requireLogin,
+    upload.single('attachment'),
+    (req, res) => {
 
-    if (!employee_id || !proposed_basic_salary || !adjustment_type || !effective_date) {
-        return res.status(400).json({ success: false, message: 'Employee ID, Adjustment Type, Proposed Basic Salary, and Effective Date are required.' });
-    }
+        const {
+            employee_id,
+            adjustment_type,
+            proposed_basic_salary,
+            effective_date,
+            justification
+        } = req.body;
 
-    const currentSalaryNum = safeNum(current_basic_salary);
-    const proposedSalaryNum = safeNum(proposed_basic_salary);
-    const adjustmentAmount = proposedSalaryNum - currentSalaryNum;
-    const adjustmentPercentage = currentSalaryNum > 0 ? (adjustmentAmount / currentSalaryNum) * 100 : 0;
+        const requester = req.session.user;
 
-    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+        const requesterPosition =
+            String(requester.position || '').trim();
 
-    const query = `
-        INSERT INTO \`salary_adjustments\`
-        (\`requested_by\`, \`requested_by_name\`, \`request_date\`, \`department\`,
-         \`employee_id\`, \`employee_name\`, \`employee_department\`, \`position\`,
-         \`employment_type\`, \`employment_date\`,
-         \`current_basic_salary\`, \`adjustment_type\`, \`proposed_basic_salary\`,
-         \`adjustment_amount\`, \`adjustment_percentage\`, \`effective_date\`,
-         \`justification\`, \`supporting_document\`, \`status\`, \`created_at\`)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
+        const isHOD =
+            /manager|head|hod/i.test(requesterPosition);
 
-    db.query(query, [
-        safeVal(requested_by, 20),
-        safeVal(req.body.requested_by_name, 100),
-        safeVal(request_date, 20) || new Date().toISOString().split('T')[0],
-        safeVal(department, 100),
-        safeVal(employee_id, 20),
-        safeVal(employee_name, 100),
-        safeVal(employee_department, 100),
-        safeVal(position, 100),
-        safeVal(employment_type, 50),
-        safeVal(employment_date, 50),
-        currentSalaryNum,
-        safeVal(adjustment_type, 50),
-        proposedSalaryNum,
-        adjustmentAmount,
-        adjustmentPercentage,
-        safeVal(effective_date, 20),
-        safeVal(justification, 0),
-        attachment_path
-    ], (err, result) => {
-        if (err) {
-            console.error('Salary Adjustment SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        if (!isHOD) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    'Access Denied: Only HOD or Manager can submit salary adjustment requests.'
+            });
         }
-        return res.json({ success: true, message: 'Salary adjustment request submitted successfully!', id: result.insertId });
-    });
-});
+
+        if (
+            !employee_id ||
+            !adjustment_type ||
+            !proposed_basic_salary ||
+            !effective_date
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee ID, Adjustment Type, Proposed Basic Salary, and Effective Date are required.'
+            });
+        }
+
+        const proposedSalaryNum =
+            parseFloat(proposed_basic_salary);
+
+        if (
+            Number.isNaN(proposedSalaryNum) ||
+            proposedSalaryNum <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid proposed basic salary.'
+            });
+        }
+
+        const employeeQuery = `
+            SELECT
+                user_id,
+                name,
+                department,
+                position,
+                employment_type,
+                join_date,
+                basic_salary
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            employeeQuery,
+            [employee_id],
+            (employeeErr, employeeResults) => {
+
+                if (employeeErr) {
+                    console.error(
+                        'Salary Adjustment Employee Lookup Error:',
+                        employeeErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to retrieve employee information.'
+                    });
+                }
+
+                if (
+                    !employeeResults ||
+                    employeeResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee not found.'
+                    });
+                }
+
+                const employee = employeeResults[0];
+
+                const requesterDepartment =
+                    String(requester.department || '')
+                        .trim()
+                        .toLowerCase();
+
+                const employeeDepartment =
+                    String(employee.department || '')
+                        .trim()
+                        .toLowerCase();
+
+                if (
+                    !requesterDepartment ||
+                    requesterDepartment !== employeeDepartment
+                ) {
+                    return res.status(403).json({
+                        success: false,
+                        message:
+                            'Access Denied: You can only submit salary adjustments for employees in your own department.'
+                    });
+                }
+
+                const currentSalaryNum =
+                    parseFloat(employee.basic_salary) || 0;
+
+                const adjustmentAmount =
+                    proposedSalaryNum - currentSalaryNum;
+
+                const adjustmentPercentage =
+                    currentSalaryNum > 0
+                        ? (
+                            adjustmentAmount /
+                            currentSalaryNum
+                        ) * 100
+                        : 0;
+
+                const attachment_path =
+                    req.file
+                        ? `uploads/${req.file.filename}`
+                        : null;
+
+                const requestDate =
+                    new Date()
+                        .toISOString()
+                        .split('T')[0];
+
+                const query = `
+                    INSERT INTO salary_adjustments
+                    (
+                        requested_by,
+                        requested_by_name,
+                        request_date,
+                        department,
+                        employee_id,
+                        employee_name,
+                        employee_department,
+                        position,
+                        employment_type,
+                        employment_date,
+                        current_basic_salary,
+                        adjustment_type,
+                        proposed_basic_salary,
+                        adjustment_amount,
+                        adjustment_percentage,
+                        effective_date,
+                        justification,
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?,
+                        'Pending',
+                        NOW()
+                    )
+                `;
+
+                db.query(
+                    query,
+                    [
+                        requester.user_id,
+                        requester.name,
+                        requestDate,
+                        requester.department,
+
+                        employee.user_id,
+                        employee.name,
+                        employee.department,
+                        employee.position,
+                        employee.employment_type,
+                        employee.join_date,
+
+                        currentSalaryNum,
+                        adjustment_type,
+                        proposedSalaryNum,
+                        adjustmentAmount,
+                        adjustmentPercentage,
+                        effective_date,
+                        justification || '',
+                        attachment_path
+                    ],
+                    (err, result) => {
+
+                        if (err) {
+                            console.error(
+                                'Salary Adjustment SQL Error:',
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Database Error: ' +
+                                    err.message
+                            });
+                        }
+
+                        return res.json({
+                            success: true,
+                            message:
+                                'Salary adjustment request submitted successfully!',
+                            id: result.insertId
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
 
 router.post('/api/submit-probation-confirmation', upload.single('attachment'), (req, res) => {
     const {
