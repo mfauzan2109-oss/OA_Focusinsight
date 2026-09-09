@@ -1,34 +1,148 @@
 const express = require('express');
 
 const db = require('../config/database');
+const { requireLogin } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/api/approval-queue', (req, res) => {
-    const { user_id, department, position } = req.query;
+router.get('/api/approval-queue', requireLogin, (req, res) => {
+    const sessionUser = req.session.user;
 
-    const userDept = (department || '').trim();
-    const userPos = (position || '').trim().toLowerCase();
-    const userId = (user_id || '').trim().toLowerCase();
+    const userDept =
+        String(sessionUser.department || '').trim();
 
-    const isGlobalApprover = userPos.includes('ceo') || 
-                             userDept.toLowerCase() === 'management' || 
-                             userId.startsWith('ceo');
+    const userPos =
+        String(sessionUser.position || '')
+            .trim()
+            .toLowerCase();
 
-    let leaveQuery  = `SELECT ID as id, \`Employee ID\` as employee_id, \`Employee Name\` as employee_name, Department as department, 'Leave' as request_type, 'Not Applicable' as amount, \`Created At\` as date_submitted, last_reminder_sent, TRIM(Status) as status FROM \`leave\` WHERE 1=1`;
-    let disQuery    = `SELECT id, employee_id, employee_name, department, 'Disbursement' as request_type, total_amount as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`disbursements\` WHERE 1=1`;
-    let travelQuery = `SELECT id, employee_id, employee_name, department, 'Travel' as request_type, total_amount as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`travel\` WHERE 1=1`;
-    let otQuery     = `SELECT id, employee_id, employee_name, department, 'Overtime' as request_type, total_claim as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`overtime\` WHERE 1=1`;
-    let loanQuery   = `SELECT id, employee_id, employee_name, department, 'Loan' as request_type, amount_requested as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`loans\` WHERE 1=1`;
+    const isGlobalApprover =
+        userPos.includes('ceo') ||
+        userDept.toLowerCase() === 'management';
 
-    const params = isGlobalApprover ? [] : [userDept];
+    const isDepartmentApprover =
+        userPos.includes('manager') ||
+        userPos.includes('supervisor');
 
-    if (!isGlobalApprover && userDept) {
-        leaveQuery  += ` AND LOWER(TRIM(Department)) = LOWER(TRIM(?))`;
-        disQuery    += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
-        travelQuery += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
-        otQuery     += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
-        loanQuery   += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
+    if (!isGlobalApprover && !isDepartmentApprover) {
+        return res.status(403).json({
+            success: false,
+            message:
+                'Access Denied: Only authorized approvers can access the approval queue.'
+        });
+    }
+
+    if (!isGlobalApprover && !userDept) {
+        return res.status(403).json({
+            success: false,
+            message:
+                'Access Denied: Approver department is unavailable.'
+        });
+    }
+
+    let leaveQuery = `
+        SELECT
+            ID AS id,
+            \`Employee ID\` AS employee_id,
+            \`Employee Name\` AS employee_name,
+            Department AS department,
+            'Leave' AS request_type,
+            'Not Applicable' AS amount,
+            \`Created At\` AS date_submitted,
+            last_reminder_sent,
+            TRIM(Status) AS status
+        FROM \`leave\`
+        WHERE 1=1
+    `;
+
+    let disQuery = `
+        SELECT
+            id,
+            employee_id,
+            employee_name,
+            department,
+            'Disbursement' AS request_type,
+            total_amount AS amount,
+            created_at AS date_submitted,
+            last_reminder_sent,
+            TRIM(status) AS status
+        FROM \`disbursements\`
+        WHERE 1=1
+    `;
+
+    let travelQuery = `
+        SELECT
+            id,
+            employee_id,
+            employee_name,
+            department,
+            'Travel' AS request_type,
+            total_amount AS amount,
+            created_at AS date_submitted,
+            last_reminder_sent,
+            TRIM(status) AS status
+        FROM \`travel\`
+        WHERE 1=1
+    `;
+
+    let otQuery = `
+        SELECT
+            id,
+            employee_id,
+            employee_name,
+            department,
+            'Overtime' AS request_type,
+            total_claim AS amount,
+            created_at AS date_submitted,
+            last_reminder_sent,
+            TRIM(status) AS status
+        FROM \`overtime\`
+        WHERE 1=1
+    `;
+
+    let loanQuery = `
+        SELECT
+            id,
+            employee_id,
+            employee_name,
+            department,
+            'Loan' AS request_type,
+            amount_requested AS amount,
+            created_at AS date_submitted,
+            last_reminder_sent,
+            TRIM(status) AS status
+        FROM \`loans\`
+        WHERE 1=1
+    `;
+
+    const params =
+        isGlobalApprover ? [] : [userDept];
+
+    if (!isGlobalApprover) {
+        leaveQuery += `
+            AND LOWER(TRIM(Department))
+                = LOWER(TRIM(?))
+        `;
+
+        disQuery += `
+            AND LOWER(TRIM(department))
+                = LOWER(TRIM(?))
+        `;
+
+        travelQuery += `
+            AND LOWER(TRIM(department))
+                = LOWER(TRIM(?))
+        `;
+
+        otQuery += `
+            AND LOWER(TRIM(department))
+                = LOWER(TRIM(?))
+        `;
+
+        loanQuery += `
+            AND LOWER(TRIM(department))
+                = LOWER(TRIM(?))
+        `;
     }
 
     db.query(leaveQuery, params, (err1, leaveResults) => {
@@ -36,17 +150,81 @@ router.get('/api/approval-queue', (req, res) => {
             db.query(travelQuery, params, (err3, travelResults) => {
                 db.query(otQuery, params, (err4, otResults) => {
                     db.query(loanQuery, params, (err5, loanResults) => {
+
+                        if (
+                            err1 ||
+                            err2 ||
+                            err3 ||
+                            err4 ||
+                            err5
+                        ) {
+                            console.error(
+                                'Approval Queue Query Error:',
+                                err1 || err2 || err3 || err4 || err5
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Failed to load approval queue.'
+                            });
+                        }
+
                         const combinedQueue = [];
 
-                        (leaveResults || []).forEach(row => combinedQueue.push({ ...row, table_source: 'leave' }));
-                        (disResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'disbursements' }));
-                        (travelResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'travel' }));
-                        (otResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'overtime' }));
-                        (loanResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'loans' }));
+                        (leaveResults || []).forEach(row =>
+                            combinedQueue.push({
+                                ...row,
+                                table_source: 'leave'
+                            })
+                        );
 
-                        combinedQueue.sort((a, b) => new Date(b.date_submitted) - new Date(a.date_submitted));
+                        (disResults || []).forEach(row =>
+                            combinedQueue.push({
+                                ...row,
+                                amount:
+                                    `RM ${parseFloat(row.amount || 0).toFixed(2)}`,
+                                table_source: 'disbursements'
+                            })
+                        );
 
-                        return res.json({ success: true, data: combinedQueue });
+                        (travelResults || []).forEach(row =>
+                            combinedQueue.push({
+                                ...row,
+                                amount:
+                                    `RM ${parseFloat(row.amount || 0).toFixed(2)}`,
+                                table_source: 'travel'
+                            })
+                        );
+
+                        (otResults || []).forEach(row =>
+                            combinedQueue.push({
+                                ...row,
+                                amount:
+                                    `RM ${parseFloat(row.amount || 0).toFixed(2)}`,
+                                table_source: 'overtime'
+                            })
+                        );
+
+                        (loanResults || []).forEach(row =>
+                            combinedQueue.push({
+                                ...row,
+                                amount:
+                                    `RM ${parseFloat(row.amount || 0).toFixed(2)}`,
+                                table_source: 'loans'
+                            })
+                        );
+
+                        combinedQueue.sort(
+                            (a, b) =>
+                                new Date(b.date_submitted) -
+                                new Date(a.date_submitted)
+                        );
+
+                        return res.json({
+                            success: true,
+                            data: combinedQueue
+                        });
                     });
                 });
             });
@@ -54,42 +232,213 @@ router.get('/api/approval-queue', (req, res) => {
     });
 });
 
-router.put('/api/approval-queue/:type/:id', (req, res) => {
-    const { type, id } = req.params;
-    const { status } = req.body;
+router.put(
+    '/api/approval-queue/:type/:id',
+    requireLogin,
+    (req, res) => {
 
-    if (!status) {
-        return res.status(400).json({ success: false, message: 'Status parameter is required.' });
-    }
+        const { type, id } = req.params;
+        const { status } = req.body;
 
-    let tableName = '';
-    let statusCol = 'status';
+        const allowedStatuses = [
+            'Pending',
+            'Approved',
+            'Rejected'
+        ];
 
-    const reqType = type.toLowerCase();
-    if (reqType === 'leave') {
-        tableName = 'leave';
-        statusCol = 'Status';
-    } else if (reqType === 'disbursement') {
-        tableName = 'disbursements';
-    } else if (reqType === 'travel') {
-        tableName = 'travel';
-    } else if (reqType === 'overtime') {
-        tableName = 'overtime';
-    } else if (reqType === 'loan' || reqType === 'loans') {
-        tableName = 'loans';
-    } else {
-        return res.status(400).json({ success: false, message: 'Invalid request type.' });
-    }
-
-    const query = `UPDATE \`${tableName}\` SET \`${statusCol}\` = ? WHERE id = ? OR ID = ?`;
-    
-    db.query(query, [status, id, id], (err, result) => {
-        if (err) {
-            console.error('Update Status Error:', err);
-            return res.status(500).json({ success: false, message: 'Failed to update request status.' });
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid request status.'
+            });
         }
-        return res.json({ success: true, message: `Request status updated to ${status}.` });
-    });
-});
+
+        const requestId = parseInt(id, 10);
+
+        if (Number.isNaN(requestId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid request ID.'
+            });
+        }
+
+        const reqType =
+            String(type || '')
+                .trim()
+                .toLowerCase();
+
+        let tableName;
+        let idColumn;
+        let departmentColumn;
+        let statusColumn;
+
+        if (reqType === 'leave') {
+            tableName = 'leave';
+            idColumn = 'ID';
+            departmentColumn = 'Department';
+            statusColumn = 'Status';
+
+        } else if (reqType === 'disbursement') {
+            tableName = 'disbursements';
+            idColumn = 'id';
+            departmentColumn = 'department';
+            statusColumn = 'status';
+
+        } else if (reqType === 'travel') {
+            tableName = 'travel';
+            idColumn = 'id';
+            departmentColumn = 'department';
+            statusColumn = 'status';
+
+        } else if (reqType === 'overtime') {
+            tableName = 'overtime';
+            idColumn = 'id';
+            departmentColumn = 'department';
+            statusColumn = 'status';
+
+        } else if (
+            reqType === 'loan' ||
+            reqType === 'loans'
+        ) {
+            tableName = 'loans';
+            idColumn = 'id';
+            departmentColumn = 'department';
+            statusColumn = 'status';
+
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid request type.'
+            });
+        }
+
+        const sessionUser = req.session.user;
+
+        const userDepartment =
+            String(sessionUser.department || '')
+                .trim()
+                .toLowerCase();
+
+        const userPosition =
+            String(sessionUser.position || '')
+                .trim()
+                .toLowerCase();
+
+        const isGlobalApprover =
+            userPosition.includes('ceo') ||
+            userDepartment === 'management';
+
+        const isDepartmentApprover =
+            userPosition.includes('manager') ||
+            userPosition.includes('supervisor');
+
+        if (
+            !isGlobalApprover &&
+            !isDepartmentApprover
+        ) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    'Access Denied: You are not authorized to approve requests.'
+            });
+        }
+
+        const lookupQuery = `
+            SELECT
+                \`${idColumn}\` AS id,
+                \`${departmentColumn}\` AS department
+            FROM \`${tableName}\`
+            WHERE \`${idColumn}\` = ?
+            LIMIT 1
+        `;
+
+        db.query(
+            lookupQuery,
+            [requestId],
+            (lookupErr, lookupResults) => {
+
+                if (lookupErr) {
+                    console.error(
+                        'Approval Lookup Error:',
+                        lookupErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to verify request.'
+                    });
+                }
+
+                if (
+                    !lookupResults ||
+                    lookupResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Request not found.'
+                    });
+                }
+
+                const requestDepartment =
+                    String(
+                        lookupResults[0].department || ''
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                if (
+                    !isGlobalApprover &&
+                    userDepartment !== requestDepartment
+                ) {
+                    return res.status(403).json({
+                        success: false,
+                        message:
+                            'Access Denied: You can only approve requests from your own department.'
+                    });
+                }
+
+                const updateQuery = `
+                    UPDATE \`${tableName}\`
+                    SET \`${statusColumn}\` = ?
+                    WHERE \`${idColumn}\` = ?
+                `;
+
+                db.query(
+                    updateQuery,
+                    [status, requestId],
+                    (updateErr, result) => {
+
+                        if (updateErr) {
+                            console.error(
+                                'Approval Update Error:',
+                                updateErr
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Failed to update request status.'
+                            });
+                        }
+
+                        if (result.affectedRows === 0) {
+                            return res.status(404).json({
+                                success: false,
+                                message: 'Request not found.'
+                            });
+                        }
+
+                        return res.json({
+                            success: true,
+                            message:
+                                `Request status updated to ${status}.`
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
 
 module.exports = router;
