@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS `job_transfer_requests` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `employee_id` VARCHAR(50),
+  `employee_name` VARCHAR(100),
+  `transfer_type` VARCHAR(20),
+  `current_department` VARCHAR(100),
+  `new_department` VARCHAR(100),
+  `current_position` VARCHAR(100),
+  `new_position` VARCHAR(100),
+  `current_location` VARCHAR(100),
+  `new_location` VARCHAR(100),
+  `current_supervisor` VARCHAR(100),
+  `new_supervisor` VARCHAR(100),
+  `proposed_transfer_date` VARCHAR(20),
+  `reason_for_transfer` TEXT,
+  `current_salary` DECIMAL(10,2),
+  `proposed_salary` DECIMAL(10,2),
+  `job_scope_change` VARCHAR(10),
+  `job_description` TEXT,
+  `supporting_document` VARCHAR(255),
+  `status` VARCHAR(20) DEFAULT 'Pending',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+);

@@ -495,6 +495,95 @@ router.post('/api/submit-payroll-payment', upload.single('attachment'), (req, re
     });
 });
 
+router.post('/api/submit-job-transfer', upload.single('attachment'), (req, res) => {
+    const {
+        employee_id, employee_name, transfer_type,
+        current_department, new_department,
+        current_position, new_position,
+        current_location, new_location,
+        current_supervisor, new_supervisor,
+        proposed_transfer_date, reason_for_transfer,
+        current_salary, proposed_salary,
+        job_scope_change, job_description
+    } = req.body;
+
+    if (!employee_id || !employee_name) {
+        return res.status(400).json({ success: false, message: 'Employee information is missing.' });
+    }
+    if (!transfer_type || !['Department', 'Position', 'Location'].includes(transfer_type)) {
+        return res.status(400).json({ success: false, message: 'Please select a valid Transfer Type.' });
+    }
+    if (transfer_type === 'Department' && (!current_department || !new_department)) {
+        return res.status(400).json({ success: false, message: 'Please provide Current and New Department.' });
+    }
+    if (transfer_type === 'Position' && (!current_position || !new_position)) {
+        return res.status(400).json({ success: false, message: 'Please provide Current and New Position.' });
+    }
+    if (transfer_type === 'Location' && (!current_location || !new_location)) {
+        return res.status(400).json({ success: false, message: 'Please provide Current and New Location.' });
+    }
+    if (!current_supervisor || !new_supervisor) {
+        return res.status(400).json({ success: false, message: 'Please provide Current and New Supervisor.' });
+    }
+    if (!proposed_transfer_date || !reason_for_transfer) {
+        return res.status(400).json({ success: false, message: 'Please provide Proposed Transfer Date and Reason for Transfer.' });
+    }
+    const curSalary = safeNum(current_salary);
+    if (!curSalary || curSalary <= 0) {
+        return res.status(400).json({ success: false, message: 'Current Salary (RM) must be a valid positive number.' });
+    }
+    if (!job_scope_change || !['Yes', 'No'].includes(job_scope_change)) {
+        return res.status(400).json({ success: false, message: 'Please select whether Job Scope will change.' });
+    }
+    if (job_scope_change === 'Yes' && !job_description) {
+        return res.status(400).json({ success: false, message: 'Please provide the Job Description since Job Scope Change is Yes.' });
+    }
+
+    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+    const propSalary = safeNum(proposed_salary);
+
+    const query = `
+        INSERT INTO \`job_transfer_requests\`
+        (\`employee_id\`, \`employee_name\`, \`transfer_type\`,
+         \`current_department\`, \`new_department\`,
+         \`current_position\`, \`new_position\`,
+         \`current_location\`, \`new_location\`,
+         \`current_supervisor\`, \`new_supervisor\`,
+         \`proposed_transfer_date\`, \`reason_for_transfer\`,
+         \`current_salary\`, \`proposed_salary\`,
+         \`job_scope_change\`, \`job_description\`,
+         \`supporting_document\`, \`status\`, \`created_at\`)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+    `;
+
+    db.query(query, [
+        safeVal(employee_id, 50),
+        safeVal(employee_name, 100),
+        safeVal(transfer_type, 20),
+        safeVal(current_department, 100),
+        safeVal(new_department, 100),
+        safeVal(current_position, 100),
+        safeVal(new_position, 100),
+        safeVal(current_location, 100),
+        safeVal(new_location, 100),
+        safeVal(current_supervisor, 100),
+        safeVal(new_supervisor, 100),
+        safeVal(proposed_transfer_date, 20),
+        safeVal(reason_for_transfer, 0),
+        curSalary,
+        propSalary || null,
+        safeVal(job_scope_change, 10),
+        safeVal(job_description, 0),
+        attachment_path
+    ], (err, result) => {
+        if (err) {
+            console.error('Job Transfer SQL Error:', err);
+            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        }
+        return res.json({ success: true, message: 'Job transfer request submitted successfully!', id: result.insertId });
+    });
+});
+
 router.get('/api/request-details', (req, res) => {
     const { id, type } = req.query;
 

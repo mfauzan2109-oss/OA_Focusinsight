@@ -449,7 +449,7 @@ const notiBellBtn = document.getElementById('notiBellBtn');
                 const resData = await response.json();
                 
                 if (resData.success && resData.data) {
-                    userBasicSalary = parseFloat(resData.data.basic_salary) || 0.00;
+                    userBasicSalary = parseFloat(resData.data.salary) || 0.00;
                     document.getElementById('basicSalary').value = `RM ${userBasicSalary.toFixed(2)}`;
                 } else {
                     document.getElementById('basicSalary').value = 'RM 0.00';

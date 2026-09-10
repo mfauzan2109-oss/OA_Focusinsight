@@ -97,6 +97,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // -------- Duration auto-calculation --------
+        // Formats a Start/End date pair into a human-readable duration
+        // ("X Years Y Months" or "X Months", falling back to days for short spans).
+        function formatDuration(startVal, endVal) {
+            if (!startVal || !endVal) return '';
+            const start = new Date(startVal);
+            const end = new Date(endVal);
+            if (isNaN(start) || isNaN(end) || end < start) return '';
+
+            let years = end.getFullYear() - start.getFullYear();
+            let months = end.getMonth() - start.getMonth();
+            let days = end.getDate() - start.getDate();
+
+            if (days < 0) {
+                months -= 1;
+                const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+            if (months < 0) {
+                years -= 1;
+                months += 12;
+            }
+
+            if (years === 0 && months === 0) {
+                return `${days} Day${days === 1 ? '' : 's'}`;
+            }
+
+            const parts = [];
+            if (years > 0) parts.push(`${years} Year${years === 1 ? '' : 's'}`);
+            if (months > 0) parts.push(`${months} Month${months === 1 ? '' : 's'}`);
+            return parts.join(' ');
+        }
+
+        function wireDurationAutoCalc(startId, endId, durationId) {
+            const startEl = document.getElementById(startId);
+            const endEl = document.getElementById(endId);
+            const recalc = () => {
+                const result = formatDuration(startEl.value, endEl.value);
+                setSafeValue(durationId, result);
+                if (startEl.value && endEl.value && !result) {
+                    setSafeValue(durationId, '');
+                    alert('End Date must be on or after Start Date.');
+                }
+            };
+            startEl.addEventListener('change', recalc);
+            endEl.addEventListener('change', recalc);
+        }
+
         // -------- Drag & Drop File Upload --------
         function handleFileSelected(file) {
             if (!file) return;
@@ -223,6 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         loadRequesterInfo();
         setupDropzone();
+        wireDurationAutoCalc('currentStartDate', 'currentEndDate', 'currentDuration');
+        wireDurationAutoCalc('proposedStartDate', 'proposedEndDate', 'proposedDuration');
 
         document.getElementById('employeeId').addEventListener('input', (e) => {
             clearTimeout(lookupTimer);

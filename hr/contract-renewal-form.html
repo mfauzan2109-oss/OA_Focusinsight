@@ -136,7 +136,7 @@
                             </div>
                             <div class="input-group">
                                 <label for="currentDuration">Duration<span class="req">*</span></label>
-                                <input type="text" id="currentDuration" placeholder="e.g. 12 Months" required>
+                                <input type="text" id="currentDuration" disabled placeholder="Auto-calculated">
                             </div>
                             <div class="input-group">
                                 <label for="currentSalary">Current Salary<span class="req">*</span></label>
@@ -159,7 +159,7 @@
                             </div>
                             <div class="input-group">
                                 <label for="proposedDuration">Duration<span class="req">*</span></label>
-                                <input type="text" id="proposedDuration" placeholder="e.g. 12 Months" required>
+                                <input type="text" id="proposedDuration" disabled placeholder="Auto-calculated">
                             </div>
                             <div class="input-group">
                                 <label for="proposedSalary">Proposed Salary<span class="req">*</span></label>
@@ -184,10 +184,9 @@
                                 <label for="attendanceStatus">Attendance Status<span class="req">*</span></label>
                                 <select id="attendanceStatus" required>
                                     <option value="">Select status</option>
-                                    <option value="Excellent">Excellent</option>
                                     <option value="Good">Good</option>
                                     <option value="Satisfactory">Satisfactory</option>
-                                    <option value="Poor">Poor</option>
+                                    <option value="Needs Improvement">Needs Improvement</option>
                                 </select>
                             </div>
                             <div class="input-group form-full">
@@ -198,19 +197,17 @@
                                 <label for="disciplineStatus">Discipline Status<span class="req">*</span></label>
                                 <select id="disciplineStatus" required>
                                     <option value="">Select status</option>
-                                    <option value="No Issues">No Issues</option>
+                                    <option value="No Disciplinary Issues">No Disciplinary Issues</option>
                                     <option value="Minor Issues">Minor Issues</option>
-                                    <option value="Major Issues">Major Issues</option>
-                                    <option value="Under Investigation">Under Investigation</option>
+                                    <option value="Disciplinary Action Taken">Disciplinary Action Taken</option>
                                 </select>
                             </div>
                             <div class="input-group">
                                 <label for="renewalRecommendation">Renewal Recommendation<span class="req">*</span></label>
                                 <select id="renewalRecommendation" required>
                                     <option value="">Select recommendation</option>
-                                    <option value="Recommend for Renewal">Recommend for Renewal</option>
-                                    <option value="Recommend with Conditions">Recommend with Conditions</option>
-                                    <option value="Not Recommended">Not Recommended</option>
+                                    <option value="Recommend">Recommend</option>
+                                    <option value="Not Recommend">Not Recommend</option>
                                 </select>
                             </div>
                             <div class="input-group form-full">
