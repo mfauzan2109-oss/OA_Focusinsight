@@ -413,6 +413,34 @@
       display: inline-block;
     }
 
+    /* --- Resubmission card variant --- */
+    .request-card.resubmission {
+      background: #fed7aa;
+      color: #7c2d12;
+      border: 2px solid #f97316;
+    }
+    .request-card.resubmission h4,
+    .request-card.resubmission p {
+      color: #7c2d12;
+    }
+    .request-card small.resubmit-label {
+      color: #dc2626;
+      font-weight: 800;
+      opacity: 1;
+    }
+
+    /* --- Resubmission badge in detail panel header --- */
+    .resubmission-badge {
+      background: #fed7aa;
+      color: #9a3412;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #f97316;
+      margin-right: 8px;
+    }
+
     .card-color-0 { background: #22c55e; }
     .card-color-1 { background: #3b82f6; }
     .card-color-2 { background: #14b8a6; }
@@ -630,6 +658,7 @@
           <h2 id="detailType">Select a Request</h2>
           <span class="req-id" id="detailReqId">—</span>
         </div>
+        <span class="resubmission-badge" id="detailResubmissionBadge" style="display: none;">Resubmission: 1/3</span>
         <span class="status-pill status-pending" id="detailStatus">—</span>
       </div>
 
@@ -670,14 +699,14 @@
         </div>
       </div>
 
-      <div class="comment-section">
-        <label for="comment">Manager Comment <small>(optional)</small></label>
-        <textarea id="comment" placeholder="Add a comment or explanation before approving or rejecting..."></textarea>
-      </div>
-
       <div class="action-buttons">
         <button type="button" class="btn btn-approve" id="approveBtn"><i class='bx bx-check-circle'></i> Approve</button>
         <button type="button" class="btn btn-reject" id="rejectBtn"><i class='bx bx-x-circle'></i> Reject</button>
+      </div>
+
+      <div class="comment-section">
+        <label for="comment">If <strong>Reject</strong>, please state your reason/ comment</label>
+        <textarea id="comment" placeholder="Add a comment or explanation before approving or rejecting..."></textarea>
       </div>
     </section>
 
@@ -1248,13 +1277,28 @@
 
             const cardColors = ['card-color-0', 'card-color-1', 'card-color-2', 'card-color-3', 'card-color-4', 'card-color-5'];
 
+            function formatCardDateTime(dateVal) {
+              if (!dateVal) return '—';
+              const d = new Date(dateVal);
+              if (isNaN(d)) return '—';
+              const datePart = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+              const timePart = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+              return `${datePart}, ${timePart}`;
+            }
+
             if (pendingItems.length > 0) {
               pendingItems.forEach((item, index) => {
                 const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
                 const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
 
+                // NOTE: assumes the backend provides `is_resubmission` (boolean) and
+                // `resubmission_count` (int) on each item once resubmission is wired up.
+                // Falls back gracefully to normal styling if those fields aren't present yet.
+                const isResubmission = !!item.is_resubmission || (item.resubmission_count && item.resubmission_count > 0);
+                const resubmissionCount = item.resubmission_count || (isResubmission ? 1 : 0);
+
                 const div = document.createElement('div');
-                div.className = `request-card ${cardColors[index % cardColors.length]} ${index === 0 ? 'active' : ''}`;
+                div.className = `request-card ${isResubmission ? 'resubmission' : cardColors[index % cardColors.length]} ${index === 0 ? 'active' : ''}`;
                 div.dataset.rawId = item.id;
                 div.dataset.id = formattedId;
                 div.dataset.type = item.request_type;
@@ -1264,6 +1308,8 @@
                 div.dataset.date = dateStr;
                 div.dataset.amount = item.amount || '—';
                 div.dataset.status = item.status;
+                div.dataset.isResubmission = isResubmission ? '1' : '0';
+                div.dataset.resubmissionCount = resubmissionCount;
 
                 const reminderTag = item.last_reminder_sent
                   ? `<span class="reminder-tag">🔔 Reminder sent ${timeAgo(item.last_reminder_sent)}</span>`
@@ -1273,6 +1319,8 @@
                   <h4>${item.employee_name}</h4>
                   <p>${item.request_type} Application</p>
                   <small>${formattedId}</small>
+                  <small class="${isResubmission ? 'resubmit-label' : ''}">${isResubmission ? 'Resubmitted by' : 'Submitted by'}</small>
+                  <small>${formatCardDateTime(item.date_submitted)}</small>
                   ${reminderTag}
                 `;
 
@@ -1290,6 +1338,14 @@
                   const statusPill = document.getElementById('detailStatus');
                   statusPill.textContent = this.dataset.status;
                   statusPill.className = `status-pill status-${this.dataset.status.toLowerCase().replace(/\s+/g, '-')}`;
+
+                  const resubBadge = document.getElementById('detailResubmissionBadge');
+                  if (this.dataset.isResubmission === '1') {
+                    resubBadge.textContent = `Resubmission: ${this.dataset.resubmissionCount}/3`;
+                    resubBadge.style.display = 'inline-block';
+                  } else {
+                    resubBadge.style.display = 'none';
+                  }
 
                   loadFullFormDetails(selectedRawId, selectedType);
                 });
@@ -1360,6 +1416,8 @@
         document.getElementById('dynamicFormContainer').innerHTML = `<div style="color: #64748b; font-size: 13px;">Select a request card above.</div>`;
         document.getElementById('detailStatus').textContent = '—';
         document.getElementById('detailStatus').className = 'status-pill status-pending';
+        const resubBadgeReset = document.getElementById('detailResubmissionBadge');
+        if (resubBadgeReset) resubBadgeReset.style.display = 'none';
       }
 
       async function updateRequestStatus(actionStatus) {

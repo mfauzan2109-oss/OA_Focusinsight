@@ -92,11 +92,11 @@ router.get('/api/approval-queue', (req, res) => {
                              userDept.toLowerCase() === 'management' || 
                              userId.startsWith('ceo');
 
-    let leaveQuery  = `SELECT ID as id, \`Employee ID\` as employee_id, \`Employee Name\` as employee_name, Department as department, 'Leave' as request_type, 'Not Applicable' as amount, \`Created At\` as date_submitted, last_reminder_sent, TRIM(Status) as status FROM \`leave\` WHERE 1=1`;
-    let disQuery    = `SELECT id, employee_id, employee_name, department, 'Disbursement' as request_type, total_amount as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`disbursements\` WHERE 1=1`;
-    let travelQuery = `SELECT id, employee_id, employee_name, department, 'Travel' as request_type, total_amount as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`travel\` WHERE 1=1`;
-    let otQuery     = `SELECT id, employee_id, employee_name, department, 'Overtime' as request_type, total_claim as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`overtime\` WHERE 1=1`;
-    let loanQuery   = `SELECT id, employee_id, employee_name, department, 'Loan' as request_type, amount_requested as amount, created_at as date_submitted, last_reminder_sent, TRIM(status) as status FROM \`loans\` WHERE 1=1`;
+    let leaveQuery  = `SELECT ID as id, \`Employee ID\` as employee_id, \`Employee Name\` as employee_name, Department as department, 'Leave' as request_type, 'Not Applicable' as amount, \`Created At\` as date_submitted, last_reminder_sent, resubmission_count, TRIM(Status) as status FROM \`leave\` WHERE 1=1`;
+    let disQuery    = `SELECT id, employee_id, employee_name, department, 'Disbursement' as request_type, total_amount as amount, created_at as date_submitted, last_reminder_sent, resubmission_count, TRIM(status) as status FROM \`disbursements\` WHERE 1=1`;
+    let travelQuery = `SELECT id, employee_id, employee_name, department, 'Travel' as request_type, total_amount as amount, created_at as date_submitted, last_reminder_sent, resubmission_count, TRIM(status) as status FROM \`travel\` WHERE 1=1`;
+    let otQuery     = `SELECT id, employee_id, employee_name, department, 'Overtime' as request_type, total_claim as amount, created_at as date_submitted, last_reminder_sent, resubmission_count, TRIM(status) as status FROM \`overtime\` WHERE 1=1`;
+    let loanQuery   = `SELECT id, employee_id, employee_name, department, 'Loan' as request_type, amount_requested as amount, created_at as date_submitted, last_reminder_sent, resubmission_count, TRIM(status) as status FROM \`loans\` WHERE 1=1`;
 
     const params = isGlobalApprover ? [] : [userDept];
 
@@ -136,7 +136,7 @@ router.get('/api/approval-queue', (req, res) => {
 // ==========================================================================
 router.put('/api/approval-queue/:type/:id', (req, res) => {
     const { type, id } = req.params;
-    const { status } = req.body;
+    const { status, comment, approver_name } = req.body;
 
     if (!status) {
         return res.status(400).json({ success: false, message: 'Status parameter is required.' });
@@ -161,14 +161,149 @@ router.put('/api/approval-queue/:type/:id', (req, res) => {
         return res.status(400).json({ success: false, message: 'Invalid request type.' });
     }
 
-    const query = `UPDATE \`${tableName}\` SET \`${statusCol}\` = ? WHERE id = ? OR ID = ?`;
-    
-    db.query(query, [status, id, id], (err, result) => {
+    const isRejection = status.toLowerCase().includes('reject');
+
+    let query;
+    let params;
+
+    if (isRejection) {
+        query = `UPDATE \`${tableName}\` SET \`${statusCol}\` = ?, rejection_reason = ?, rejected_by = ?, rejected_at = NOW() WHERE id = ? OR ID = ?`;
+        params = [status, comment || null, approver_name || 'Approving Manager', id, id];
+    } else {
+        query = `UPDATE \`${tableName}\` SET \`${statusCol}\` = ? WHERE id = ? OR ID = ?`;
+        params = [status, id, id];
+    }
+
+    db.query(query, params, (err, result) => {
         if (err) {
             console.error('Update Status Error:', err);
             return res.status(500).json({ success: false, message: 'Failed to update request status.' });
         }
         return res.json({ success: true, message: `Request status updated to ${status}.` });
+    });
+});
+
+// ==========================================================================
+// API ROUTE: RESUBMIT A REJECTED REQUEST (Edit -> Resubmit flow)
+// ==========================================================================
+router.post('/api/resubmit-request', (req, res) => {
+    const { id, type, employee_id, reason, ...fields } = req.body;
+
+    if (!id || !type) {
+        return res.status(400).json({ success: false, message: 'Request ID and Type are required.' });
+    }
+
+    const reqType = type.toLowerCase();
+
+    // Maps the data-field names sent by request-details.html to each
+    // table's actual column names, since leave uses capitalized/spaced
+    // column names while the other tables use lowercase snake_case.
+    let tableName = '';
+    let idCol = 'id';
+    let statusCol = 'status';
+    let reasonCol = ''; // only set per-branch below when the table is confirmed to have a reason-equivalent column
+    let columnMap = {};
+    let resubCap = 3;
+
+    if (reqType.includes('leave')) {
+        tableName = 'leave';
+        idCol = 'ID';
+        statusCol = 'Status';
+        reasonCol = 'Reason';
+        columnMap = {
+            leave_type: '`Leave Type`',
+            day_type: '`Day type`',
+            start_date: '`Start Date`',
+            end_date: '`End Date`',
+            total_days: '`No of Days`'
+        };
+    } else if (reqType.includes('overtime')) {
+        tableName = 'overtime';
+        reasonCol = 'reason'; // `overtime` table has a `reason` column
+        columnMap = {
+            ot_date: 'ot_date',
+            day_type: 'day_type',
+            start_time: 'start_time',
+            end_time: 'end_time',
+            night_allowance: 'night_allowance',
+            meal_allowance: 'meal_allowance'
+        };
+    } else if (reqType.includes('travel')) {
+        tableName = 'travel';
+        columnMap = {
+            allowance_type: 'allowance_type',
+            claim_month: 'claim_month'
+        };
+    } else if (reqType.includes('loan')) {
+        tableName = 'loans';
+        columnMap = {
+            loan_type: 'loan_type',
+            repayment_period: 'repayment_period',
+            monthly_salary: 'monthly_salary',
+            disbursement_method: 'disbursement_method',
+            account_holder: 'account_holder',
+            account_number: 'account_number'
+        };
+    } else if (reqType.includes('disbursement')) {
+        tableName = 'disbursements';
+        columnMap = {}; // total_amount / itemized rows aren't edited through this generic flow
+    } else {
+        return res.status(400).json({ success: false, message: 'Invalid or unsupported request type.' });
+    }
+
+    // First, check the current resubmission_count so we can enforce the cap server-side too
+    const checkQuery = `SELECT resubmission_count, \`${statusCol}\` AS current_status FROM \`${tableName}\` WHERE \`${idCol}\` = ?`;
+
+    db.query(checkQuery, [id], (checkErr, checkResults) => {
+        if (checkErr || checkResults.length === 0) {
+            console.error('Resubmit lookup error:', checkErr);
+            return res.status(404).json({ success: false, message: 'Request record not found.' });
+        }
+
+        const currentCount = parseInt(checkResults[0].resubmission_count || 0, 10);
+
+        if (currentCount >= resubCap) {
+            return res.status(400).json({ success: false, message: `Maximum resubmissions (${resubCap}) already reached for this request.` });
+        }
+
+        // Build the SET clause from whichever known fields were sent
+        const setClauses = [`\`${statusCol}\` = 'Pending'`, `resubmission_count = resubmission_count + 1`];
+        const params = [];
+
+        Object.keys(columnMap).forEach((fieldKey) => {
+            if (Object.prototype.hasOwnProperty.call(fields, fieldKey)) {
+                let value = fields[fieldKey];
+                // Safety net: MySQL DATE columns reject full ISO timestamps
+                // (e.g. "2026-09-09T16:00:00.000Z") sent from the frontend —
+                // strip everything from "T" onward so only "YYYY-MM-DD" is stored.
+                if (typeof value === 'string' && /date/i.test(fieldKey) && value.includes('T')) {
+                    value = value.split('T')[0];
+                }
+                setClauses.push(`${columnMap[fieldKey]} = ?`);
+                params.push(value);
+            }
+        });
+
+        if (reason !== undefined && reasonCol) {
+            setClauses.push(`\`${reasonCol}\` = ?`);
+            params.push(reason);
+        }
+
+        const updateQuery = `UPDATE \`${tableName}\` SET ${setClauses.join(', ')} WHERE \`${idCol}\` = ?`;
+        params.push(id);
+
+        db.query(updateQuery, params, (updateErr) => {
+            if (updateErr) {
+                console.error('Resubmit update error:', updateErr);
+                return res.status(500).json({ success: false, message: 'Failed to resubmit request.' });
+            }
+
+            return res.json({
+                success: true,
+                message: 'Request resubmitted successfully.',
+                resubmission_count: currentCount + 1
+            });
+        });
     });
 });
 

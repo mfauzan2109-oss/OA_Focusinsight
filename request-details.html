@@ -739,6 +739,64 @@
         .btn-primary:hover { background-color: #1d4ed8; }
         .btn-secondary:hover { background-color: #f1f5f9; }
 
+        /* ================= REJECTION / RESUBMISSION UI ================= */
+        .reject-banner {
+            background-color: #fecaca;
+            border: 1px solid #f87171;
+            color: #7f1d1d;
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .reject-banner-title {
+            font-weight: 800;
+            font-size: 14.5px;
+            margin-bottom: 4px;
+            color: #b91c1c;
+        }
+        .resubmit-info-banner {
+            background-color: #99f6e4;
+            border: 1px solid #2dd4bf;
+            color: #134e4a;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .resubmit-limit-banner {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #78350f;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .edit-input {
+            width: 100%;
+            padding: 9px 13px;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--text-dark);
+            background-color: #eff6ff;
+            box-sizing: border-box;
+        }
+        textarea.edit-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-control-static[data-field] {
+            display: flex;
+            align-items: center;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* ================= PRINT STYLES FOR CLEAN PDF ================= */
         @media print {
             .sidebar, 
@@ -934,13 +992,40 @@
             </div>
         </div>
 
+        <!-- Rejection & Resubmission Banners (shown only when applicable) -->
+        <div id="rejectBanner" class="reject-banner" style="display: none;">
+            <div class="reject-banner-title"><i class="fa-solid fa-circle-xmark"></i> Request Rejected</div>
+            <div>Rejected by: <span id="rejectedBy">—</span></div>
+            <div>Date &amp; Time: <span id="rejectedAt">—</span></div>
+            <div>Reason: <span id="rejectedReason">—</span></div>
+        </div>
+
+        <div id="resubmitInfoBanner" class="resubmit-info-banner" style="display: none;">
+            You can edit and resubmit this request. Maximum 3 resubmissions allowed. (<span id="resubmitCountText">0</span>/3 used)
+        </div>
+
+        <div id="resubmitLimitBanner" class="resubmit-limit-banner" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation"></i> Maximum resubmissions (3) reached. Please contact HR or your manager for further assistance.
+        </div>
+
         <!-- Action Buttons -->
         <div class="action-buttons">
             <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-download"></i> Download PDF</button>
-            
+
             <!-- Send Reminder Button -->
             <button id="btnSendReminder" class="btn" style="background-color: #f97316; color: #ffffff; display: none;">
                 <i class="fa-solid fa-bell"></i> Send Reminder
+            </button>
+
+            <!-- Edit / Resubmit (shown only when this request was Rejected) -->
+            <button id="btnEdit" class="btn" style="background-color: #2563eb; color: #ffffff; display: none;">
+                <i class="fa-solid fa-pen"></i> Edit
+            </button>
+            <button id="btnResubmit" class="btn btn-secondary" style="display: none;" disabled>
+                <i class="fa-solid fa-paper-plane"></i> Resubmit
+            </button>
+            <button id="btnSubmitReportHR" class="btn btn-secondary" style="display: none;">
+                <i class="fa-regular fa-file-lines"></i> Submit Report to HR
             </button>
 
             <button class="btn btn-secondary" onclick="alert('Notification email triggered successfully.')"><i class="fa-regular fa-envelope"></i> Send to Email</button>
@@ -950,6 +1035,8 @@
     </main>
 
     <script>
+        let currentRequestId = null;
+        let currentRequestType = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
             let userRequests = [];
@@ -1360,11 +1447,11 @@
             if (lowerType.includes('leave')) {
                 calcBlock.style.display = 'none';
                 fieldsHTML = `
-                    <div class="form-group"><label>Leave Type</label><div class="form-control-static">${data['Leave Type'] || data.leave_type || '—'}</div></div>
-                    <div class="form-group"><label>Day Type</label><div class="form-control-static">${data['Day type'] || data.day_type || 'Full Day'}</div></div>
-                    <div class="form-group"><label>Start Date</label><div class="form-control-static">${data['Start Date'] ? new Date(data['Start Date']).toISOString().split('T')[0] : '—'}</div></div>
-                    <div class="form-group"><label>End Date</label><div class="form-control-static">${data['End Date'] ? new Date(data['End Date']).toISOString().split('T')[0] : '—'}</div></div>
-                    <div class="form-group"><label>Total Days</label><div class="form-control-static">${data['No of Days'] || data.total_days || '1'} Day(s)</div></div>
+                    <div class="form-group"><label>Leave Type</label><div class="form-control-static" data-field="leave_type" data-input-type="text">${data['Leave Type'] || data.leave_type || '—'}</div></div>
+                    <div class="form-group"><label>Day Type</label><div class="form-control-static" data-field="day_type" data-input-type="text">${data['Day type'] || data.day_type || 'Full Day'}</div></div>
+                    <div class="form-group"><label>Start Date</label><div class="form-control-static" data-field="start_date" data-input-type="text">${data['Start Date'] ? new Date(data['Start Date']).toISOString().split('T')[0] : '—'}</div></div>
+                    <div class="form-group"><label>End Date</label><div class="form-control-static" data-field="end_date" data-input-type="text">${data['End Date'] ? new Date(data['End Date']).toISOString().split('T')[0] : '—'}</div></div>
+                    <div class="form-group"><label>Total Days</label><div class="form-control-static" data-field="total_days" data-input-type="text">${data['No of Days'] || data.total_days || '1'}</div></div>
                 `;
             } else if (lowerType.includes('overtime')) {
                 calcBlock.style.display = 'block';
@@ -1373,40 +1460,179 @@
                 document.getElementById('calc-total').innerText = amountDisplay;
 
                 fieldsHTML = `
-                    <div class="form-group"><label>OT Date</label><div class="form-control-static">${data.ot_date || '—'}</div></div>
-                    <div class="form-group"><label>Day Type</label><div class="form-control-static">${data.day_type || 'Normal Workday'}</div></div>
-                    <div class="form-group"><label>Start Time</label><div class="form-control-static">${data.start_time || '—'}</div></div>
-                    <div class="form-group"><label>End Time</label><div class="form-control-static">${data.end_time || '—'}</div></div>
-                    <div class="form-group"><label>Night Allowance</label><div class="form-control-static">${data.night_allowance ? 'Yes' : 'No'}</div></div>
-                    <div class="form-group"><label>Meal Allowance</label><div class="form-control-static">${data.meal_allowance ? 'Yes' : 'No'}</div></div>
+                    <div class="form-group"><label>OT Date</label><div class="form-control-static" data-field="ot_date" data-input-type="text">${data.ot_date ? new Date(data.ot_date).toISOString().split('T')[0] : '—'}</div></div>
+                    <div class="form-group"><label>Day Type</label><div class="form-control-static" data-field="day_type" data-input-type="text">${data.day_type || 'Normal Workday'}</div></div>
+                    <div class="form-group"><label>Start Time</label><div class="form-control-static" data-field="start_time" data-input-type="text">${data.start_time || '—'}</div></div>
+                    <div class="form-group"><label>End Time</label><div class="form-control-static" data-field="end_time" data-input-type="text">${data.end_time || '—'}</div></div>
+                    <div class="form-group"><label>Night Allowance</label><div class="form-control-static" data-field="night_allowance" data-input-type="checkbox">${data.night_allowance ? 'Yes' : 'No'}</div></div>
+                    <div class="form-group"><label>Meal Allowance</label><div class="form-control-static" data-field="meal_allowance" data-input-type="checkbox">${data.meal_allowance ? 'Yes' : 'No'}</div></div>
                 `;
             } else if (lowerType.includes('travel')) {
                 calcBlock.style.display = 'none';
                 fieldsHTML = `
-                    <div class="form-group"><label>Allowance Type</label><div class="form-control-static">${data.allowance_type || '—'}</div></div>
-                    <div class="form-group"><label>Claim Month</label><div class="form-control-static">${data.claim_month || '—'}</div></div>
-                    <div class="form-group"><label>Total Claim Amount</label><div class="form-control-static">${amountDisplay}</div></div>
+                    <div class="form-group"><label>Allowance Type</label><div class="form-control-static" data-field="allowance_type" data-input-type="text">${data.allowance_type || '—'}</div></div>
+                    <div class="form-group"><label>Claim Month</label><div class="form-control-static" data-field="claim_month" data-input-type="text">${data.claim_month || '—'}</div></div>
+                    <div class="form-group"><label>Total Claim Amount</label><div class="form-control-static" data-field="total_amount" data-input-type="text">${amountDisplay}</div></div>
                 `;
             } else if (lowerType.includes('loan')) {
                 calcBlock.style.display = 'none';
                 fieldsHTML = `
-                    <div class="form-group"><label>Loan Type</label><div class="form-control-static">${data.loan_type || '—'}</div></div>
-                    <div class="form-group"><label>Repayment Period</label><div class="form-control-static">${data.repayment_period || '—'} Months</div></div>
-                    <div class="form-group"><label>Monthly Salary</label><div class="form-control-static">RM ${parseFloat(data.monthly_salary || 0).toFixed(2)}</div></div>
-                    <div class="form-group"><label>Disbursement Method</label><div class="form-control-static">${data.disbursement_method || 'Bank Transfer'}</div></div>
-                    <div class="form-group"><label>Account Holder</label><div class="form-control-static">${data.account_holder || '—'}</div></div>
-                    <div class="form-group"><label>Account Number</label><div class="form-control-static">${data.account_number || '—'}</div></div>
+                    <div class="form-group"><label>Loan Type</label><div class="form-control-static" data-field="loan_type" data-input-type="text">${data.loan_type || '—'}</div></div>
+                    <div class="form-group"><label>Repayment Period</label><div class="form-control-static" data-field="repayment_period" data-input-type="text">${data.repayment_period || '—'}</div></div>
+                    <div class="form-group"><label>Monthly Salary</label><div class="form-control-static" data-field="monthly_salary" data-input-type="text">${parseFloat(data.monthly_salary || 0).toFixed(2)}</div></div>
+                    <div class="form-group"><label>Disbursement Method</label><div class="form-control-static" data-field="disbursement_method" data-input-type="text">${data.disbursement_method || 'Bank Transfer'}</div></div>
+                    <div class="form-group"><label>Account Holder</label><div class="form-control-static" data-field="account_holder" data-input-type="text">${data.account_holder || '—'}</div></div>
+                    <div class="form-group"><label>Account Number</label><div class="form-control-static" data-field="account_number" data-input-type="text">${data.account_number || '—'}</div></div>
                 `;
             } else if (lowerType.includes('disbursement')) {
                 calcBlock.style.display = 'none';
                 fieldsHTML = `
-                    <div class="form-group"><label>Claim Type</label><div class="form-control-static">General Disbursement</div></div>
-                    <div class="form-group"><label>Total Disbursement Amount</label><div class="form-control-static">${amountDisplay}</div></div>
+                    <div class="form-group"><label>Claim Type</label><div class="form-control-static" data-field="claim_type" data-input-type="text">General Disbursement</div></div>
+                    <div class="form-group"><label>Total Disbursement Amount</label><div class="form-control-static" data-field="total_amount" data-input-type="text">${amountDisplay}</div></div>
                 `;
             }
 
             container.innerHTML = fieldsHTML;
+
+            // ---- Rejection / Resubmission UI ----
+            currentRequestId = displayId;
+            currentRequestType = type;
+
+            const rejectBanner = document.getElementById('rejectBanner');
+            const resubmitInfoBanner = document.getElementById('resubmitInfoBanner');
+            const resubmitLimitBanner = document.getElementById('resubmitLimitBanner');
+            const btnEdit = document.getElementById('btnEdit');
+            const btnResubmit = document.getElementById('btnResubmit');
+            const btnSubmitReportHR = document.getElementById('btnSubmitReportHR');
+
+            // NOTE: assumes the backend provides `rejected_by`, `rejected_at` (or
+            // `updated_at`), `rejection_reason`, and `resubmission_count` on the
+            // request record once the reject-with-reason flow is wired up. Falls
+            // back to sensible defaults if those fields aren't present yet.
+            const resubmissionCount = parseInt(data.resubmission_count || 0, 10);
+
+            if (statusRaw === 'REJECTED' || statusRaw === 'REJECT') {
+                rejectBanner.style.display = 'block';
+                document.getElementById('rejectedBy').innerText = data.rejected_by || 'Approving Manager';
+                const rejectedAtRaw = data.rejected_at || data.updated_at;
+                document.getElementById('rejectedAt').innerText = rejectedAtRaw ? new Date(rejectedAtRaw).toLocaleString() : '—';
+                document.getElementById('rejectedReason').innerText = data.rejection_reason || data.comment || 'No reason provided.';
+
+                if (resubmissionCount >= 3) {
+                    resubmitInfoBanner.style.display = 'none';
+                    resubmitLimitBanner.style.display = 'block';
+                    btnEdit.style.display = 'none';
+                    btnResubmit.style.display = 'none';
+                    btnSubmitReportHR.style.display = 'inline-flex';
+                } else {
+                    resubmitLimitBanner.style.display = 'none';
+                    resubmitInfoBanner.style.display = 'block';
+                    document.getElementById('resubmitCountText').innerText = resubmissionCount;
+                    btnEdit.style.display = 'inline-flex';
+                    btnEdit.disabled = false;
+                    btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> Edit';
+                    btnResubmit.style.display = 'inline-flex';
+                    btnResubmit.disabled = true;
+                    btnSubmitReportHR.style.display = 'inline-flex';
+                }
+            } else {
+                rejectBanner.style.display = 'none';
+                resubmitInfoBanner.style.display = 'none';
+                resubmitLimitBanner.style.display = 'none';
+                btnEdit.style.display = 'none';
+                btnResubmit.style.display = 'none';
+                btnSubmitReportHR.style.display = 'none';
+            }
         }
+
+        // ================= EDIT / RESUBMIT (for Rejected requests) =================
+        function enableEditMode() {
+            document.querySelectorAll('#dynamic-fields-container .form-control-static[data-field]').forEach(el => {
+                const field = el.dataset.field;
+                const inputType = el.dataset.inputType || 'text';
+                const currentText = el.textContent.trim();
+
+                if (inputType === 'checkbox') {
+                    const checked = currentText.toLowerCase() === 'yes';
+                    el.innerHTML = `<input type="checkbox" data-field="${field}" ${checked ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">`;
+                } else {
+                    const safeValue = currentText.replace(/"/g, '&quot;');
+                    el.innerHTML = `<input type="text" class="edit-input" data-field="${field}" value="${safeValue}">`;
+                }
+            });
+
+            // Reason / Description becomes a textarea
+            const reasonEl = document.getElementById('req-reason');
+            if (reasonEl && reasonEl.tagName !== 'TEXTAREA') {
+                const textarea = document.createElement('textarea');
+                textarea.id = 'req-reason';
+                textarea.className = 'edit-input';
+                textarea.value = reasonEl.textContent.trim();
+                reasonEl.replaceWith(textarea);
+            }
+
+            const btnEdit = document.getElementById('btnEdit');
+            const btnResubmit = document.getElementById('btnResubmit');
+            btnEdit.disabled = true;
+            btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> Editing...';
+            btnResubmit.disabled = false;
+        }
+
+        async function handleResubmit() {
+            const payload = {
+                id: currentRequestId,
+                type: currentRequestType,
+                employee_id: (sessionStorage.getItem('userId') || '').toUpperCase()
+            };
+
+            document.querySelectorAll('#dynamic-fields-container [data-field]').forEach(input => {
+                let value = (input.type === 'checkbox') ? input.checked : input.value;
+                // Safety net: if a date-ish field somehow carries a full ISO
+                // timestamp (e.g. "2026-09-09T16:00:00.000Z") instead of a
+                // plain "YYYY-MM-DD", MySQL DATE columns will reject it.
+                // Strip everything from "T" onward so only the date part is sent.
+                if (typeof value === 'string' && /date/i.test(input.dataset.field) && value.includes('T')) {
+                    value = value.split('T')[0];
+                }
+                payload[input.dataset.field] = value;
+            });
+
+            const reasonEl = document.getElementById('req-reason');
+            payload.reason = reasonEl ? (reasonEl.tagName === 'TEXTAREA' ? reasonEl.value : reasonEl.textContent) : '';
+
+            const btnResubmit = document.getElementById('btnResubmit');
+            btnResubmit.disabled = true;
+            btnResubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Resubmitting...';
+
+            try {
+                const res = await fetch('http://localhost:3000/api/resubmit-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert('Request resubmitted successfully! Status has been set back to Pending for review.');
+                    window.location.reload();
+                } else {
+                    alert(result.message || 'Failed to resubmit request.');
+                    btnResubmit.disabled = false;
+                    btnResubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resubmit';
+                }
+            } catch (err) {
+                console.error('Resubmit error:', err);
+                alert('Failed to connect to server. Please check your connection and try again.');
+                btnResubmit.disabled = false;
+                btnResubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resubmit';
+            }
+        }
+
+        document.getElementById('btnEdit')?.addEventListener('click', enableEditMode);
+        document.getElementById('btnResubmit')?.addEventListener('click', handleResubmit);
+        document.getElementById('btnSubmitReportHR')?.addEventListener('click', () => {
+            alert('Report submitted to HR.');
+        });
 
         async function checkApprovalQueueAccess(userId, department, position) {
             const queueItem = document.getElementById('approvalQueueItem');
