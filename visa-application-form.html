@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian E-Business Visa Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .main-content { padding: 0 !important; }
+        .form-body { padding: 0 24px 40px 24px; max-width: 900px; margin: 0 auto; }
+
+        .profile-avatar img, .avatar-circle img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+        }
+        .profile-avatar, .avatar-circle {
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 24px;
+            width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .form-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 22px 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-card-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #030c1b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .sub-block-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin: 4px 0 12px 0;
+        }
+
+        .family-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 18px 4px 18px;
+            margin-bottom: 18px;
+        }
+
+        .radio-row {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+        }
+        .radio-option input[type="radio"] {
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+
+        .conditional-block {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .conditional-block.open { display: block; }
+
+        .doc-card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 760px) {
+            .doc-card-grid { grid-template-columns: 1fr; }
+        }
+        .doc-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .doc-card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #030c1b;
+            margin-bottom: 2px;
+        }
+        .doc-card-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            min-height: 28px;
+        }
+        .doc-upload-btn {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+        .doc-upload-btn:hover { background: #1d4ed8; }
+        .doc-status {
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .doc-status.required { color: #ef4444; }
+        .doc-status.uploaded { color: #16a34a; }
+        .doc-filename {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 6px;
+            word-break: break-all;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .btn-cancel {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 10px 22px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-submit {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-submit:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i>
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Indian E-Business Visa Application</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request...">
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="form-body">
+
+            <!-- EMPLOYEE INFORMATION -->
+            <div class="form-card">
+                <div class="form-card-title">Employee Information <span class="required">*</span></div>
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label>Employee ID</label>
+                        <input type="text" id="employeeId" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="fullName" readonly>
+                    </div>
+                </div>
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label>Department</label>
+                        <input type="text" id="department" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Position</label>
+                        <input type="text" id="position" readonly>
+                    </div>
+                </div>
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label>IC / Passport No.<span class="required">*</span></label>
+                        <input type="text" id="icPassportNo">
+                    </div>
+                    <div class="input-group">
+                        <label>Phone No.<span class="required">*</span></label>
+                        <input type="text" id="phoneNo">
+                    </div>
+                </div>
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label>Company Email</label>
+                        <input type="email" id="companyEmail" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Religion<span class="required">*</span></label>
+                        <input type="text" id="religion">
+                    </div>
+                </div>
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label>Educational Qualification<span class="required">*</span></label>
+                        <input type="text" id="eduQualification">
+                    </div>
+                    <div class="input-group">
+                        <label>Course / Qualification<span class="required">*</span></label>
+                        <input type="text" id="courseQualification">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRAVEL INFORMATION -->
+            <div class="form-card">
+                <div class="form-card-title">Travel Information</div>
+                <div class="input-group">
+                    <label>Port of Arrival (eg: Chennai Airport / Bengaluru Airport etc.)<span class="required">*</span></label>
+                    <input type="text" id="portOfArrival">
+                </div>
+            </div>
+
+            <!-- ADDRESS INFORMATION -->
+            <div class="form-card">
+                <div class="form-card-title">Address Information</div>
+                <div class="input-group">
+                    <label>Present Address<span class="required">*</span></label>
+                    <textarea rows="3" id="presentAddress"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Permanent Address (if applicable)</label>
+                    <textarea rows="3" id="permanentAddress"></textarea>
+                </div>
+            </div>
+
+            <!-- FAMILY DETAILS -->
+            <div class="form-card">
+                <div class="form-card-title">Family Details</div>
+
+                <div class="family-box">
+                    <div class="sub-block-title">Father</div>
+                    <div class="input-group">
+                        <label>Full Name<span class="required">*</span></label>
+                        <input type="text" id="fatherFullName">
+                    </div>
+                    <div class="form-grid form-grid-2">
+                        <div class="input-group">
+                            <label>Nationality / Region<span class="required">*</span></label>
+                            <input type="text" id="fatherNationality">
+                        </div>
+                        <div class="input-group">
+                            <label>Previous Nationality / Region</label>
+                            <input type="text" id="fatherPrevNationality">
+                        </div>
+                    </div>
+                    <div class="form-grid form-grid-2">
+                        <div class="input-group">
+                            <label>Place of Birth</label>
+                            <input type="text" id="fatherPlaceOfBirth">
+                        </div>
+                        <div class="input-group">
+                            <label>Country / Region of Birth<span class="required">*</span></label>
+                            <input type="text" id="fatherCountryOfBirth">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="family-box">
+                    <div class="sub-block-title">Mother</div>
+                    <div class="input-group">
+                        <label>Full Name<span class="required">*</span></label>
+                        <input type="text" id="motherFullName">
+                    </div>
+                    <div class="form-grid form-grid-2">
+                        <div class="input-group">
+                            <label>Nationality / Region<span class="required">*</span></label>
+                            <input type="text" id="motherNationality">
+                        </div>
+                        <div class="input-group">
+                            <label>Previous Nationality / Region</label>
+                            <input type="text" id="motherPrevNationality">
+                        </div>
+                    </div>
+                    <div class="form-grid form-grid-2">
+                        <div class="input-group">
+                            <label>Place of Birth</label>
+                            <input type="text" id="motherPlaceOfBirth">
+                        </div>
+                        <div class="input-group">
+                            <label>Country / Region of Birth<span class="required">*</span></label>
+                            <input type="text" id="motherCountryOfBirth">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MARITAL STATUS -->
+            <div class="form-card">
+                <div class="form-card-title">Marital Status</div>
+                <div class="family-box" style="margin-bottom: 0;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Applicant Marital Status<span class="required">*</span></label>
+                        <div class="radio-row">
+                            <label class="radio-option"><input type="radio" name="maritalStatus" value="Single" id="maritalSingle"> Single</label>
+                            <label class="radio-option"><input type="radio" name="maritalStatus" value="Married" id="maritalMarried"> Married</label>
+                            <label class="radio-option"><input type="radio" name="maritalStatus" value="Divorce" id="maritalDivorce"> Divorce</label>
+                        </div>
+                    </div>
+
+                    <div class="conditional-block" id="spouseBlock">
+                        <div class="input-group">
+                            <label>Spouse Name</label>
+                            <input type="text" id="spouseName">
+                        </div>
+                        <div class="form-grid form-grid-2">
+                            <div class="input-group">
+                                <label>Nationality / Region</label>
+                                <input type="text" id="spouseNationality">
+                            </div>
+                            <div class="input-group">
+                                <label>Previous Nationality / Region</label>
+                                <input type="text" id="spousePrevNationality">
+                            </div>
+                        </div>
+                        <div class="form-grid form-grid-2">
+                            <div class="input-group">
+                                <label>Place of Birth</label>
+                                <input type="text" id="spousePlaceOfBirth">
+                            </div>
+                            <div class="input-group">
+                                <label>Country / Region of Birth</label>
+                                <input type="text" id="spouseCountryOfBirth">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREVIOUS INDIA VISIT -->
+            <div class="form-card">
+                <div class="form-card-title">Previous India Visit</div>
+
+                <div class="family-box">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Have you ever visited India before?<span class="required">*</span></label>
+                        <div class="radio-row">
+                            <label class="radio-option"><input type="radio" name="visitedIndia" value="Yes" id="visitedIndiaYes"> Yes</label>
+                            <label class="radio-option"><input type="radio" name="visitedIndia" value="No" id="visitedIndiaNo"> No</label>
+                        </div>
+                    </div>
+
+                    <div class="conditional-block" id="visitedIndiaBlock">
+                        <div class="input-group">
+                            <label>Address of stay during visit<span class="required">*</span></label>
+                            <textarea rows="3" id="addressOfStay"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label>City previously visited in India</label>
+                            <textarea rows="2" id="cityVisited"></textarea>
+                        </div>
+                        <div class="form-grid form-grid-2">
+                            <div class="input-group">
+                                <label>Last / Current Indian Visa No.<span class="required">*</span></label>
+                                <input type="text" id="visaNo">
+                            </div>
+                            <div class="input-group">
+                                <label>Visa Type<span class="required">*</span></label>
+                                <input type="text" id="visaType">
+                            </div>
+                        </div>
+                        <div class="form-grid form-grid-2">
+                            <div class="input-group">
+                                <label>Place of Issue</label>
+                                <input type="text" id="placeOfIssue">
+                            </div>
+                            <div class="input-group">
+                                <label>Date of Issue<span class="required">*</span></label>
+                                <input type="date" id="dateOfIssue">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="family-box" style="margin-bottom: 0;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Has permission to visit or extend your stay in India ever been refused?<span class="required">*</span></label>
+                        <div class="radio-row">
+                            <label class="radio-option"><input type="radio" name="permissionRefused" value="Yes" id="refusedYes"> Yes</label>
+                            <label class="radio-option"><input type="radio" name="permissionRefused" value="No" id="refusedNo"> No</label>
+                        </div>
+                    </div>
+
+                    <div class="conditional-block" id="refusedBlock">
+                        <div class="form-grid form-grid-2">
+                            <div class="input-group">
+                                <label>Control No.<span class="required">*</span></label>
+                                <input type="text" id="controlNo">
+                            </div>
+                            <div class="input-group">
+                                <label>Date<span class="required">*</span></label>
+                                <input type="date" id="refusalDate">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Refused By / Authority<span class="required">*</span></label>
+                            <input type="text" id="refusedByAuthority">
+                        </div>
+                        <div class="input-group">
+                            <label>Remarks</label>
+                            <textarea rows="2" id="refusalRemarks"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUPPORTING DOCUMENTS -->
+            <div class="form-card">
+                <div class="form-card-title">Supporting Documents</div>
+                <div class="doc-card-grid">
+                    <div class="doc-card">
+                        <div class="doc-card-title">Recent Photograph</div>
+                        <div class="doc-card-hint">JPEG, White / light coloured background</div>
+                        <button type="button" class="doc-upload-btn" onclick="document.getElementById('fileInputPhoto').click()">+ Upload Document</button>
+                        <input type="file" id="fileInputPhoto" accept=".jpg,.jpeg" style="display: none;" onchange="handleDocSelect('photo', this.files[0])">
+                        <div class="doc-status required" id="statusPhoto">Status: Required</div>
+                        <div class="doc-filename" id="filenamePhoto"></div>
+                    </div>
+
+                    <div class="doc-card">
+                        <div class="doc-card-title">Passport Personal Particular Page</div>
+                        <div class="doc-card-hint">Name, date of birth, etc</div>
+                        <button type="button" class="doc-upload-btn" onclick="document.getElementById('fileInputPassport').click()">+ Upload Document</button>
+                        <input type="file" id="fileInputPassport" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" onchange="handleDocSelect('passport', this.files[0])">
+                        <div class="doc-status required" id="statusPassport">Status: Required</div>
+                        <div class="doc-filename" id="filenamePassport"></div>
+                    </div>
+
+                    <div class="doc-card">
+                        <div class="doc-card-title">Invitation Letter from Indian Company</div>
+                        <div class="doc-card-hint"></div>
+                        <button type="button" class="doc-upload-btn" onclick="document.getElementById('fileInputInvitation').click()">+ Upload Document</button>
+                        <input type="file" id="fileInputInvitation" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" onchange="handleDocSelect('invitation', this.files[0])">
+                        <div class="doc-status required" id="statusInvitation">Status: Required</div>
+                        <div class="doc-filename" id="filenameInvitation"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" id="btnCancel">Cancel</button>
+                <button type="button" class="btn-submit" id="btnSubmit">Submit</button>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const position = sessionStorage.getItem('position');
+        const department = sessionStorage.getItem('department');
+
+        if (!username || !userId) {
+            alert("Access Denied! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
+        const formattedUserId = userId.toUpperCase();
+
+        // ==============================================================
+        // SIDEBAR / TOP HEADER + EMPLOYEE INFORMATION AUTOFILL
+        // ==============================================================
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${formattedUserId} . ${department || 'General'}`;
+        document.getElementById('employeeId').value = formattedUserId;
+        document.getElementById('fullName').value = username;
+        document.getElementById('department').value = department || '';
+        document.getElementById('position').value = position || '';
+
+        const isManager = (userId && formattedUserId.startsWith('MGR')) ||
+                          (position && position.toLowerCase().includes('manager'));
+        if (isManager) {
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem) approvalQueueItem.style.display = 'flex';
+        }
+
+        const initials = username.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+        const topAvatarEl = document.getElementById('topAvatar');
+        const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+        if (topAvatarEl) topAvatarEl.textContent = initials;
+
+        try {
+            const profRes = await fetch(`/api/profile/${formattedUserId}`);
+            const profData = await profRes.json();
+            if (profData.success && profData.data) {
+                const d = profData.data;
+                document.getElementById('companyEmail').value = d.email || '';
+                document.getElementById('icPassportNo').value = d.ic_no || '';
+                document.getElementById('phoneNo').value = d.phone_no || '';
+                document.getElementById('presentAddress').value = d.address || '';
+
+                if (d.profile_picture) {
+                    const src = d.profile_picture.startsWith('http') ? d.profile_picture : `/${d.profile_picture}`;
+                    const imgHTML = `<img src="${src}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                    if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+                    if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+                }
+            }
+        } catch (err) {
+            console.error('Error loading profile:', err);
+        }
+
+        // ==============================================================
+        // NOTIFICATION SYSTEM
+        // ==============================================================
+        const notiBellBtn = document.getElementById('notiBellBtn');
+        const notiDropdown = document.getElementById('notiDropdown');
+        const notiList = document.getElementById('notiList');
+        const notiBadge = document.getElementById('notiBadge');
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const data = await response.json();
+
+                if (data.success && data.notifications && data.notifications.length > 0) {
+                    const unreadCount = data.notifications.filter(item =>
+                        item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                    ).length;
+
+                    if (notiList) {
+                        notiList.innerHTML = '';
+                        data.notifications.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let cardClass = 'status-pending';
+                            let pillClass = 'pending';
+                            if (item.is_reminder) { cardClass = 'status-reminder'; pillClass = 'reminder'; }
+                            else if (statusLower.includes('approve') || statusLower === 'completed') { cardClass = 'status-approved'; pillClass = 'approved'; }
+                            else if (statusLower.includes('reject')) { cardClass = 'status-rejected'; pillClass = 'rejected'; }
+                            else if (statusLower.includes('revision') || statusLower.includes('review')) { cardClass = 'status-review'; pillClass = 'review'; }
+
+                            const title = item.is_reminder
+                                ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                            const notiItem = document.createElement('a');
+                            notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.className = `noti-card ${cardClass}`;
+                            notiItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <div>
+                                        <p class="noti-card-title">${title}</p>
+                                        <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                        <p class="noti-card-date">${item.time || ''}</p>
+                                    </div>
+                                    <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                </div>
+                            `;
+                            notiList.appendChild(notiItem);
+                        });
+                    }
+
+                    if (notiBadge) {
+                        if (unreadCount > 0) { notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount; notiBadge.style.display = 'flex'; }
+                        else { notiBadge.style.display = 'none'; }
+                    }
+                } else {
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                }
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+            }
+        }
+
+        if (notiBellBtn && notiDropdown) {
+            notiBellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notiDropdown.classList.toggle('active');
+                if (notiDropdown.classList.contains('active')) fetchNotifications();
+            });
+            document.addEventListener('click', (e) => {
+                if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                    notiDropdown.classList.remove('active');
+                }
+            });
+            notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+        if (refreshNotiBtn) refreshNotiBtn.addEventListener('click', (e) => { e.stopPropagation(); fetchNotifications(); });
+        fetchNotifications();
+        setInterval(fetchNotifications, 30000);
+
+        // ==============================================================
+        // CONDITIONAL SECTIONS
+        // ==============================================================
+        function wireRadioToggle(radioName, blockId, showValue) {
+            document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const block = document.getElementById(blockId);
+                    if (block) block.classList.toggle('open', radio.value === showValue && radio.checked);
+                });
+            });
+        }
+        wireRadioToggle('maritalStatus', 'spouseBlock', 'Married');
+        wireRadioToggle('visitedIndia', 'visitedIndiaBlock', 'Yes');
+        wireRadioToggle('permissionRefused', 'refusedBlock', 'Yes');
+
+        // ==============================================================
+        // SUPPORTING DOCUMENTS
+        // ==============================================================
+        const docFiles = { photo: null, passport: null, invitation: null };
+
+        function handleDocSelect(key, file) {
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must not exceed 5MB.');
+                return;
+            }
+            docFiles[key] = file;
+
+            const statusMap = { photo: 'statusPhoto', passport: 'statusPassport', invitation: 'statusInvitation' };
+            const filenameMap = { photo: 'filenamePhoto', passport: 'filenamePassport', invitation: 'filenameInvitation' };
+
+            const statusEl = document.getElementById(statusMap[key]);
+            statusEl.textContent = 'Status: Uploaded';
+            statusEl.classList.remove('required');
+            statusEl.classList.add('uploaded');
+            document.getElementById(filenameMap[key]).textContent = file.name;
+        }
+        window.handleDocSelect = handleDocSelect;
+
+        // ==============================================================
+        // FORM ACTIONS
+        // ==============================================================
+        document.getElementById('btnCancel').addEventListener('click', () => {
+            window.location.href = 'application-center.html';
+        });
+
+        document.getElementById('btnSubmit').addEventListener('click', async () => {
+            const maritalStatus = document.querySelector('input[name="maritalStatus"]:checked')?.value || '';
+            const visitedIndia = document.querySelector('input[name="visitedIndia"]:checked')?.value || '';
+            const permissionRefused = document.querySelector('input[name="permissionRefused"]:checked')?.value || '';
+
+            if (!document.getElementById('icPassportNo').value || !document.getElementById('phoneNo').value ||
+                !document.getElementById('religion').value || !document.getElementById('eduQualification').value ||
+                !document.getElementById('courseQualification').value || !document.getElementById('portOfArrival').value ||
+                !document.getElementById('presentAddress').value) {
+                alert('Please fill in all required fields (marked *) in Employee Information, Travel Information, and Address Information.');
+                return;
+            }
+            if (!document.getElementById('fatherFullName').value || !document.getElementById('fatherNationality').value ||
+                !document.getElementById('fatherCountryOfBirth').value || !document.getElementById('motherFullName').value ||
+                !document.getElementById('motherNationality').value || !document.getElementById('motherCountryOfBirth').value) {
+                alert('Please complete all required Family Details fields.');
+                return;
+            }
+            if (!maritalStatus) {
+                alert('Please select your Applicant Marital Status.');
+                return;
+            }
+            if (!visitedIndia) {
+                alert('Please answer whether you have visited India before.');
+                return;
+            }
+            if (visitedIndia === 'Yes' && (!document.getElementById('addressOfStay').value ||
+                !document.getElementById('visaNo').value || !document.getElementById('visaType').value ||
+                !document.getElementById('dateOfIssue').value)) {
+                alert('Please complete all required Previous India Visit fields.');
+                return;
+            }
+            if (!permissionRefused) {
+                alert('Please answer whether permission to visit/extend stay in India has ever been refused.');
+                return;
+            }
+            if (permissionRefused === 'Yes' && (!document.getElementById('controlNo').value ||
+                !document.getElementById('refusalDate').value || !document.getElementById('refusedByAuthority').value)) {
+                alert('Please complete all required fields about the refused permission.');
+                return;
+            }
+            if (!docFiles.photo || !docFiles.passport || !docFiles.invitation) {
+                alert('Please upload all 3 required supporting documents (Recent Photograph, Passport Personal Particular Page, Invitation Letter).');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('employee_id', formattedUserId);
+            formData.append('full_name', username);
+            formData.append('department', department || '');
+            formData.append('position', position || '');
+            formData.append('ic_passport_no', document.getElementById('icPassportNo').value);
+            formData.append('phone_no', document.getElementById('phoneNo').value);
+            formData.append('company_email', document.getElementById('companyEmail').value);
+            formData.append('religion', document.getElementById('religion').value);
+            formData.append('edu_qualification', document.getElementById('eduQualification').value);
+            formData.append('course_qualification', document.getElementById('courseQualification').value);
+            formData.append('port_of_arrival', document.getElementById('portOfArrival').value);
+            formData.append('present_address', document.getElementById('presentAddress').value);
+            formData.append('permanent_address', document.getElementById('permanentAddress').value);
+
+            formData.append('father_full_name', document.getElementById('fatherFullName').value);
+            formData.append('father_nationality', document.getElementById('fatherNationality').value);
+            formData.append('father_prev_nationality', document.getElementById('fatherPrevNationality').value);
+            formData.append('father_place_of_birth', document.getElementById('fatherPlaceOfBirth').value);
+            formData.append('father_country_of_birth', document.getElementById('fatherCountryOfBirth').value);
+
+            formData.append('mother_full_name', document.getElementById('motherFullName').value);
+            formData.append('mother_nationality', document.getElementById('motherNationality').value);
+            formData.append('mother_prev_nationality', document.getElementById('motherPrevNationality').value);
+            formData.append('mother_place_of_birth', document.getElementById('motherPlaceOfBirth').value);
+            formData.append('mother_country_of_birth', document.getElementById('motherCountryOfBirth').value);
+
+            formData.append('marital_status', maritalStatus);
+            formData.append('spouse_name', document.getElementById('spouseName').value);
+            formData.append('spouse_nationality', document.getElementById('spouseNationality').value);
+            formData.append('spouse_prev_nationality', document.getElementById('spousePrevNationality').value);
+            formData.append('spouse_place_of_birth', document.getElementById('spousePlaceOfBirth').value);
+            formData.append('spouse_country_of_birth', document.getElementById('spouseCountryOfBirth').value);
+
+            formData.append('visited_india_before', visitedIndia);
+            formData.append('address_of_stay', document.getElementById('addressOfStay').value);
+            formData.append('city_visited', document.getElementById('cityVisited').value);
+            formData.append('visa_no', document.getElementById('visaNo').value);
+            formData.append('visa_type', document.getElementById('visaType').value);
+            formData.append('place_of_issue', document.getElementById('placeOfIssue').value);
+            formData.append('date_of_issue', document.getElementById('dateOfIssue').value);
+
+            formData.append('permission_refused', permissionRefused);
+            formData.append('control_no', document.getElementById('controlNo').value);
+            formData.append('refusal_date', document.getElementById('refusalDate').value);
+            formData.append('refused_by_authority', document.getElementById('refusedByAuthority').value);
+            formData.append('refusal_remarks', document.getElementById('refusalRemarks').value);
+
+            formData.append('photo', docFiles.photo);
+            formData.append('passport_page', docFiles.passport);
+            formData.append('invitation_letter', docFiles.invitation);
+
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Submitting...';
+
+            try {
+                const res = await fetch('/api/submit-india-visa-application', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert('Indian E-Business Visa Application submitted successfully!');
+                    window.location.href = 'my-request.html';
+                } else {
+                    alert(result.message || 'Failed to submit form. Please try again.');
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Submit';
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+                alert('Failed to submit form. Please verify server connection.');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Submit';
+            }
+        });
+    });
+    </script>
+
+</body>
+</html>

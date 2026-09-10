@@ -9,7 +9,822 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="assets/css/request-details.css">
+    <style>
+        :root {
+            --bg-color: #BCE3E6;
+            --sidebar-bg: #050B14;
+            --card-bg: #ffffff;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --status-pending: #d97706;
+            --status-approved: #16a34a;
+            --status-revision: #ea580c;
+            --status-rejected: #dc2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* ================= SIDEBAR STYLES ================= */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            min-height: 100vh;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            background-color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .sidebar-logo img {
+            max-height: 38px;
+            width: auto;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 4px 24px 4px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: #2563EB;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .profile-avatar img,
+        .profile-avatar-top img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-info h4 {
+            color: #fbfbfb;
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0 0 2px 0;
+        }
+
+        .profile-info p {
+            color: #3B82F6;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #94A3B8;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: #ffffff;
+            background-color: #1E293B;
+        }
+
+        .nav-item.active {
+            font-weight: 600;
+        }
+
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background-color: #f97316;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logout-item:hover {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #EF4444;
+        }
+
+        /* ================= MAIN CONTENT & HEADER ================= */
+        .main-content {
+            flex-grow: 1;
+            padding: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* All sections below top-bar get side margin */
+        .main-content > *:not(.top-bar) {
+            margin-left: 36px;
+            margin-right: 36px;
+        }
+        .main-content > *:nth-child(2) {
+            margin-top: 24px;
+        }
+        .main-content > *:last-child {
+            margin-bottom: 24px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            margin: 0;
+        }
+
+        .page-title-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-title-area h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .badge-type {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .top-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* SEARCH BAR STYLES */
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 14px;
+            width: 240px;
+            transition: all 0.2s ease;
+        }
+
+        .search-box:focus-within {
+            width: 300px;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-box i {
+            color: var(--text-muted);
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 13px;
+            background: transparent;
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-height: 320px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-results-dropdown.active {
+            display: block;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            text-decoration: none;
+            color: var(--text-dark);
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.15s;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .search-result-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .search-result-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* NOTIFICATION STYLES */
+        .notification-container {
+            position: relative;
+        }
+
+        /* ---- Bell Button (matching approval-queue) ---- */
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover { background: #f1f5f9; }
+
+        .noti-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid #ffffff;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        /* ---- Notification Cards (matching approval-queue) ---- */
+        .noti-card {
+            display: block;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #f59e0b;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .noti-card:hover { transform: translateX(2px); box-shadow: 0 4px 10px rgba(15,23,42,0.08); }
+        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
+        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
+        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
+        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
+        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card-title  { font-size: 12.5px; font-weight: 700; color: #0f172a; margin: 0 0 2px 0; }
+        .noti-card-formno { font-size: 11px; font-weight: 600; color: #475569; margin: 0; }
+        .noti-card-date   { font-size: 10.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+        .noti-status-pill {
+            font-size: 9px; font-weight: 800;
+            padding: 3px 8px; border-radius: 10px;
+            text-transform: uppercase; white-space: nowrap; color: #ffffff;
+        }
+        .noti-status-pill.pending  { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review   { background: #3b82f6; }
+        .noti-status-pill.reminder { background: #ef4444; }
+
+        /* ---- Dropdown Header/Body/Footer (matching approval-queue) ---- */
+        .noti-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px; font-size: 13px; font-weight: 800;
+            color: #0f172a; border-bottom: 1px solid #e2e8f0;
+        }
+        .noti-header h3 { font-size: 13px; font-weight: 800; color: #0f172a; margin: 0; }
+        .btn-mark-read  { background: none; border: none; color: #2563eb; font-size: 11px; font-weight: 700; cursor: pointer; }
+
+        .noti-body {
+            padding: 8px; max-height: 320px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .noti-footer { padding: 10px 16px; border-top: 1px solid #e2e8f0; text-align: center; }
+        .view-all-link { font-size: 12px; font-weight: 700; color: #2563eb; text-decoration: none; }
+        .view-all-link:hover { text-decoration: underline; }
+
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 320px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .notif-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8fafc;
+        }
+
+        .notif-header h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .notif-header button {
+            background: none;
+            border: none;
+            font-size: 11px;
+            color: #2563eb;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .notif-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text-dark);
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.15s;
+        }
+
+        .notif-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .notif-item.unread {
+            background-color: #eff6ff;
+        }
+
+        .notif-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .notif-icon.leave { background: #dbeafe; color: #1d4ed8; }
+        .notif-icon.travel { background: #fae8ff; color: #a21caf; }
+        .notif-icon.ot { background: #fef3c7; color: #d97706; }
+
+        .notif-content {
+            flex-grow: 1;
+        }
+
+        .notif-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .notif-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .notif-time {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        .notif-empty {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .profile-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .profile-avatar-top {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            overflow: hidden;
+        }
+
+        .profile-dropdown .arrow-icon {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        /* ================= CARDS & DETAILS LAYOUT ================= */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .card-header-sm {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        .info-row {
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .status-box {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f8fafc;
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-PENDING, .status-pending { background-color: #fef3c7; color: var(--status-pending); }
+        .status-APPROVED, .status-APPROVE, .status-approved { background-color: #d1fae5; color: var(--status-approved); }
+        .status-REVISION, .status-revision { background-color: #ffedd5; color: var(--status-revision); }
+        .status-REJECT, .status-REJECTED, .status-rejected { background-color: #fee2e2; color: var(--status-rejected); }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .form-control-static {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13.5px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .form-body-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .calculation-card {
+            background-color: #fef9c3;
+            border: 1px dashed #eab308;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .calc-row.total {
+            border-top: 1px solid #fde047;
+            padding-top: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #854d0e;
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 13px;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .attachment-item:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-link-bottom {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .back-link-bottom:hover {
+            color: #2563eb;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background-color: #2563eb; color: #fff; }
+        .btn-secondary { background-color: #fff; border: 1px solid var(--border-color); color: var(--text-dark); }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-secondary:hover { background-color: #f1f5f9; }
+
+        /* ================= REJECTION / RESUBMISSION UI ================= */
+        .reject-banner {
+            background-color: #fecaca;
+            border: 1px solid #f87171;
+            color: #7f1d1d;
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .reject-banner-title {
+            font-weight: 800;
+            font-size: 14.5px;
+            margin-bottom: 4px;
+            color: #b91c1c;
+        }
+        .resubmit-info-banner {
+            background-color: #99f6e4;
+            border: 1px solid #2dd4bf;
+            color: #134e4a;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .resubmit-limit-banner {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #78350f;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .edit-input {
+            width: 100%;
+            padding: 9px 13px;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--text-dark);
+            background-color: #eff6ff;
+            box-sizing: border-box;
+        }
+        textarea.edit-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .form-control-static[data-field] {
+            display: flex;
+            align-items: center;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ================= PRINT STYLES FOR CLEAN PDF ================= */
+        @media print {
+            .sidebar, 
+            .top-bar, 
+            .action-buttons, 
+            .btn-secondary,
+            .back-link-bottom,
+            .search-box {
+                display: none !important;
+            }
+
+            body {
+                background-color: #ffffff !important;
+            }
+
+            .main-content {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -36,7 +851,11 @@
 
             <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
             <a href="my-request.html" class="nav-item active"><i class='bx bx-file'></i> My Request</a>
-            <a href="application-center.html" class="nav-item"><i class='bx bx-grid-alt'></i> Application Center</a>
+            <a href="leave.html" class="nav-item"><i class='bx bx-calendar'></i> Leave Application</a>
+            <a href="travel-request.html" class="nav-item"><i class='bx bx-paper-plane'></i> Travel Request</a>
+            <a href="overtime-claim.html" class="nav-item"><i class='bx bx-time-five'></i> Overtime Claim</a>
+            <a href="loan-application.html" class="nav-item"><i class='bx bx-wallet'></i> Loan Application</a>
+            <a href="disbursement-form.html" class="nav-item"><i class='bx bx-receipt'></i> Disbursement Form</a>
         </nav>
 
         <div class="sidebar-footer">
@@ -173,13 +992,40 @@
             </div>
         </div>
 
+        <!-- Rejection & Resubmission Banners (shown only when applicable) -->
+        <div id="rejectBanner" class="reject-banner" style="display: none;">
+            <div class="reject-banner-title"><i class="fa-solid fa-circle-xmark"></i> Request Rejected</div>
+            <div>Rejected by: <span id="rejectedBy">—</span></div>
+            <div>Date &amp; Time: <span id="rejectedAt">—</span></div>
+            <div>Reason: <span id="rejectedReason">—</span></div>
+        </div>
+
+        <div id="resubmitInfoBanner" class="resubmit-info-banner" style="display: none;">
+            You can edit and resubmit this request. Maximum 3 resubmissions allowed. (<span id="resubmitCountText">0</span>/3 used)
+        </div>
+
+        <div id="resubmitLimitBanner" class="resubmit-limit-banner" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation"></i> Maximum resubmissions (3) reached. Please contact HR or your manager for further assistance.
+        </div>
+
         <!-- Action Buttons -->
         <div class="action-buttons">
             <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-download"></i> Download PDF</button>
-            
+
             <!-- Send Reminder Button -->
             <button id="btnSendReminder" class="btn" style="background-color: #f97316; color: #ffffff; display: none;">
                 <i class="fa-solid fa-bell"></i> Send Reminder
+            </button>
+
+            <!-- Edit / Resubmit (shown only when this request was Rejected) -->
+            <button id="btnEdit" class="btn" style="background-color: #2563eb; color: #ffffff; display: none;">
+                <i class="fa-solid fa-pen"></i> Edit
+            </button>
+            <button id="btnResubmit" class="btn btn-secondary" style="display: none;" disabled>
+                <i class="fa-solid fa-paper-plane"></i> Resubmit
+            </button>
+            <button id="btnSubmitReportHR" class="btn btn-secondary" style="display: none;">
+                <i class="fa-regular fa-file-lines"></i> Submit Report to HR
             </button>
 
             <button class="btn btn-secondary" onclick="alert('Notification email triggered successfully.')"><i class="fa-regular fa-envelope"></i> Send to Email</button>
@@ -188,6 +1034,629 @@
         </div>
     </main>
 
-    <script src="assets/js/request-details.js"></script>
+    <script>
+        let currentRequestId = null;
+        let currentRequestType = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            let userRequests = [];
+            
+            const username = sessionStorage.getItem('username') || 'Muhammad Razali';
+            const userId = sessionStorage.getItem('userId') || 'emp001';
+            const department = sessionStorage.getItem('department') || 'Engineering';
+
+            const formattedUserId = userId.toUpperCase();
+
+            document.getElementById('sidebarName').textContent = username;
+            document.getElementById('sidebarMeta').textContent = `${formattedUserId} • ${department}`;
+
+            const specificAvatarKey = `userAvatar_${formattedUserId}`;
+            function updateAvatarDisplay(avatarBase64) {
+                const sidebarAvatar = document.getElementById('sidebarAvatarContainer');
+                const topAvatar = document.getElementById('topAvatarContainer');
+                if (avatarBase64) {
+                    const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                    if (sidebarAvatar) sidebarAvatar.innerHTML = imgHTML;
+                    if (topAvatar) topAvatar.innerHTML = imgHTML;
+                } else {
+                    const initials = username.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+                    if (topAvatar) topAvatar.textContent = initials;
+                }
+            }
+
+            const savedAvatar = localStorage.getItem(specificAvatarKey);
+            updateAvatarDisplay(savedAvatar);
+
+            window.addEventListener('storage', function(e) {
+                if (e.key === specificAvatarKey) {
+                    updateAvatarDisplay(e.newValue);
+                }
+            });
+
+            const position = sessionStorage.getItem('position') || '';
+            checkApprovalQueueAccess(formattedUserId, department, position);
+
+            // ---- Notification Bell Setup (matching approval-queue) ----
+            const notiBellBtn = document.getElementById('notiBellBtn');
+            const notiDropdown = document.getElementById('notiDropdown');
+            const notiList = document.getElementById('notiList');
+            const notiBadge = document.getElementById('notiBadge');
+            const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+            if (notiBellBtn && notiDropdown) {
+                notiBellBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notiDropdown.classList.toggle('active');
+                    if (notiDropdown.classList.contains('active')) fetchNotifications();
+                });
+                document.addEventListener('click', (e) => {
+                    if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                        notiDropdown.classList.remove('active');
+                    }
+                });
+                notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+            }
+
+            if (refreshNotiBtn) {
+                refreshNotiBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fetchNotifications();
+                });
+            }
+
+            fetchNotifications();
+            setInterval(fetchNotifications, 5000);
+
+            try {
+                const reqRes = await fetch(`http://localhost:3000/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                const reqData = await reqRes.json();
+                if (reqData.success && Array.isArray(reqData.data)) {
+                    userRequests = reqData.data;
+                }
+            } catch (err) {
+                console.error("Error loading requests for search bar:", err);
+            }
+
+            const searchInput = document.getElementById('headerSearchInput');
+            const searchResults = document.getElementById('searchResults');
+
+            if (searchInput && searchResults) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.trim().toLowerCase();
+
+                    if (!query) {
+                        searchResults.innerHTML = '';
+                        searchResults.classList.remove('active');
+                        return;
+                    }
+
+                    const matches = userRequests.filter(item => {
+                        const reqType = (item.request_type || 'Leave').toLowerCase();
+                        const reqId = `req-${reqType}-${item.id}`.toLowerCase();
+                        const status = (item.status || '').toLowerCase();
+                        const details = (item.details || item.allowance_type || item.reason || '').toLowerCase();
+
+                        return reqId.includes(query) || 
+                               reqType.includes(query) || 
+                               status.includes(query) || 
+                               details.includes(query);
+                    });
+
+                    if (matches.length > 0) {
+                        let html = '';
+                        matches.slice(0, 6).forEach(item => {
+                            const reqType = item.request_type || 'Leave';
+                            const formattedReqId = `REQ-${reqType.toUpperCase().slice(0,3)}-${item.id}`;
+                            const cleanStatus = (item.status || 'pending').trim().toLowerCase();
+
+                            html += `
+                                <a href="request-details.html?id=${item.id}&type=${encodeURIComponent(reqType)}" class="search-result-item">
+                                    <div>
+                                        <div class="search-result-title">${formattedReqId} - ${reqType}</div>
+                                        <div class="search-result-sub">${item.date_submitted || item.created_at || '—'}</div>
+                                    </div>
+                                    <span class="status-badge status-${cleanStatus}">${item.status || 'Pending'}</span>
+                                </a>
+                            `;
+                        });
+                        searchResults.innerHTML = html;
+                        searchResults.classList.add('active');
+                    } else {
+                        searchResults.innerHTML = `<div style="padding: 12px; text-align: center; color: #64748b; font-size: 12px;">No matching requests found</div>`;
+                        searchResults.classList.add('active');
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                const searchBox = document.querySelector('.search-box');
+                if (searchBox && !searchBox.contains(e.target)) {
+                    const sr = document.getElementById('searchResults');
+                    if (sr) sr.classList.remove('active');
+                }
+            });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const reqId = urlParams.get('id');
+            const reqType = urlParams.get('type') || 'Leave';
+
+            if (!reqId) {
+                alert('No Request ID specified in URL. Returning to request list.');
+                window.location.href = 'my-request.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/request-details?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    console.log('[RAW API DATA]', result.data);
+                    populateDetails(result.data, reqType);
+                } else {
+                    alert('Failed to fetch details: ' + (result.message || 'Record not found in system database.'));
+                }
+            } catch (err) {
+                console.error('API Fetch Error:', err);
+                alert('Error connecting to Node server at http://localhost:3000');
+            }
+        });
+
+        async function fetchNotifications() {
+            const notiBellBtn = document.getElementById('notiBellBtn');
+            const notiList    = document.getElementById('notiList');
+            const notiBadge   = document.getElementById('notiBadge');
+            const formattedUserId = (sessionStorage.getItem('userId') || '').toUpperCase();
+            const department      = sessionStorage.getItem('department') || '';
+            const position        = sessionStorage.getItem('position')   || '';
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                const data = await response.json();
+
+                if (data.success && data.notifications && data.notifications.length > 0) {
+                    const unreadCount = data.notifications.filter(item =>
+                        item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                    ).length;
+
+                    if (notiList) {
+                        notiList.innerHTML = '';
+                        data.notifications.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let cardClass = 'status-pending';
+                            let pillClass = 'pending';
+
+                            if (item.is_reminder) {
+                                cardClass = 'status-reminder'; pillClass = 'reminder';
+                            } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                cardClass = 'status-approved'; pillClass = 'approved';
+                            } else if (statusLower.includes('reject')) {
+                                cardClass = 'status-rejected'; pillClass = 'rejected';
+                            } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                cardClass = 'status-review'; pillClass = 'review';
+                            }
+
+                            const title = item.is_reminder
+                                ? `🔔 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                            const notiItem = document.createElement('a');
+                            notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.className = `noti-card ${cardClass}`;
+                            notiItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <div>
+                                        <p class="noti-card-title">${title}</p>
+                                        <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                        <p class="noti-card-date">${item.time || ''}</p>
+                                    </div>
+                                    <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                </div>`;
+                            notiList.appendChild(notiItem);
+                        });
+                    }
+
+                    if (notiBadge) {
+                        if (unreadCount > 0) {
+                            notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                            notiBadge.style.display = 'flex';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
+                        } else {
+                            notiBadge.style.display = 'none';
+                        }
+                    }
+
+                } else {
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                }
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+                if (notiList) notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Could not load notifications.</div>`;
+            }
+        }
+
+        function populateDetails(data, type) {
+            const displayId = data.id || data.ID || '0';
+            document.getElementById('req-id-header').innerText = `REQ-${type.toUpperCase().slice(0, 3)}-${displayId}`;
+            document.getElementById('req-type-badge').innerText = type;
+
+            document.getElementById('emp-name').innerText = data.employee_name || data['Employee Name'] || '—';
+            document.getElementById('emp-id').innerText = data.employee_id || data['Employee ID'] || '—';
+            document.getElementById('emp-dept').innerText = data.department || data['Department'] || '—';
+
+            document.getElementById('summary-type').innerText = type;
+            const rawDate = data.created_at || data['Created At'] || data['Start Date'] || '';
+            document.getElementById('summary-date').innerText = rawDate ? new Date(rawDate).toISOString().split('T')[0] : '—';
+            
+            let amountDisplay = 'N/A';
+            if (data.total_amount) amountDisplay = `RM ${parseFloat(data.total_amount).toFixed(2)}`;
+            else if (data.total_claim) amountDisplay = `RM ${parseFloat(data.total_claim).toFixed(2)}`;
+            else if (data.amount_requested) amountDisplay = `RM ${parseFloat(data.amount_requested).toFixed(2)}`;
+            document.getElementById('summary-amount').innerText = amountDisplay;
+
+            const statusRaw = (data.status || data['Status'] || 'PENDING').toUpperCase();
+            const statusElem = document.getElementById('status-badge');
+            statusElem.innerText = statusRaw;
+            statusElem.className = `status-badge status-${statusRaw}`;
+
+            const btnReminder = document.getElementById('btnSendReminder');
+            if (btnReminder) {
+                if (statusRaw === 'PENDING') {
+                    btnReminder.style.display = 'inline-flex';
+
+                    const createdDate = new Date(data.created_at || data['Created At'] || new Date());
+                    const lastReminder = data.last_reminder_sent ? new Date(data.last_reminder_sent) : createdDate;
+                    const unlockTime = new Date(lastReminder.getTime() + 24 * 60 * 60 * 1000);
+
+                    // Clear any previous countdown timer running on this button
+                    if (btnReminder._countdownInterval) {
+                        clearInterval(btnReminder._countdownInterval);
+                    }
+
+                    function formatCountdown(ms) {
+                        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+                        const h = Math.floor(totalSeconds / 3600);
+                        const m = Math.floor((totalSeconds % 3600) / 60);
+                        const s = totalSeconds % 60;
+                        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    }
+
+                    function tickCountdown() {
+                        const remainingMs = unlockTime - new Date();
+
+                        if (remainingMs <= 0) {
+                            clearInterval(btnReminder._countdownInterval);
+                            btnReminder.removeAttribute('disabled');
+                            btnReminder.disabled = false;
+                            btnReminder.style.opacity = '1';
+                            btnReminder.style.cursor = 'pointer';
+                            btnReminder.style.pointerEvents = 'auto';
+                            btnReminder.innerHTML = `<i class="fa-solid fa-bell"></i> Send Reminder`;
+                        } else {
+                            btnReminder.disabled = true;
+                            btnReminder.setAttribute('disabled', 'true');
+                            btnReminder.style.opacity = '0.6';
+                            btnReminder.style.cursor = 'not-allowed';
+                            btnReminder.style.pointerEvents = 'none';
+                            btnReminder.innerHTML = `<i class="fa-solid fa-clock"></i> Available in ${formatCountdown(remainingMs)}`;
+                        }
+                    } 
+
+                    tickCountdown();
+                    btnReminder._countdownInterval = setInterval(tickCountdown, 1000);
+
+                    btnReminder.onclick = async function() {
+                        if (confirm('Do you want to send a reminder notification to the assigned approver?')) {
+                            try {
+                                btnReminder.disabled = true;
+                                btnReminder.innerText = 'Sending...';
+
+                                const res = await fetch('http://localhost:3000/api/send-reminder', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ id: data.id || data.ID, type: type })
+                                });
+
+                                const resData = await res.json();
+                                alert(resData.message);
+
+                                if (resData.success) {
+                                    window.location.reload();
+                                } else {
+                                    btnReminder.disabled = false;
+                                    btnReminder.innerHTML = `<i class="fa-solid fa-bell"></i> Send Reminder`;
+                                }
+                            } catch (err) {
+                                console.error('Reminder error:', err);
+                                alert('Error sending reminder to server.');
+                                btnReminder.disabled = false;
+                            }
+                        }
+                    };
+                } else {
+                    btnReminder.style.display = 'none';
+                }
+            }
+
+            const timelineStage1 = document.getElementById('timeline-stage1');
+            if (statusRaw === 'APPROVED' || statusRaw === 'APPROVE') {
+                timelineStage1.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <strong>Stage 1 Approval:</strong> Approved`;
+            } else if (statusRaw === 'REJECTED' || statusRaw === 'REJECT') {
+                timelineStage1.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color: #dc2626;"></i> <strong>Stage 1 Approval:</strong> Rejected`;
+            } else {
+                timelineStage1.innerHTML = `<i class="fa-solid fa-user-clock" style="color: #d97706;"></i> <strong>Stage 1 Approval:</strong> Pending Review`;
+            }
+
+            document.getElementById('req-reason').innerText = data.reason || data['Reason'] || 'No description provided.';
+
+            const docPath = data.supporting_document || data['Supporting Documen'] || data.attachment_path || data.attachment;
+            const attachmentLink = document.getElementById('attachment-link');
+            const attachmentName = document.getElementById('attachment-name');
+            const attachmentSubtext = document.getElementById('attachment-subtext');
+            const attachmentIcon = document.getElementById('attachment-icon');
+
+            if (docPath && docPath.trim() !== '' && docPath !== 'null') {
+                const cleanFileName = docPath.split('/').pop().split('\\').pop();
+                const fileExt = cleanFileName.split('.').pop().toLowerCase();
+
+                const fullFileUrl = docPath.startsWith('http') ? docPath : `http://localhost:3000/${docPath}`;
+
+                attachmentLink.href = fullFileUrl;
+                attachmentLink.style.pointerEvents = 'auto';
+                attachmentLink.style.opacity = '1';
+                attachmentName.innerText = cleanFileName;
+                attachmentSubtext.innerText = 'Click to open/download document in new tab';
+
+                if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(fileExt)) {
+                    attachmentIcon.className = 'fa-solid fa-file-image fa-2x';
+                    attachmentIcon.style.color = '#2563eb';
+                } else if (['doc', 'docx'].includes(fileExt)) {
+                    attachmentIcon.className = 'fa-solid fa-file-word fa-2x';
+                    attachmentIcon.style.color = '#1d4ed8';
+                } else {
+                    attachmentIcon.className = 'fa-solid fa-file-pdf fa-2x';
+                    attachmentIcon.style.color = '#ef4444';
+                }
+            } else {
+                attachmentName.innerText = 'No file attached';
+                attachmentSubtext.innerText = 'No supporting documents provided';
+                attachmentLink.removeAttribute('href');
+                attachmentLink.style.pointerEvents = 'none';
+                attachmentLink.style.opacity = '0.6';
+                attachmentIcon.className = 'fa-solid fa-file-excel fa-2x';
+                attachmentIcon.style.color = '#94a3b8';
+            }
+
+            document.getElementById('timeline-created').innerText = rawDate ? new Date(rawDate).toLocaleString() : '—';
+
+            const container = document.getElementById('dynamic-fields-container');
+            const calcBlock = document.getElementById('calculation-block');
+            container.innerHTML = '';
+            let fieldsHTML = '';
+
+            const lowerType = type.toLowerCase();
+
+            if (lowerType.includes('leave')) {
+                calcBlock.style.display = 'none';
+                fieldsHTML = `
+                    <div class="form-group"><label>Leave Type</label><div class="form-control-static" data-field="leave_type" data-input-type="text">${data['Leave Type'] || data.leave_type || '—'}</div></div>
+                    <div class="form-group"><label>Day Type</label><div class="form-control-static" data-field="day_type" data-input-type="text">${data['Day type'] || data.day_type || 'Full Day'}</div></div>
+                    <div class="form-group"><label>Start Date</label><div class="form-control-static" data-field="start_date" data-input-type="text">${data['Start Date'] ? new Date(data['Start Date']).toISOString().split('T')[0] : '—'}</div></div>
+                    <div class="form-group"><label>End Date</label><div class="form-control-static" data-field="end_date" data-input-type="text">${data['End Date'] ? new Date(data['End Date']).toISOString().split('T')[0] : '—'}</div></div>
+                    <div class="form-group"><label>Total Days</label><div class="form-control-static" data-field="total_days" data-input-type="text">${data['No of Days'] || data.total_days || '1'}</div></div>
+                `;
+            } else if (lowerType.includes('overtime')) {
+                calcBlock.style.display = 'block';
+                document.getElementById('calc-hours').innerText = data.period || '0h';
+                document.getElementById('calc-rate').innerText = `1.5x (Rate: ${data.ot_rate || 'Standard'})`;
+                document.getElementById('calc-total').innerText = amountDisplay;
+
+                fieldsHTML = `
+                    <div class="form-group"><label>OT Date</label><div class="form-control-static" data-field="ot_date" data-input-type="text">${data.ot_date ? new Date(data.ot_date).toISOString().split('T')[0] : '—'}</div></div>
+                    <div class="form-group"><label>Day Type</label><div class="form-control-static" data-field="day_type" data-input-type="text">${data.day_type || 'Normal Workday'}</div></div>
+                    <div class="form-group"><label>Start Time</label><div class="form-control-static" data-field="start_time" data-input-type="text">${data.start_time || '—'}</div></div>
+                    <div class="form-group"><label>End Time</label><div class="form-control-static" data-field="end_time" data-input-type="text">${data.end_time || '—'}</div></div>
+                    <div class="form-group"><label>Night Allowance</label><div class="form-control-static" data-field="night_allowance" data-input-type="checkbox">${data.night_allowance ? 'Yes' : 'No'}</div></div>
+                    <div class="form-group"><label>Meal Allowance</label><div class="form-control-static" data-field="meal_allowance" data-input-type="checkbox">${data.meal_allowance ? 'Yes' : 'No'}</div></div>
+                `;
+            } else if (lowerType.includes('travel')) {
+                calcBlock.style.display = 'none';
+                fieldsHTML = `
+                    <div class="form-group"><label>Allowance Type</label><div class="form-control-static" data-field="allowance_type" data-input-type="text">${data.allowance_type || '—'}</div></div>
+                    <div class="form-group"><label>Claim Month</label><div class="form-control-static" data-field="claim_month" data-input-type="text">${data.claim_month || '—'}</div></div>
+                    <div class="form-group"><label>Total Claim Amount</label><div class="form-control-static" data-field="total_amount" data-input-type="text">${amountDisplay}</div></div>
+                `;
+            } else if (lowerType.includes('loan')) {
+                calcBlock.style.display = 'none';
+                fieldsHTML = `
+                    <div class="form-group"><label>Loan Type</label><div class="form-control-static" data-field="loan_type" data-input-type="text">${data.loan_type || '—'}</div></div>
+                    <div class="form-group"><label>Repayment Period</label><div class="form-control-static" data-field="repayment_period" data-input-type="text">${data.repayment_period || '—'}</div></div>
+                    <div class="form-group"><label>Monthly Salary</label><div class="form-control-static" data-field="monthly_salary" data-input-type="text">${parseFloat(data.monthly_salary || 0).toFixed(2)}</div></div>
+                    <div class="form-group"><label>Disbursement Method</label><div class="form-control-static" data-field="disbursement_method" data-input-type="text">${data.disbursement_method || 'Bank Transfer'}</div></div>
+                    <div class="form-group"><label>Account Holder</label><div class="form-control-static" data-field="account_holder" data-input-type="text">${data.account_holder || '—'}</div></div>
+                    <div class="form-group"><label>Account Number</label><div class="form-control-static" data-field="account_number" data-input-type="text">${data.account_number || '—'}</div></div>
+                `;
+            } else if (lowerType.includes('disbursement')) {
+                calcBlock.style.display = 'none';
+                fieldsHTML = `
+                    <div class="form-group"><label>Claim Type</label><div class="form-control-static" data-field="claim_type" data-input-type="text">General Disbursement</div></div>
+                    <div class="form-group"><label>Total Disbursement Amount</label><div class="form-control-static" data-field="total_amount" data-input-type="text">${amountDisplay}</div></div>
+                `;
+            }
+
+            container.innerHTML = fieldsHTML;
+
+            // ---- Rejection / Resubmission UI ----
+            currentRequestId = displayId;
+            currentRequestType = type;
+
+            const rejectBanner = document.getElementById('rejectBanner');
+            const resubmitInfoBanner = document.getElementById('resubmitInfoBanner');
+            const resubmitLimitBanner = document.getElementById('resubmitLimitBanner');
+            const btnEdit = document.getElementById('btnEdit');
+            const btnResubmit = document.getElementById('btnResubmit');
+            const btnSubmitReportHR = document.getElementById('btnSubmitReportHR');
+
+            // NOTE: assumes the backend provides `rejected_by`, `rejected_at` (or
+            // `updated_at`), `rejection_reason`, and `resubmission_count` on the
+            // request record once the reject-with-reason flow is wired up. Falls
+            // back to sensible defaults if those fields aren't present yet.
+            const resubmissionCount = parseInt(data.resubmission_count || 0, 10);
+
+            if (statusRaw === 'REJECTED' || statusRaw === 'REJECT') {
+                rejectBanner.style.display = 'block';
+                document.getElementById('rejectedBy').innerText = data.rejected_by || 'Approving Manager';
+                const rejectedAtRaw = data.rejected_at || data.updated_at;
+                document.getElementById('rejectedAt').innerText = rejectedAtRaw ? new Date(rejectedAtRaw).toLocaleString() : '—';
+                document.getElementById('rejectedReason').innerText = data.rejection_reason || data.comment || 'No reason provided.';
+
+                if (resubmissionCount >= 3) {
+                    resubmitInfoBanner.style.display = 'none';
+                    resubmitLimitBanner.style.display = 'block';
+                    btnEdit.style.display = 'none';
+                    btnResubmit.style.display = 'none';
+                    btnSubmitReportHR.style.display = 'inline-flex';
+                } else {
+                    resubmitLimitBanner.style.display = 'none';
+                    resubmitInfoBanner.style.display = 'block';
+                    document.getElementById('resubmitCountText').innerText = resubmissionCount;
+                    btnEdit.style.display = 'inline-flex';
+                    btnEdit.disabled = false;
+                    btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> Edit';
+                    btnResubmit.style.display = 'inline-flex';
+                    btnResubmit.disabled = true;
+                    btnSubmitReportHR.style.display = 'inline-flex';
+                }
+            } else {
+                rejectBanner.style.display = 'none';
+                resubmitInfoBanner.style.display = 'none';
+                resubmitLimitBanner.style.display = 'none';
+                btnEdit.style.display = 'none';
+                btnResubmit.style.display = 'none';
+                btnSubmitReportHR.style.display = 'none';
+            }
+        }
+
+        // ================= EDIT / RESUBMIT (for Rejected requests) =================
+        function enableEditMode() {
+            document.querySelectorAll('#dynamic-fields-container .form-control-static[data-field]').forEach(el => {
+                const field = el.dataset.field;
+                const inputType = el.dataset.inputType || 'text';
+                const currentText = el.textContent.trim();
+
+                if (inputType === 'checkbox') {
+                    const checked = currentText.toLowerCase() === 'yes';
+                    el.innerHTML = `<input type="checkbox" data-field="${field}" ${checked ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">`;
+                } else {
+                    const safeValue = currentText.replace(/"/g, '&quot;');
+                    el.innerHTML = `<input type="text" class="edit-input" data-field="${field}" value="${safeValue}">`;
+                }
+            });
+
+            // Reason / Description becomes a textarea
+            const reasonEl = document.getElementById('req-reason');
+            if (reasonEl && reasonEl.tagName !== 'TEXTAREA') {
+                const textarea = document.createElement('textarea');
+                textarea.id = 'req-reason';
+                textarea.className = 'edit-input';
+                textarea.value = reasonEl.textContent.trim();
+                reasonEl.replaceWith(textarea);
+            }
+
+            const btnEdit = document.getElementById('btnEdit');
+            const btnResubmit = document.getElementById('btnResubmit');
+            btnEdit.disabled = true;
+            btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> Editing...';
+            btnResubmit.disabled = false;
+        }
+
+        async function handleResubmit() {
+            const payload = {
+                id: currentRequestId,
+                type: currentRequestType,
+                employee_id: (sessionStorage.getItem('userId') || '').toUpperCase()
+            };
+
+            document.querySelectorAll('#dynamic-fields-container [data-field]').forEach(input => {
+                let value = (input.type === 'checkbox') ? input.checked : input.value;
+                // Safety net: if a date-ish field somehow carries a full ISO
+                // timestamp (e.g. "2026-09-09T16:00:00.000Z") instead of a
+                // plain "YYYY-MM-DD", MySQL DATE columns will reject it.
+                // Strip everything from "T" onward so only the date part is sent.
+                if (typeof value === 'string' && /date/i.test(input.dataset.field) && value.includes('T')) {
+                    value = value.split('T')[0];
+                }
+                payload[input.dataset.field] = value;
+            });
+
+            const reasonEl = document.getElementById('req-reason');
+            payload.reason = reasonEl ? (reasonEl.tagName === 'TEXTAREA' ? reasonEl.value : reasonEl.textContent) : '';
+
+            const btnResubmit = document.getElementById('btnResubmit');
+            btnResubmit.disabled = true;
+            btnResubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Resubmitting...';
+
+            try {
+                const res = await fetch('http://localhost:3000/api/resubmit-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert('Request resubmitted successfully! Status has been set back to Pending for review.');
+                    window.location.reload();
+                } else {
+                    alert(result.message || 'Failed to resubmit request.');
+                    btnResubmit.disabled = false;
+                    btnResubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resubmit';
+                }
+            } catch (err) {
+                console.error('Resubmit error:', err);
+                alert('Failed to connect to server. Please check your connection and try again.');
+                btnResubmit.disabled = false;
+                btnResubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resubmit';
+            }
+        }
+
+        document.getElementById('btnEdit')?.addEventListener('click', enableEditMode);
+        document.getElementById('btnResubmit')?.addEventListener('click', handleResubmit);
+        document.getElementById('btnSubmitReportHR')?.addEventListener('click', () => {
+            alert('Report submitted to HR.');
+        });
+
+        async function checkApprovalQueueAccess(userId, department, position) {
+            const queueItem = document.getElementById('approvalQueueItem');
+            const pos = (position || '').toLowerCase();
+            const dept = (department || '').toLowerCase();
+
+            if (pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || userId.toUpperCase().startsWith('MGR')) {
+                if (queueItem) queueItem.style.display = 'flex';
+                try {
+                    const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${userId}&department=${department}&position=${position}`);
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        const pendingCount = data.data.filter(i => (i.status || '').toLowerCase() === 'pending').length;
+                        const badge = document.getElementById('approvalQueueBadge');
+                        if (badge && pendingCount > 0) {
+                            badge.textContent = pendingCount;
+                            badge.style.display = 'inline-block';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Approval queue badge check failed:', e);
+                }
+            }
+        }
+    </script>
 </body>
 </html>
