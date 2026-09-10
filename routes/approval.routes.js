@@ -215,16 +215,66 @@ router.get('/api/approval-queue', requireLogin, (req, res) => {
                             })
                         );
 
-                        combinedQueue.sort(
-                            (a, b) =>
-                                new Date(b.date_submitted) -
-                                new Date(a.date_submitted)
-                        );
+                        let resignationQuery = `
+    SELECT
+        id,
+        requested_by,
+        requested_by_name,
+        employee_id,
+        employee_name,
+        department,
+        'Resignation' AS request_type,
+        'Not Applicable' AS amount,
+        created_at AS date_submitted,
+        last_reminder_sent,
+        TRIM(status) AS status
+    FROM resignations
+`;
 
-                        return res.json({
-                            success: true,
-                            data: combinedQueue
-                        });
+                        const resignationParams = [];
+
+                        if (!isGlobalApprover) {
+                            resignationQuery += `
+        WHERE LOWER(TRIM(department)) = LOWER(TRIM(?))
+    `;
+                            resignationParams.push(userDept);
+                        }
+
+                        db.query(
+                            resignationQuery,
+                            resignationParams,
+                            (resignationErr, resignationResults) => {
+                                if (resignationErr) {
+                                    console.error(
+                                        'Approval Queue Resignation Error:',
+                                        resignationErr
+                                    );
+
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: 'Failed to load resignation requests.'
+                                    });
+                                }
+
+                                (resignationResults || []).forEach(row => {
+                                    combinedQueue.push({
+                                        ...row,
+                                        table_source: 'resignations'
+                                    });
+                                });
+
+                                combinedQueue.sort(
+                                    (a, b) =>
+                                        new Date(b.date_submitted) -
+                                        new Date(a.date_submitted)
+                                );
+
+                                return res.json({
+                                    success: true,
+                                    data: combinedQueue
+                                });
+                            }
+                        );
                     });
                 });
             });

@@ -1,13 +1,9 @@
 const express = require('express');
-
+const { saveResignationWithWorkflow } = require('../utils/resignation-workflow');
 const db = require('../config/database');
-const {
-    requireLogin,
-    requireHRAccess
-} = require('../middleware/auth');
+const { requireLogin, requireHRAccess } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { normalizeFilePath, safeVal, safeNum } = require('../utils/helpers');
-
 const router = express.Router();
 
 const handleTravelSubmission = (req, res) => {
@@ -1270,6 +1266,198 @@ router.post(
     }
 );
 
+router.post(
+    '/api/submit-resignation',
+    requireHRAccess,
+    upload.single('attachment'),
+    (req, res) => {
+
+        const requesterId = req.session.user.user_id;
+        const requesterName = req.session.user.name;
+        const requesterPosition = req.session.user.position;
+        const requesterDepartment = req.session.user.department;
+
+        const employeeId = safeVal(req.body.employee_id, 20);
+
+        const lastWorkingDate =
+            safeVal(req.body.last_working_date, 20);
+
+        const noticeDate =
+            safeVal(req.body.notice_date, 20);
+
+        const noticePeriod =
+            safeVal(req.body.notice_period, 100);
+
+        const reason =
+            safeVal(req.body.reason, 0);
+
+        const hrRemarks =
+            safeVal(req.body.hr_remarks, 0);
+
+        const supportingDocument =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        if (
+            !employeeId ||
+            !lastWorkingDate ||
+            !noticeDate ||
+            !noticePeriod ||
+            !reason
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee ID, resignation date, last working date, notice period and reason are required.'
+            });
+        }
+
+        const noticeDateObj = new Date(noticeDate);
+        const lastWorkingDateObj = new Date(lastWorkingDate);
+
+        if (
+            Number.isNaN(noticeDateObj.getTime()) ||
+            Number.isNaN(lastWorkingDateObj.getTime())
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid resignation date.'
+            });
+        }
+
+        if (lastWorkingDateObj < noticeDateObj) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Last working date cannot be earlier than resignation date.'
+            });
+        }
+
+        const employeeQuery = `
+            SELECT
+                user_id,
+                name,
+                department,
+                position,
+                employment_type,
+                join_date
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            employeeQuery,
+            [employeeId],
+            (employeeErr, employeeResults) => {
+
+                if (employeeErr) {
+                    console.error(
+                        'Resignation Employee Lookup Error:',
+                        employeeErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to retrieve employee information.'
+                    });
+                }
+
+                if (
+                    !employeeResults ||
+                    employeeResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee not found.'
+                    });
+                }
+
+                const employee = employeeResults[0];
+
+                const insertQuery = `
+                    INSERT INTO resignations
+                    (
+                        requested_by,
+                        requested_by_name,
+                        requester_position,
+                        request_department,
+                        request_date,
+
+                        employee_id,
+                        employee_name,
+                        department,
+                        position,
+                        employment_type,
+                        employment_date,
+
+                        last_working_date,
+                        notice_date,
+                        notice_period,
+                        reason,
+                        hr_remarks,
+
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES
+                    (
+                        ?, ?, ?, ?, CURDATE(),
+                        ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?,
+                        ?, 'Pending', NOW()
+                    )
+                `;
+
+                const values = [
+                    requesterId,
+                    requesterName,
+                    requesterPosition,
+                    requesterDepartment,
+
+                    employee.user_id,
+                    employee.name,
+                    employee.department,
+                    employee.position,
+                    employee.employment_type,
+                    employee.join_date,
+
+                    lastWorkingDate,
+                    noticeDate,
+                    noticePeriod,
+                    reason,
+                    hrRemarks,
+
+                    supportingDocument
+                ];
+
+                saveResignationWithWorkflow(insertQuery, values)
+                    .then(result => {
+                        return res.json({
+                            success: true,
+                            message: 'Resignation form submitted successfully!',
+                            id: result.insertId
+                        });
+                    })
+                    .catch(error => {
+                        console.error(
+                            'Resignation Submission Error:',
+                            error
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Failed to save resignation and approval workflow.'
+                        });
+                    });
+            }
+        );
+    }
+);
+
 router.get('/api/request-details', requireLogin, (req, res) => {
     const { id, type } = req.query;
 
@@ -1289,6 +1477,15 @@ router.get('/api/request-details', requireLogin, (req, res) => {
         query = `SELECT t.*, u.phone_no, u.email FROM \`travel\` t LEFT JOIN users u ON LOWER(t.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE t.id = ?`;
     } else if (reqType.includes('overtime')) {
         query = `SELECT o.*, u.phone_no, u.email FROM \`overtime\` o LEFT JOIN users u ON LOWER(o.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE o.id = ?`;
+    } else if (reqType === 'resignation') {
+        query = `
+        SELECT r.*, u.phone_no, u.email
+        FROM resignations r
+        LEFT JOIN users u
+            ON LOWER(r.employee_id) =
+               LOWER(u.user_id COLLATE utf8mb4_general_ci)
+        WHERE r.id = ?
+    `;
     } else if (reqType.includes('loan')) {
         query = `SELECT ln.*, u.phone_no, u.email FROM \`loans\` ln LEFT JOIN users u ON LOWER(ln.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE ln.id = ?`;
     } else {
@@ -1429,6 +1626,7 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
         let travelQuery = `SELECT * FROM \`travel\``;
         let otQuery = `SELECT * FROM \`overtime\``;
         let loanQuery = `SELECT * FROM \`loans\``;
+        let resignationQuery = `SELECT * FROM \`resignations\``;
         let queryParams = [];
 
         if (!isManagement) {
@@ -1437,6 +1635,7 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
             travelQuery = `SELECT * FROM \`travel\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             otQuery = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             loanQuery = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            resignationQuery = `SELECT * FROM \`resignations\`WHERE LOWER(\`requested_by\`) = LOWER(?)`;
             queryParams = [req_user_id];
         }
 
@@ -1445,252 +1644,285 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                 db.query(travelQuery, queryParams, (err, travelResults) => {
                     db.query(otQuery, queryParams, (err, otResults) => {
                         db.query(loanQuery, queryParams, (err, loanResults) => {
-                            const combinedData = [];
+                            db.query(resignationQuery, queryParams, (err, resignationResults) => {
+                                const combinedData = [];
 
-                            (leaveResults || []).forEach(row => {
-                                const rawDate = row['Created At'] || row['Start Date'] || '—';
-                                let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+                                (leaveResults || []).forEach(row => {
+                                    const rawDate = row['Created At'] || row['Start Date'] || '—';
+                                    let formattedDate = '—';
+                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
-                                combinedData.push({
-                                    id: row.id || row.ID || 0,
-                                    employee_id: row['Employee ID'] || '—',
-                                    employee_name: row['Employee Name'] || '—',
-                                    request_type: 'Leave',
-                                    details: row['Leave Type'] || 'Leave',
-                                    start_date: row['Start Date'] || null,
-                                    end_date: row['End Date'] || null,
-                                    date_submitted: formattedDate,
-                                    created_at: row['Created At'] || row['Start Date'] || null,
-                                    last_reminder_sent: row.last_reminder_sent || null,
-                                    amount: '—',
-                                    status: (row['Status'] || 'Pending').trim()
+                                    combinedData.push({
+                                        id: row.id || row.ID || 0,
+                                        employee_id: row['Employee ID'] || '—',
+                                        employee_name: row['Employee Name'] || '—',
+                                        request_type: 'Leave',
+                                        details: row['Leave Type'] || 'Leave',
+                                        start_date: row['Start Date'] || null,
+                                        end_date: row['End Date'] || null,
+                                        date_submitted: formattedDate,
+                                        created_at: row['Created At'] || row['Start Date'] || null,
+                                        last_reminder_sent: row.last_reminder_sent || null,
+                                        amount: '—',
+                                        status: (row['Status'] || 'Pending').trim()
+                                    });
                                 });
-                            });
 
-                            (disResults || []).forEach(row => {
-                                const rawDate = row['created_at'] || '—';
-                                let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+                                (disResults || []).forEach(row => {
+                                    const rawDate = row['created_at'] || '—';
+                                    let formattedDate = '—';
+                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
-                                combinedData.push({
-                                    id: row.id || 0,
-                                    employee_id: row['employee_id'] || '—',
-                                    employee_name: row['employee_name'] || '—',
-                                    request_type: 'Disbursement',
-                                    details: 'Expense Claim',
-                                    date_submitted: formattedDate,
-                                    created_at: row['created_at'] || null,
-                                    last_reminder_sent: row.last_reminder_sent || null,
-                                    amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
-                                    status: (row['status'] || 'Pending').trim()
+                                    combinedData.push({
+                                        id: row.id || 0,
+                                        employee_id: row['employee_id'] || '—',
+                                        employee_name: row['employee_name'] || '—',
+                                        request_type: 'Disbursement',
+                                        details: 'Expense Claim',
+                                        date_submitted: formattedDate,
+                                        created_at: row['created_at'] || null,
+                                        last_reminder_sent: row.last_reminder_sent || null,
+                                        amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
+                                        status: (row['status'] || 'Pending').trim()
+                                    });
                                 });
-                            });
 
-                            (travelResults || []).forEach(row => {
-                                const rawDate = row['created_at'] || '—';
-                                let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+                                (travelResults || []).forEach(row => {
+                                    const rawDate = row['created_at'] || '—';
+                                    let formattedDate = '—';
+                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
-                                combinedData.push({
-                                    id: row.id || 0,
-                                    employee_id: row['employee_id'] || '—',
-                                    employee_name: row['employee_name'] || '—',
-                                    request_type: 'Travel',
-                                    details: row['allowance_type'] || 'Travel Claim',
-                                    date_submitted: formattedDate,
-                                    created_at: row['created_at'] || null,
-                                    last_reminder_sent: row.last_reminder_sent || null,
-                                    amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
-                                    status: (row['status'] || 'Pending').trim()
+                                    combinedData.push({
+                                        id: row.id || 0,
+                                        employee_id: row['employee_id'] || '—',
+                                        employee_name: row['employee_name'] || '—',
+                                        request_type: 'Travel',
+                                        details: row['allowance_type'] || 'Travel Claim',
+                                        date_submitted: formattedDate,
+                                        created_at: row['created_at'] || null,
+                                        last_reminder_sent: row.last_reminder_sent || null,
+                                        amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
+                                        status: (row['status'] || 'Pending').trim()
+                                    });
                                 });
-                            });
 
-                            (otResults || []).forEach(row => {
-                                const rawDate = row['created_at'] || '—';
-                                let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+                                (otResults || []).forEach(row => {
+                                    const rawDate = row['created_at'] || '—';
+                                    let formattedDate = '—';
+                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
-                                combinedData.push({
-                                    id: row.id || 0,
-                                    employee_id: row['employee_id'] || '—',
-                                    employee_name: row['employee_name'] || '—',
-                                    request_type: 'Overtime',
-                                    details: `OT Claim (${row['period'] || '0 hrs'})`,
-                                    date_submitted: formattedDate,
-                                    created_at: row['created_at'] || null,
-                                    last_reminder_sent: row.last_reminder_sent || null,
-                                    amount: `RM ${parseFloat(row['total_claim'] || 0).toFixed(2)}`,
-                                    status: (row['status'] || 'Pending').trim()
+                                    combinedData.push({
+                                        id: row.id || 0,
+                                        employee_id: row['employee_id'] || '—',
+                                        employee_name: row['employee_name'] || '—',
+                                        request_type: 'Overtime',
+                                        details: `OT Claim (${row['period'] || '0 hrs'})`,
+                                        date_submitted: formattedDate,
+                                        created_at: row['created_at'] || null,
+                                        last_reminder_sent: row.last_reminder_sent || null,
+                                        amount: `RM ${parseFloat(row['total_claim'] || 0).toFixed(2)}`,
+                                        status: (row['status'] || 'Pending').trim()
+                                    });
                                 });
-                            });
 
-                            (loanResults || []).forEach(row => {
-                                const rawDate = row['created_at'] || '—';
-                                let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+                                (loanResults || []).forEach(row => {
+                                    const rawDate = row['created_at'] || '—';
+                                    let formattedDate = '—';
+                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
-                                combinedData.push({
-                                    id: row.id || 0,
-                                    employee_id: row['employee_id'] || '—',
-                                    employee_name: row['employee_name'] || '—',
-                                    request_type: 'Loan',
-                                    details: `${row['loan_type']} Loan (${row['repayment_period']} mos)`,
-                                    date_submitted: formattedDate,
-                                    created_at: row['created_at'] || null,
-                                    last_reminder_sent: row.last_reminder_sent || null,
-                                    amount: `RM ${parseFloat(row['amount_requested'] || 0).toFixed(2)}`,
-                                    status: (row['status'] || 'Pending').trim()
+                                    combinedData.push({
+                                        id: row.id || 0,
+                                        employee_id: row['employee_id'] || '—',
+                                        employee_name: row['employee_name'] || '—',
+                                        request_type: 'Loan',
+                                        details: `${row['loan_type']} Loan (${row['repayment_period']} mos)`,
+                                        date_submitted: formattedDate,
+                                        created_at: row['created_at'] || null,
+                                        last_reminder_sent: row.last_reminder_sent || null,
+                                        amount: `RM ${parseFloat(row['amount_requested'] || 0).toFixed(2)}`,
+                                        status: (row['status'] || 'Pending').trim()
+                                    });
                                 });
-                            });
 
-                            combinedData.sort((a, b) => {
-                                if (a.date_submitted === '—') return 1;
-                                if (b.date_submitted === '—') return -1;
-                                return b.date_submitted.localeCompare(a.date_submitted);
-                            });
+                                (resignationResults || []).forEach(row => {
+                                    const rawDate =
+                                        row.created_at ||
+                                        row.request_date ||
+                                        '—';
 
-                            return res.json({ success: true, data: combinedData });
+                                    let formattedDate = '—';
+
+                                    try {
+                                        formattedDate =
+                                            new Date(rawDate)
+                                                .toISOString()
+                                                .split('T')[0];
+                                    } catch (e) { }
+
+                                    combinedData.push({
+                                        id: row.id || 0,
+                                        employee_id: row.employee_id || '—',
+                                        employee_name: row.employee_name || '—',
+                                        request_type: 'Resignation',
+                                        details:
+                                            `${row.employee_name || 'Employee'} Resignation`,
+                                        date_submitted: formattedDate,
+                                        created_at: row.created_at || null,
+                                        last_reminder_sent:
+                                            row.last_reminder_sent || null,
+                                        amount: '—',
+                                        status:
+                                            (row.status || 'Pending').trim()
+                                    });
+                                });
+
+                                combinedData.sort((a, b) => {
+                                    if (a.date_submitted === '—') return 1;
+                                    if (b.date_submitted === '—') return -1;
+                                    return b.date_submitted.localeCompare(a.date_submitted);
+                                });
+
+                                return res.json({ success: true, data: combinedData });
+                            });
                         });
                     });
                 });
             });
         });
     });
-});
 
-router.post(
-    '/api/submit-hiring-approval',
-    requireHRAccess,
-    upload.single('attachment'),
-    (req, res) => {
+    router.post(
+        '/api/submit-hiring-approval',
+        requireHRAccess,
+        upload.single('attachment'),
+        (req, res) => {
 
-        const {
-            employee_name,
-            employee_id,
-            hiring_type,
-            employee_replaced_id,
-            number_of_vacancy,
-            employment_type,
-            employment_period,
-            work_location,
-            required_start_date,
-            reason_for_hiring,
-            job_description,
-            key_responsibilities,
-            minimum_qualification,
-            required_skills,
-            required_experience,
-            salary_range,
-            budget_cost_center,
-            hiring_priority
-        } = req.body;
+            const {
+                employee_name,
+                employee_id,
+                hiring_type,
+                employee_replaced_id,
+                number_of_vacancy,
+                employment_type,
+                employment_period,
+                work_location,
+                required_start_date,
+                reason_for_hiring,
+                job_description,
+                key_responsibilities,
+                minimum_qualification,
+                required_skills,
+                required_experience,
+                salary_range,
+                budget_cost_center,
+                hiring_priority
+            } = req.body;
 
-        if (!employee_name || !employee_id || !hiring_type) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Employee Name, Employee ID, and Hiring type are required.'
-            });
-        }
+            if (!employee_name || !employee_id || !hiring_type) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Employee Name, Employee ID, and Hiring type are required.'
+                });
+            }
 
-        if (
-            hiring_type === 'Replacement' &&
-            !employee_replaced_id
-        ) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Employee being replaced is required for Replacement hiring type.'
-            });
-        }
+            if (
+                hiring_type === 'Replacement' &&
+                !employee_replaced_id
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Employee being replaced is required for Replacement hiring type.'
+                });
+            }
 
-        const vacancyCount =
-            parseInt(number_of_vacancy, 10);
+            const vacancyCount =
+                parseInt(number_of_vacancy, 10);
 
-        if (
-            Number.isNaN(vacancyCount) ||
-            vacancyCount < 1
-        ) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Number of Vacancy must be at least 1.'
-            });
-        }
+            if (
+                Number.isNaN(vacancyCount) ||
+                vacancyCount < 1
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Number of Vacancy must be at least 1.'
+                });
+            }
 
-        if (
-            !employment_type ||
-            !work_location ||
-            !required_start_date ||
-            !reason_for_hiring
-        ) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Please complete all Employment Information fields.'
-            });
-        }
+            if (
+                !employment_type ||
+                !work_location ||
+                !required_start_date ||
+                !reason_for_hiring
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Please complete all Employment Information fields.'
+                });
+            }
 
-        const PERIOD_REQUIRED_TYPES = [
-            'Contract',
-            'Intern',
-            'Probation'
-        ];
+            const PERIOD_REQUIRED_TYPES = [
+                'Contract',
+                'Intern',
+                'Probation'
+            ];
 
-        if (
-            PERIOD_REQUIRED_TYPES.includes(
-                employment_type
-            ) &&
-            !employment_period
-        ) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Period is required for Contract, Intern, or Probation employment types.'
-            });
-        }
+            if (
+                PERIOD_REQUIRED_TYPES.includes(
+                    employment_type
+                ) &&
+                !employment_period
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Period is required for Contract, Intern, or Probation employment types.'
+                });
+            }
 
-        if (
-            !job_description ||
-            !key_responsibilities ||
-            !minimum_qualification ||
-            !required_skills ||
-            !required_experience
-        ) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Please complete all Job Requirement fields.'
-            });
-        }
+            if (
+                !job_description ||
+                !key_responsibilities ||
+                !minimum_qualification ||
+                !required_skills ||
+                !required_experience
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Please complete all Job Requirement fields.'
+                });
+            }
 
-        if (
-            !salary_range ||
-            !budget_cost_center ||
-            !hiring_priority
-        ) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Please complete all Compensation & Budget fields.'
-            });
-        }
+            if (
+                !salary_range ||
+                !budget_cost_center ||
+                !hiring_priority
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Please complete all Compensation & Budget fields.'
+                });
+            }
 
-        const requester =
-            req.session.user;
+            const requester =
+                req.session.user;
 
-        const requestDate =
-            new Date()
-                .toISOString()
-                .split('T')[0];
+            const requestDate =
+                new Date()
+                    .toISOString()
+                    .split('T')[0];
 
-        const attachment_path =
-            req.file
-                ? `uploads/${req.file.filename}`
-                : null;
+            const attachment_path =
+                req.file
+                    ? `uploads/${req.file.filename}`
+                    : null;
 
-        const query = `
+            const query = `
             INSERT INTO hiring_approvals
             (
                 requested_by,
@@ -1737,63 +1969,63 @@ router.post(
             )
         `;
 
-        db.query(
-            query,
-            [
-                requester.user_id,
-                requestDate,
-                requester.department,
+            db.query(
+                query,
+                [
+                    requester.user_id,
+                    requestDate,
+                    requester.department,
 
-                safeVal(employee_name, 100),
-                safeVal(employee_id, 50),
-                safeVal(hiring_type, 50),
-                safeVal(employee_replaced_id, 50),
+                    safeVal(employee_name, 100),
+                    safeVal(employee_id, 50),
+                    safeVal(hiring_type, 50),
+                    safeVal(employee_replaced_id, 50),
 
-                vacancyCount,
-                safeVal(employment_type, 50),
-                safeVal(employment_period, 50),
-                safeVal(work_location, 150),
-                safeVal(required_start_date, 20),
+                    vacancyCount,
+                    safeVal(employment_type, 50),
+                    safeVal(employment_period, 50),
+                    safeVal(work_location, 150),
+                    safeVal(required_start_date, 20),
 
-                safeVal(reason_for_hiring, 0),
-                safeVal(job_description, 0),
-                safeVal(key_responsibilities, 0),
+                    safeVal(reason_for_hiring, 0),
+                    safeVal(job_description, 0),
+                    safeVal(key_responsibilities, 0),
 
-                safeVal(minimum_qualification, 255),
-                safeVal(required_skills, 0),
-                safeVal(required_experience, 0),
+                    safeVal(minimum_qualification, 255),
+                    safeVal(required_skills, 0),
+                    safeVal(required_experience, 0),
 
-                safeVal(salary_range, 100),
-                safeVal(budget_cost_center, 100),
-                safeVal(hiring_priority, 20),
+                    safeVal(salary_range, 100),
+                    safeVal(budget_cost_center, 100),
+                    safeVal(hiring_priority, 20),
 
-                attachment_path
-            ],
-            (err, result) => {
+                    attachment_path
+                ],
+                (err, result) => {
 
-                if (err) {
-                    console.error(
-                        'Hiring Approval SQL Error:',
-                        err
-                    );
+                    if (err) {
+                        console.error(
+                            'Hiring Approval SQL Error:',
+                            err
+                        );
 
-                    return res.status(500).json({
-                        success: false,
+                        return res.status(500).json({
+                            success: false,
+                            message:
+                                'Database Error: ' +
+                                err.message
+                        });
+                    }
+
+                    return res.json({
+                        success: true,
                         message:
-                            'Database Error: ' +
-                            err.message
+                            'Hiring approval form submitted successfully!',
+                        id: result.insertId
                     });
                 }
-
-                return res.json({
-                    success: true,
-                    message:
-                        'Hiring approval form submitted successfully!',
-                    id: result.insertId
-                });
-            }
-        );
-    }
-);
-
+            );
+        }
+    );
+})
 module.exports = router;
