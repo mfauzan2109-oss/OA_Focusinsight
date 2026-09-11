@@ -75,11 +75,39 @@ async function decide(connection, sessionUserId, idValue, body) {
     if (!body || !['Approved', 'Rejected'].includes(body.status)) {
         throw problem(400, 'Status must be Approved or Rejected.');
     }
-    if (!Number.isInteger(body.step_order) || body.step_order < 1 || body.step_order > 5) {
-        throw problem(400, 'Send the current step_order as an integer from 1 to 5.');
+
+    const suppliedStep =
+        body.step_order == null
+            ? null
+            : Number(body.step_order);
+
+    if (
+        suppliedStep !== null &&
+        (
+            !Number.isInteger(suppliedStep) ||
+            suppliedStep < 1 ||
+            suppliedStep > 5
+        )
+    ) {
+        throw problem(400, 'Invalid step_order.');
     }
-    if (body.remarks != null && (typeof body.remarks !== 'string' || body.remarks.length > 2000)) {
-        throw problem(400, 'Remarks must be text with at most 2000 characters.');
+
+    const remarks =
+        body.remarks ??
+        body.comment ??
+        null;
+
+    if (
+        remarks != null &&
+        (
+            typeof remarks !== 'string' ||
+            remarks.length > 2000
+        )
+    ) {
+        throw problem(
+            400,
+            'Remarks must be text with at most 2000 characters.'
+        );
     }
     let started = false;
     try {
@@ -93,13 +121,19 @@ async function decide(connection, sessionUserId, idValue, body) {
         const [steps] = await connection.query(
             'SELECT * FROM resignation_approval_steps WHERE resignation_id = ? ORDER BY step_order FOR UPDATE', [id]);
         const current = validatePending(record, steps);
-        if (Number(current.step_order) !== body.step_order) {
-            throw problem(409, 'Approval step has changed. Reload the request before submitting.');
+        if (
+            suppliedStep !== null &&
+            Number(current.step_order) !== suppliedStep
+        ) {
+            throw problem(
+                409,
+                'Approval step has changed. Reload the request before submitting.'
+            );
         }
         if (!canAct(user, record, current)) throw problem(403, 'You are not the approver for the current step.');
         const [changed] = await connection.query(
             "UPDATE resignation_approval_steps SET status = ?, acted_by = ?, acted_at = NOW(), remarks = ? WHERE id = ? AND status = 'Pending'",
-            [body.status, user.user_id, body.remarks?.trim() || null, current.id]);
+            [body.status, user.user_id, remarks?.trim() || null, current.id]);
         if (changed.affectedRows !== 1) throw problem(409, 'Approval step has already changed.');
         let overall = 'Pending', next = null;
         if (body.status === 'Rejected') {
@@ -121,13 +155,17 @@ async function decide(connection, sessionUserId, idValue, body) {
         }
         if (overall !== 'Pending') await enqueueOutcome(connection, record, overall);
         await connection.commit(); started = false;
-        return { success: true, id, status: overall,
+        return {
+            success: true, id, status: overall,
             completed_step: Number(current.step_order), decision: body.status,
-            next_step: next ? { step_order: Number(next.step_order), approver_role: next.approver_role } : null };
+            next_step: next ? { step_order: Number(next.step_order), approver_role: next.approver_role } : null
+        };
     } catch (error) {
-        if (started) await connection.rollback().catch(() => {});
+        if (started) await connection.rollback().catch(() => { });
         throw error;
     }
 }
-module.exports = { ROLES, norm, problem, requestId, isHOD, legacyAccess, canAct, canRead,
-    canOpenQueue, validatePending, freshUser, decide };
+module.exports = {
+    ROLES, norm, problem, requestId, isHOD, legacyAccess, canAct, canRead,
+    canOpenQueue, validatePending, freshUser, decide
+};
