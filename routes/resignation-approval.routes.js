@@ -6,6 +6,7 @@ const db = require('../config/database');
 const { requireLogin } = require('../middleware/auth');
 const approval = require('../utils/resignation-approval');
 const probationService = require('../utils/probation-service');
+const salaryAdjustmentApproval = require('../utils/salary-adjustment-approval');
 
 const router = express.Router();
 async function openConnection() {
@@ -36,9 +37,35 @@ function endpoint(action) {
 
 // Mounted before the legacy approval router. Its PUT routes for other form types remain active.
 router.put('/api/approval-queue/:type/:id', requireLogin, (req, res, next) => {
-    if (approval.norm(req.params.type) !== 'resignation') return next();
-    return endpoint((connection, request) => approval.decide(
-        connection, request.session.user.user_id, request.params.id, request.body))(req, res);
+    const type = approval.norm(req.params.type);
+
+    if (type === 'resignation') {
+        return endpoint((connection, request) =>
+            approval.decide(
+                connection,
+                request.session.user.user_id,
+                request.params.id,
+                request.body
+            )
+        )(req, res);
+    }
+
+    if (
+        type === 'salary adjustment' ||
+        type === 'salary-adjustment' ||
+        type === 'salary_adjustment'
+    ) {
+        return endpoint((connection, request) =>
+            salaryAdjustmentApproval.decide(
+                connection,
+                request.session.user.user_id,
+                request.params.id,
+                request.body
+            )
+        )(req, res);
+    }
+
+    return next();
 });
 
 router.get('/api/resignations/:id/approval-steps', requireLogin, endpoint(async (connection, req) => {
@@ -104,6 +131,56 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
             table_source: 'resignations', can_approve: true
         });
     }
+
+    const [salaryAdjustmentRequests] =
+    await connection.query(`
+        SELECT
+            sa.id,
+            sa.requested_by,
+            sa.requested_by_name,
+            sa.employee_id,
+            sa.employee_name,
+            sa.department,
+            sa.adjustment_type,
+            sa.adjustment_amount,
+            sa.created_at AS date_submitted,
+            sa.status,
+            s.step_order,
+            s.approver_role,
+            s.status AS step_status
+        FROM salary_adjustments sa
+        JOIN salary_adjustment_approval_steps s
+            ON s.salary_adjustment_id = sa.id
+        WHERE sa.status = 'Pending'
+          AND s.status = 'Pending'
+    `);
+
+for (const row of salaryAdjustmentRequests) {
+    if (
+        !salaryAdjustmentApproval.canAct(
+            user,
+            row,
+            {
+                approver_role: row.approver_role,
+                status: row.step_status
+            }
+        )
+    ) {
+        continue;
+    }
+
+    combined.push({
+        ...row,
+        request_type: 'Salary Adjustment',
+        amount:
+            row.adjustment_amount != null
+                ? `RM ${parseFloat(row.adjustment_amount).toFixed(2)}`
+                : 'Not Applicable',
+        table_source: 'salary_adjustments',
+        can_approve: true
+    });
+}
+
     const probationQueue = await probationService.queue(
         connection,
         req.session.user.user_id

@@ -1,5 +1,6 @@
 const express = require('express');
 const { saveResignationWithWorkflow } = require('../utils/resignation-workflow');
+const { saveSalaryAdjustmentWithWorkflow } = require('../utils/salary-adjustment-workflow');
 const db = require('../config/database');
 const { requireLogin, requireHRAccess } = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -769,7 +770,7 @@ router.post(
                     )
                 `;
 
-                db.query(
+                saveSalaryAdjustmentWithWorkflow(
                     query,
                     [
                         requester.user_id,
@@ -792,31 +793,29 @@ router.post(
                         effective_date,
                         justification || '',
                         attachment_path
-                    ],
-                    (err, result) => {
-
-                        if (err) {
-                            console.error(
-                                'Salary Adjustment SQL Error:',
-                                err
-                            );
-
-                            return res.status(500).json({
-                                success: false,
-                                message:
-                                    'Database Error: ' +
-                                    err.message
-                            });
-                        }
-
+                    ]
+                )
+                    .then((result) => {
                         return res.json({
                             success: true,
                             message:
                                 'Salary adjustment request submitted successfully!',
                             id: result.insertId
                         });
-                    }
-                );
+                    })
+                    .catch((err) => {
+                        console.error(
+                            'Salary Adjustment SQL Error:',
+                            err
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message:
+                                'Database Error: ' +
+                                err.message
+                        });
+                    });
             }
         );
     }
@@ -1477,6 +1476,20 @@ router.get('/api/request-details', requireLogin, (req, res) => {
         query = `SELECT t.*, u.phone_no, u.email FROM \`travel\` t LEFT JOIN users u ON LOWER(t.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE t.id = ?`;
     } else if (reqType.includes('overtime')) {
         query = `SELECT o.*, u.phone_no, u.email FROM \`overtime\` o LEFT JOIN users u ON LOWER(o.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE o.id = ?`;
+    } else if (
+        reqType.includes('salary adjustment') ||
+        reqType.includes('salary-adjustment') ||
+        reqType.includes('salary_adjustment')
+    ) {
+        query = `
+        SELECT
+            sa.*, u.phone_no, u.email
+        FROM salary_adjustments sa
+        LEFT JOIN users u
+            ON LOWER(sa.employee_id) =
+               LOWER(u.user_id COLLATE utf8mb4_general_ci)
+        WHERE sa.id = ?
+    `;
     } else if (reqType === 'resignation') {
         query = `
         SELECT r.*, u.phone_no, u.email
@@ -1627,6 +1640,7 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
         let otQuery = `SELECT * FROM \`overtime\``;
         let loanQuery = `SELECT * FROM \`loans\``;
         let resignationQuery = `SELECT * FROM \`resignations\``;
+        let salaryAdjustmentQuery = `SELECT * FROM \`salary_adjustments\``;
         let queryParams = [];
 
         if (!isManagement) {
@@ -1636,6 +1650,7 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
             otQuery = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             loanQuery = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             resignationQuery = `SELECT * FROM \`resignations\`WHERE LOWER(\`requested_by\`) = LOWER(?)`;
+            salaryAdjustmentQuery = `SELECT * FROM \`salary_adjustments\` WHERE LOWER(\`requested_by\`) = LOWER(?)`;
             queryParams = [req_user_id];
         }
 
@@ -1645,144 +1660,190 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                     db.query(otQuery, queryParams, (err, otResults) => {
                         db.query(loanQuery, queryParams, (err, loanResults) => {
                             db.query(resignationQuery, queryParams, (err, resignationResults) => {
-                                const combinedData = [];
+                                db.query(
+                                    salaryAdjustmentQuery,
+                                    queryParams,
+                                    (err, salaryAdjustmentResults) => {
 
-                                (leaveResults || []).forEach(row => {
-                                    const rawDate = row['Created At'] || row['Start Date'] || '—';
-                                    let formattedDate = '—';
-                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+                                        const combinedData = [];
 
-                                    combinedData.push({
-                                        id: row.id || row.ID || 0,
-                                        employee_id: row['Employee ID'] || '—',
-                                        employee_name: row['Employee Name'] || '—',
-                                        request_type: 'Leave',
-                                        details: row['Leave Type'] || 'Leave',
-                                        start_date: row['Start Date'] || null,
-                                        end_date: row['End Date'] || null,
-                                        date_submitted: formattedDate,
-                                        created_at: row['Created At'] || row['Start Date'] || null,
-                                        last_reminder_sent: row.last_reminder_sent || null,
-                                        amount: '—',
-                                        status: (row['Status'] || 'Pending').trim()
+                                        (leaveResults || []).forEach(row => {
+                                            const rawDate = row['Created At'] || row['Start Date'] || '—';
+                                            let formattedDate = '—';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || row.ID || 0,
+                                                employee_id: row['Employee ID'] || '—',
+                                                employee_name: row['Employee Name'] || '—',
+                                                request_type: 'Leave',
+                                                details: row['Leave Type'] || 'Leave',
+                                                start_date: row['Start Date'] || null,
+                                                end_date: row['End Date'] || null,
+                                                date_submitted: formattedDate,
+                                                created_at: row['Created At'] || row['Start Date'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: '—',
+                                                status: (row['Status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (disResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || '—';
+                                            let formattedDate = '—';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || '—',
+                                                employee_name: row['employee_name'] || '—',
+                                                request_type: 'Disbursement',
+                                                details: 'Expense Claim',
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (travelResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || '—';
+                                            let formattedDate = '—';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || '—',
+                                                employee_name: row['employee_name'] || '—',
+                                                request_type: 'Travel',
+                                                details: row['allowance_type'] || 'Travel Claim',
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (otResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || '—';
+                                            let formattedDate = '—';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || '—',
+                                                employee_name: row['employee_name'] || '—',
+                                                request_type: 'Overtime',
+                                                details: `OT Claim (${row['period'] || '0 hrs'})`,
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['total_claim'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (loanResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || '—';
+                                            let formattedDate = '—';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || '—',
+                                                employee_name: row['employee_name'] || '—',
+                                                request_type: 'Loan',
+                                                details: `${row['loan_type']} Loan (${row['repayment_period']} mos)`,
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['amount_requested'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (resignationResults || []).forEach(row => {
+                                            const rawDate =
+                                                row.created_at ||
+                                                row.request_date ||
+                                                '—';
+
+                                            let formattedDate = '—';
+
+                                            try {
+                                                formattedDate =
+                                                    new Date(rawDate)
+                                                        .toISOString()
+                                                        .split('T')[0];
+                                            } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row.employee_id || '—',
+                                                employee_name: row.employee_name || '—',
+                                                request_type: 'Resignation',
+                                                details:
+                                                    `${row.employee_name || 'Employee'} Resignation`,
+                                                date_submitted: formattedDate,
+                                                created_at: row.created_at || null,
+                                                last_reminder_sent:
+                                                    row.last_reminder_sent || null,
+                                                amount: '—',
+                                                status:
+                                                    (row.status || 'Pending').trim()
+                                            });
+                                        }); // <-- RESIGNATION HABIS DEKAT SINI
+
+
+                                        (salaryAdjustmentResults || []).forEach(row => {
+                                            const rawDate =
+                                                row.created_at ||
+                                                row.request_date ||
+                                                '—';
+
+                                            let formattedDate = '—';
+
+                                            try {
+                                                formattedDate =
+                                                    new Date(rawDate)
+                                                        .toISOString()
+                                                        .split('T')[0];
+                                            } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row.employee_id || '—',
+                                                employee_name: row.employee_name || '—',
+                                                requested_by: row.requested_by || '—',
+                                                requested_by_name: row.requested_by_name || '—',
+                                                request_type: 'Salary Adjustment',
+                                                details:
+                                                    row.adjustment_type ||
+                                                    'Salary Adjustment',
+                                                date_submitted: formattedDate,
+                                                created_at: row.created_at || null,
+                                                last_reminder_sent:
+                                                    row.last_reminder_sent || null,
+                                                amount:
+                                                    row.adjustment_amount != null
+                                                        ? `RM ${parseFloat(row.adjustment_amount).toFixed(2)}`
+                                                        : '—',
+                                                status:
+                                                    (row.status || 'Pending').trim()
+                                            });
+                                        }); // <-- SALARY HABIS
+
+
+                                        combinedData.sort((a, b) => {
+                                            if (a.date_submitted === '—') return 1;
+                                            if (b.date_submitted === '—') return -1;
+                                            return b.date_submitted.localeCompare(a.date_submitted);
+                                        });
+
+                                        return res.json({ success: true, data: combinedData });
                                     });
-                                });
-
-                                (disResults || []).forEach(row => {
-                                    const rawDate = row['created_at'] || '—';
-                                    let formattedDate = '—';
-                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
-
-                                    combinedData.push({
-                                        id: row.id || 0,
-                                        employee_id: row['employee_id'] || '—',
-                                        employee_name: row['employee_name'] || '—',
-                                        request_type: 'Disbursement',
-                                        details: 'Expense Claim',
-                                        date_submitted: formattedDate,
-                                        created_at: row['created_at'] || null,
-                                        last_reminder_sent: row.last_reminder_sent || null,
-                                        amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
-                                        status: (row['status'] || 'Pending').trim()
-                                    });
-                                });
-
-                                (travelResults || []).forEach(row => {
-                                    const rawDate = row['created_at'] || '—';
-                                    let formattedDate = '—';
-                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
-
-                                    combinedData.push({
-                                        id: row.id || 0,
-                                        employee_id: row['employee_id'] || '—',
-                                        employee_name: row['employee_name'] || '—',
-                                        request_type: 'Travel',
-                                        details: row['allowance_type'] || 'Travel Claim',
-                                        date_submitted: formattedDate,
-                                        created_at: row['created_at'] || null,
-                                        last_reminder_sent: row.last_reminder_sent || null,
-                                        amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
-                                        status: (row['status'] || 'Pending').trim()
-                                    });
-                                });
-
-                                (otResults || []).forEach(row => {
-                                    const rawDate = row['created_at'] || '—';
-                                    let formattedDate = '—';
-                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
-
-                                    combinedData.push({
-                                        id: row.id || 0,
-                                        employee_id: row['employee_id'] || '—',
-                                        employee_name: row['employee_name'] || '—',
-                                        request_type: 'Overtime',
-                                        details: `OT Claim (${row['period'] || '0 hrs'})`,
-                                        date_submitted: formattedDate,
-                                        created_at: row['created_at'] || null,
-                                        last_reminder_sent: row.last_reminder_sent || null,
-                                        amount: `RM ${parseFloat(row['total_claim'] || 0).toFixed(2)}`,
-                                        status: (row['status'] || 'Pending').trim()
-                                    });
-                                });
-
-                                (loanResults || []).forEach(row => {
-                                    const rawDate = row['created_at'] || '—';
-                                    let formattedDate = '—';
-                                    try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
-
-                                    combinedData.push({
-                                        id: row.id || 0,
-                                        employee_id: row['employee_id'] || '—',
-                                        employee_name: row['employee_name'] || '—',
-                                        request_type: 'Loan',
-                                        details: `${row['loan_type']} Loan (${row['repayment_period']} mos)`,
-                                        date_submitted: formattedDate,
-                                        created_at: row['created_at'] || null,
-                                        last_reminder_sent: row.last_reminder_sent || null,
-                                        amount: `RM ${parseFloat(row['amount_requested'] || 0).toFixed(2)}`,
-                                        status: (row['status'] || 'Pending').trim()
-                                    });
-                                });
-
-                                (resignationResults || []).forEach(row => {
-                                    const rawDate =
-                                        row.created_at ||
-                                        row.request_date ||
-                                        '—';
-
-                                    let formattedDate = '—';
-
-                                    try {
-                                        formattedDate =
-                                            new Date(rawDate)
-                                                .toISOString()
-                                                .split('T')[0];
-                                    } catch (e) { }
-
-                                    combinedData.push({
-                                        id: row.id || 0,
-                                        employee_id: row.employee_id || '—',
-                                        employee_name: row.employee_name || '—',
-                                        request_type: 'Resignation',
-                                        details:
-                                            `${row.employee_name || 'Employee'} Resignation`,
-                                        date_submitted: formattedDate,
-                                        created_at: row.created_at || null,
-                                        last_reminder_sent:
-                                            row.last_reminder_sent || null,
-                                        amount: '—',
-                                        status:
-                                            (row.status || 'Pending').trim()
-                                    });
-                                });
-
-                                combinedData.sort((a, b) => {
-                                    if (a.date_submitted === '—') return 1;
-                                    if (b.date_submitted === '—') return -1;
-                                    return b.date_submitted.localeCompare(a.date_submitted);
-                                });
-
-                                return res.json({ success: true, data: combinedData });
                             });
                         });
                     });
