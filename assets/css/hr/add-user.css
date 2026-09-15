@@ -1,0 +1,33 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #aedce2; min-height: 100vh; display: flex; flex-direction: column; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 32px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); width: 100%; }
+        .brand-logo img { height: 36px; width: auto; display: block; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .search-pill { position: relative; display: flex; align-items: center; }
+        .search-pill i { position: absolute; left: 14px; color: #94a3b8; font-size: 13px; }
+        .search-pill input { padding: 7px 16px 7px 34px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; font-size: 12px; width: 200px; background-color: #f8fafc; color: #334155; }
+        .header-icon-btn { background: transparent; border: none; font-size: 16px; color: #475569; cursor: pointer; }
+        .user-profile-menu { display: flex; align-items: center; gap: 6px; text-decoration: none; }
+        .user-avatar-circle { width: 34px; height: 34px; border-radius: 50%; background-color: #2563eb; color: #ffffff; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .dropdown-chevron { font-size: 11px; color: #64748b; }
+        .form-container { width: 92%; max-width: 1400px; margin: 0 auto; padding: 24px 0 40px 0; }
+        .page-title { font-size: 24px; font-weight: 800; color: #000000; margin-bottom: 20px; text-decoration: underline; }
+        .profile-header-wrapper { display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 28px; }
+        .avatar-upload-block { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .avatar-circle-lg { width: 84px; height: 84px; border-radius: 50%; background-color: #3b82f6; color: #ffffff; font-size: 42px; display: flex; align-items: center; justify-content: center; }
+        .add-picture-link { font-size: 11px; color: #2563eb; text-decoration: underline; font-weight: 600; cursor: pointer; }
+        .status-badge-position { position: absolute; right: 15%; top: 10px; }
+        .badge-active-pill { background-color: #00e619; color: #ffffff; font-size: 14px; font-weight: 800; padding: 8px 36px; border-radius: 20px; display: inline-block; box-shadow: 0 2px 8px rgba(0, 230, 25, 0.2); }
+        .section-badge { display: inline-block; background-color: #ffffff; border: 1px solid #000000; border-radius: 8px; padding: 6px 16px; font-size: 14px; font-weight: 800; color: #000000; margin-bottom: 16px; margin-top: 8px; text-decoration: underline; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px; text-decoration: underline; }
+        .form-input { width: 100%; padding: 12px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; font-size: 13px; font-weight: 600; color: #0f172a; outline: none; transition: border-color 0.2s ease; }
+        .form-input[readonly] { background-color: #f1f5f9; color: #475569; cursor: not-allowed; }
+        .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .form-textarea { width: 100%; min-height: 120px; padding: 14px 18px; border-radius: 12px; border: 1px solid #cbd5e1; background-color: #ffffff; font-size: 13px; font-weight: 600; color: #0f172a; outline: none; line-height: 1.6; resize: vertical; font-family: 'Inter', sans-serif; }
+        .form-textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .bottom-actions { display: flex; justify-content: center; gap: 16px; margin-top: 32px; }
+        .btn-action-cancel { background-color: #c7d2fe; color: #1e1b4b; border: 1px solid #a5b4fc; padding: 10px 48px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s ease; }
+        .btn-action-cancel:hover { background-color: #b4c6fc; }
+        .btn-action-submit { background-color: #2563eb; color: #ffffff; border: none; padding: 10px 48px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .btn-action-submit:hover { background-color: #1d4ed8; }

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OA Approval Portal - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+    <div class="login-container">
+        
+        <div class="login-header">
+            <div class="logo-placeholder">
+                <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+            </div>
+            <h2>OA Approval Portal</h2>
+            <p class="subtitle">Sign in to access your workspace</p>
+        </div>
+
+        <div class="login-card">
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="employee-id">Employee ID<span class="required">*</span></label>
+                    <input type="text" id="employee-id" placeholder="e.g. EMP001" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password<span class="required">*</span></label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <a href="forgot-password.html" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-sign-in">Sign In</button>
+            </form>
+            <div id="errorMsg" style="color: red; text-align: center; margin-top: 15px; font-weight: 500; display: none;"></div>
+        </div>
+
+        <div class="login-footer">
+            <p>&copy; 2026 Focusinsight Sdn. Bhd. All rights reserved</p>
+        </div>
+    </div>
+
+    <script src="assets/js/index.js"></script>
+</body>
+</html>

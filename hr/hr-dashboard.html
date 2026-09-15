@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard - FocusInsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <link rel="stylesheet" href="../assets/css/hr/hr-dashboard.css">
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="../hr/hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+             
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER TOP BAR -->
+        <header class="top-header">
+            <h1>Dashboard</h1>
+            <div class="header-right">
+                <!-- Search Component -->
+                <div class="search-box-wrapper" style="position: relative;">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="headerSearchInput" placeholder="Search request">
+                    </div>
+                    <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+                </div>
+
+                <!-- Notifications Component -->
+                <div class="notification-container">
+                    <button class="icon-btn noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request-hr.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatar Circle -->
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <!-- WELCOME BANNER -->
+        <section class="welcome-banner">
+            <div class="date-text" id="liveBannerDate">Loading date...</div>
+            <h2 id="bannerGreeting">Good Morning</h2>
+            <p>You have <strong id="bannerPendingCount" style="color: #38bdf8;">0 pending requests</strong> awaiting action across the company.</p>
+        </section>
+
+        <!-- METRIC SUMMARY CARDS -->
+        <section class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon icon-employees"><i class="fa-solid fa-users"></i></div>
+                <div class="metric-data">
+                    <h3 id="statTotalEmployees">0</h3>
+                    <p>Total Employees</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon icon-pending"><i class="fa-regular fa-file-lines"></i></div>
+                <div class="metric-data">
+                    <h3 id="statPendingRequests">0</h3>
+                    <p>Pending Requests</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon icon-approved"><i class="fa-regular fa-circle-check"></i></div>
+                <div class="metric-data">
+                    <h3 id="statApprovedMonth">0</h3>
+                    <p>Approved/Month</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon icon-leave"><i class="fa-regular fa-calendar"></i></div>
+                <div class="metric-data">
+                    <h3 id="statOnLeaveToday">0</h3>
+                    <p>On Leave Today</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- RECENT ACTIVITIES TABLE CARD -->
+        <section class="recent-activity-card">
+            <h3>Recent Activities</h3>
+            <div class="table-container">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>REQUEST ID</th>
+                            <th>TYPE</th>
+                            <th>EMPLOYEE</th>
+                            <th>DEPARTMENT</th>
+                            <th>AMOUNT</th>
+                            <th>DATE</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTableBody">
+                        <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">Loading live activity logs from database...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-footer">
+                <span id="showingCountText">Showing 0 records</span>
+                <div class="pagination" id="paginationControls"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SCRIPT LOGIC -->
+    <script src="../assets/js/hr/hr-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    
+    <!-- Client-side HR Access Guard -->
+    <script src="../js/auth_check.js"></script>
+    
+    <link rel="stylesheet" href="../assets/css/hr/reports.css">
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">-</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item active"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+
+        <!-- TOP HEADER ROW -->
+        <div class="top-header-row">
+            <h1 class="page-title">Reports</h1>
+            
+            <div class="header-actions">
+                <div class="search-pill">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search request" onkeyup="filterTable()">
+                </div>
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request-hr.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="profile-hr.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- REPORTS CONTENT -->
+        <main class="form-container">
+            <!-- Filter Controls -->
+            <div class="filter-card">
+                <div class="filter-group">
+                    <label>Request Type</label>
+                    <select id="filterType" onchange="loadReports()">
+                        <option value="All Requests">All Requests</option>
+                        <option value="Leave Application">Leave Application</option>
+                        <option value="Disbursement Form">Disbursement Form</option>
+                        <option value="Travel Request">Travel Request</option>
+                        <option value="Overtime Claim">Overtime Claim</option>
+                        <option value="Loan Application">Loan Application</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Department</label>
+                    <select id="filterDept" onchange="loadReports()">
+                        <option value="All Departments">All Departments</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                        <option value="Information Technology (IT)">Information Technology (IT)</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Human Resources">Human Resources</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Date From</label>
+                    <input type="date" id="filterDateFrom" onchange="loadReports()">
+                </div>
+                <div class="filter-group">
+                    <label>Date To</label>
+                    <input type="date" id="filterDateTo" onchange="loadReports()">
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div class="table-container">
+                <table class="reports-table">
+                    <thead>
+                        <tr>
+                            <th>REQUEST ID</th>
+                            <th>TYPE</th>
+                            <th>EMPLOYEE NAME</th>
+                            <th>EMPLOYEE ID</th>
+                            <th>DEPARTMENTS</th>
+                            <th>REQUEST DATE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTableBody">
+                        <tr><td colspan="6">Loading database records...</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="table-footer">
+                    <span id="recordCountText">Showing 0 of 0 records</span>
+                    <div class="pagination" id="paginationControls"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/hr/reports.js"></script>
+</body>
+</html>

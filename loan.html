@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application | OA Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/loan.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer">
+                <i class='bx bx-user'></i>
+            </div>
+            <div class="profile-info">
+                <h4 id="profileName">Loading...</h4>
+                <p id="profileMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i> 
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item" id="signOutLink"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+            <h2 class="page-header-title">Loan Application</h2>
+            <div class="header-actions">
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
+                    </div>
+                </div>
+
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-inner">
+        <form class="form-card" id="loanForm">
+
+            <div class="error-banner" id="errorBanner" style="display: none;"></div>
+
+            <div id="draftNotice" class="draft-indicator">
+                💾 <strong>Draft Restored:</strong> Unsaved form changes were restored from your previous session.
+            </div>
+
+            <section class="form-section">
+                <span class="form-section-title">Employee Information</span>
+                <div class="form-grid form-grid-3">
+                    <div class="input-group">
+                        <label for="employee-id">Employee ID</label>
+                        <input type="text" id="employee-id" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label for="employee-name">Employee Name</label>
+                        <input type="text" id="employee-name" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" readonly>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <span class="form-section-title">Loan Details</span>
+
+                <div class="input-group">
+                    <label for="loan-type">Loan Type<span class="required">*</span></label>
+                    <select id="loan-type" required>
+                        <option value="" selected disabled>Select loan type</option>
+                        <option value="Personal">Personal Loan</option>
+                        <option value="Education">Education Loan</option>
+                        <option value="Travel">Travel Loan</option>
+                        <option value="Emergency">Emergency Loan</option>
+                        <option value="Vehicle">Vehicle Loan</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="repayment-period">Expected Repayment Period<span class="required">*</span></label>
+                        <select id="repayment-period" required>
+                            <option value="" selected disabled>Select period</option>
+                            <option value="3">3 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="12">12 Months</option>
+                            <option value="24">24 Months</option>
+                            <option value="36">36 Months</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="monthly-salary">Monthly Salary (RM)<span class="required">*</span></label>
+                        <input type="number" id="monthly-salary" min="0" step="0.01" placeholder="0.00" readonly required>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="amount-requested">Amount Requested (RM)<span class="required">*</span></label>
+                        <input type="number" id="amount-requested" min="0" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="disbursement-method">Disbursement Method<span class="required">*</span></label>
+                        <select id="disbursement-method" required>
+                            <option value="" selected disabled>Select method</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="repayment-summary-box">
+                    <span>Estimated Monthly Installment:</span>
+                    <strong id="estimatedInstallmentDisplay">RM 0.00</strong>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <span class="form-section-title">Borrower Bank Details</span>
+
+                <div class="input-group">
+                    <label for="account-holder">Account Holder Name<span class="required">*</span></label>
+                    <input type="text" id="account-holder" placeholder="As per bank record" required>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="account-number">Account Number<span class="required">*</span></label>
+                        <input type="text" id="account-number" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="bank-details">Bank Details<span class="required">*</span></label>
+                        <input type="text" id="bank-details" placeholder="e.g. Maybank" required>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <span class="form-section-title">Supporting Document (if applicable)</span>
+                <div class="upload-dropzone" id="dropzone">
+                    <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                    <i class='bx bx-upload'></i>
+                    <p><span class="upload-text">Drag &amp; drop or</span> <a href="#" id="browse-link">browse files</a></p>
+                    <span class="upload-hint">PDF, JPG, PNG up to 5MB</span>
+                    <div class="file-name" id="file-name"></div>
+                </div>
+            </section>
+
+            <div class="form-actions-pill">
+                <button type="button" class="btn-cancel-pill" id="cancelBtn">Cancel</button>
+                <button type="submit" class="btn-submit-pill" id="submitBtn">Submit</button>
+            </div>
+
+        </form>
+        </div>
+
+    </main>
+
+    <script src="loan.js"></script>
+</body>
+</html>

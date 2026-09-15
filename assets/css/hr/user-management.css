@@ -1,0 +1,365 @@
+.profile-avatar img,
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-avatar, .avatar-circle {
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #bcdbe5;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 24px 32px;
+            width: calc(100% - 250px);
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 14px 4px 14px;
+            margin-top: 6px;
+        }
+
+        /* --- NAVIGATION TABS BAR --- */
+        .admin-nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .admin-tab-btn {
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-tab-btn.active {
+            background-color: #5eead4;
+            color: #0f172a;
+            border: 2px solid #2563eb;
+        }
+
+        .admin-tab-btn:hover:not(.active) {
+            background-color: #f8fafc;
+            color: #2563eb;
+        }
+
+        /* --- CONTENT CARD & TOOLBAR --- */
+        .admin-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-employee-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-employee-box i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-employee-box input {
+            padding: 9px 16px 9px 36px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 13px;
+            width: 260px;
+            background-color: #ffffff;
+        }
+
+        .btn-add-user {
+            background-color: #1d4ed8;
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s ease;
+        }
+
+        .btn-add-user:hover {
+            background-color: #1e40af;
+        }
+
+        /* --- USER DATA TABLE --- */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #cbd5e1;
+        }
+
+        .user-table th {
+            background-color: #ffffff;
+            color: #1e293b;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 14px 12px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .user-table td {
+            padding: 14px 12px;
+            font-size: 12px;
+            color: #334155;
+            font-weight: 600;
+            border: 1px solid #cbd5e1;
+            text-align: center;
+        }
+
+        .emp-id-link {
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        .emp-id-link:hover {
+            color: #1d4ed8;
+        }
+
+        /* --- STATUS PILL BADGES --- */
+        .badge-status-pill {
+            display: inline-block;
+            padding: 5px 16px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .badge-status-pill.active { background-color: #22c55e; }
+
+        /* --- TABLE FOOTER / PAGINATION --- */
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+        }
+
+        .showing-text {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .page-btn {
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 700;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .page-btn.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        /* --- NOTIFICATION BELL & DROPDOWN --- */
+        .notification-container {
+            position: relative;
+        }
+
+        .noti-bell-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            color: #475569;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .noti-bell-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: #ef4444;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 800;
+            min-width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+        }
+
+        @keyframes noti-badge-pop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.5); }
+            60% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        .noti-badge-pop {
+            animation: noti-badge-pop 0.4s ease-out;
+        }
+
+        @keyframes noti-bell-shake {
+            0%, 100% { transform: rotate(0deg); }
+            20% { transform: rotate(-12deg); }
+            40% { transform: rotate(10deg); }
+            60% { transform: rotate(-8deg); }
+            80% { transform: rotate(6deg); }
+        }
+        .noti-bell-shake {
+            animation: noti-bell-shake 0.5s ease-in-out;
+        }
+
+        .noti-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 340px;
+            max-height: 420px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 100;
+        }
+        .noti-dropdown.open {
+            display: block;
+        }
+
+        .noti-dropdown-header {
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .noti-list-body {
+            padding: 8px;
+        }
+
+        .noti-card {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-left: 4px solid #f59e0b;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .noti-card.status-approved { border-left-color: #22c55e; }
+        .noti-card.status-rejected { border-left-color: #ef4444; }
+        .noti-card.status-review { border-left-color: #0ea5e9; }
+        .noti-card.status-pending { border-left-color: #f59e0b; }
+
+        .noti-card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 2px 0;
+        }
+        .noti-card-formno {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+        .noti-card-date {
+            font-size: 10.5px;
+            color: #94a3b8;
+            margin: 2px 0 0 0;
+        }
+        .noti-status-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: #ffffff;
+        }
+        .noti-status-pill.pending { background: #f59e0b; }
+        .noti-status-pill.approved { background: #22c55e; }
+        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.review { background: #0ea5e9; }

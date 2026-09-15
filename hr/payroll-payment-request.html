@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Payment Request Form | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../assets/css/hr/payroll-payment-request.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="../images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item active"><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Payroll Payment Request Form</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="form-container">
+                <form id="payrollPaymentForm" novalidate>
+
+                    <!-- REQUEST INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Request Information</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="requestedBy">Requested By</label>
+                                <input type="text" id="requestedBy" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requesterPosition">Position</label>
+                                <input type="text" id="requesterPosition" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requesterDept">Department</label>
+                                <input type="text" id="requesterDept" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requestDate">Request Date</label>
+                                <input type="text" id="requestDate" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAYMENT DETAILS -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Payment Details</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="paymentType">Payment Type<span class="req">*</span></label>
+                                <select id="paymentType" required>
+                                    <option value="">Select type</option>
+                                    <option value="Salary">Salary</option>
+                                    <option value="Allowance">Allowance</option>
+                                    <option value="Overtime">Overtime</option>
+                                    <option value="Bonus">Bonus</option>
+                                    <option value="Reimbursement">Reimbursement</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="paymentPeriod">Payment Period<span class="req">*</span></label>
+                                <input type="month" id="paymentPeriod" required>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="payeeName">Employee / Payee Name<span class="req">*</span></label>
+                                <input type="text" id="payeeName" placeholder="Full name" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="employeeId">Employee ID<span class="req">*</span></label>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <span class="helper-text" id="employeeLookupStatus"></span>
+                            </div>
+                            <div class="input-group">
+                                <label for="grossAmount">Amount (RM)<span class="req">*</span></label>
+                                <input type="number" id="grossAmount" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="paymentDescription">Payment Description<span class="req">*</span></label>
+                                <textarea id="paymentDescription" rows="4" placeholder="Describe the reason for this payment" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BANK & PAYMENT INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Bank &amp; Payment Information</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="bankName">Bank Name<span class="req">*</span></label>
+                                <input type="text" id="bankName" placeholder="e.g. Maybank" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="bankAccountNumber">Bank Account Number<span class="req">*</span></label>
+                                <input type="text" id="bankAccountNumber" placeholder="Account number" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="requestedPaymentDate">Requested Payment Date<span class="req">*</span></label>
+                                <input type="date" id="requestedPaymentDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="costCenter">Cost Center<span class="req">*</span></label>
+                                <input type="text" id="costCenter" placeholder="e.g. HR-OPS" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUPPORTING DOCUMENT -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Supporting Document (if applicable)</h3>
+                        <input type="file" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="dropzone" id="dropzone">
+                            <i class='bx bx-cloud-upload'></i>
+                            Drag &amp; drop or <a href="#" id="browseFilesLink">browse files</a>
+                            <small>PDF, JPG, PNG up to 5MB</small>
+                        </div>
+                        <div class="file-preview" id="filePreview">
+                            <i class='bx bx-check-circle'></i>
+                            <span id="fileNameText"></span>
+                            <a href="#" id="removeFileLink" style="margin-left:auto;color:#ef4444;font-size:12px;">Remove</a>
+                        </div>
+                    </div>
+
+                    <!-- REMARKS -->
+                    <div class="form-section">
+                        <div class="input-group">
+                            <label for="remarks">Remarks</label>
+                            <input type="text" id="remarks" placeholder="Optional remarks">
+                        </div>
+                    </div>
+
+                    <!-- PAYMENT SUMMARY -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Payment Summary</h3>
+                        <div class="summary-box">
+                            <div class="summary-row"><span>Gross Amount</span><span id="sumGross">RM 0.00</span></div>
+                            <div class="summary-row"><span>EPF</span><span id="sumEpf">RM 0.00</span></div>
+                            <div class="summary-row"><span>SOCSO</span><span id="sumSocso">RM 0.00</span></div>
+                            <div class="summary-row"><span>EIS</span><span id="sumEis">RM 0.00</span></div>
+                            <div class="summary-row">
+                                <span>Tax / PCB (editable estimate)</span>
+                                <span><input type="number" id="taxAmount" min="0" step="0.01" value="0" style="width:100px;text-align:right;border:1px solid #cbd5e1;border-radius:6px;padding:2px 6px;"></span>
+                            </div>
+                            <div class="summary-row net-pay"><span>Net Pay</span><span id="sumNetPay">RM 0.00</span></div>
+                            <p class="summary-note">EPF (11%), SOCSO (~0.5%) and EIS (0.2%) are simplified estimates for reference only, not the official bracket-table figures — confirm against current KWSP/PERKESO rates before final payment. Tax/PCB is not auto-calculated and should be entered manually.</p>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <div class="btn-group-actions">
+                            <button type="button" class="form-btn btn-cancel" id="btnCancel">Cancel</button>
+                            <button type="submit" class="form-btn btn-submit" id="btnSubmit">Submit</button>
+                        </div>
+                        <a href="hr-operation.html" class="back-link">&lt; Back to HR Operations</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/hr/payroll-payment-request.js"></script>
+
+</body>
+</html>

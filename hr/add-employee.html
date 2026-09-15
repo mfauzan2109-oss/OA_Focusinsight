@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Employee - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <link rel="stylesheet" href="../assets/css/hr/add-employee.css">
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- FORM CONTAINER -->
+    <main class="form-container">
+        <h1 class="page-title">Add Employee</h1>
+
+        <form id="employeeForm">
+            <input type="hidden" id="editingRowIndex" value="-1">
+
+            <div class="form-group">
+                <label class="form-label" for="deptInput">Department (applies to all employees added below)</label>
+                <input type="text" id="deptInput" class="form-input" placeholder="e.g. Engineering" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="empIdInput">Employee ID</label>
+                <input type="text" id="empIdInput" class="form-input" placeholder="e.g. EMP014" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="empNameInput">Employee Name</label>
+                <input type="text" id="empNameInput" class="form-input" placeholder="e.g. Mohd Firdaus Daud" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="positionInput">Position</label>
+                <input type="text" id="positionInput" class="form-input" placeholder="e.g. Test Engineer" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="passwordInput">Password</label>
+                <input type="password" id="passwordInput" class="form-input" placeholder="Login password for this employee" required>
+            </div>
+
+            <!-- FORM BUTTONS -->
+            <div class="mid-form-buttons">
+                <button type="button" class="btn-clear" id="clearBtn">Clear</button>
+                <button type="button" class="btn-add-list" id="addToListBtn">+ Add to list</button>
+            </div>
+
+            <!-- TEMPORARY TABLE -->
+            <div class="table-card">
+                <table class="employee-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Employee ID</th>
+                            <th style="width: 40%;">Employee Name</th>
+                            <th style="width: 25%;">Position</th>
+                            <th style="width: 15%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tempEmployeeTableBody">
+                        <!-- Dynamic rows populated via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- BOTTOM ACTION BUTTONS -->
+            <div class="bottom-actions">
+                <a href="add-department.html" class="btn-action-back" id="btnBack">Back</a>
+                <button type="button" class="btn-action-save" id="saveEmployeesBtn">Save</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="../assets/js/hr/add-employee.js"></script>
+</body>
+</html>

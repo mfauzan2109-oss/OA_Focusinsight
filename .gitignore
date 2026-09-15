@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# User-uploaded content (resumes, IC/passport scans, supporting documents)
+uploads/
+
+# Generated reports (Excel/PDF exports)
+reports/
+
+# Environment / secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/

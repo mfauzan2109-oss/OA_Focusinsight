@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Workflow - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../js/auth_check.js"></script>
+    <link rel="stylesheet" href="../assets/css/hr/edit-workflow.css">
+</head>
+<body>
+
+    <!-- WHITE HEADER BAR -->
+    <header class="page-header">
+        <div class="brand-logo">
+            <img src="../images/company-logo.jpg" alt="FocusInsight Logo">
+        </div>
+        <div class="header-actions">
+            <div class="search-pill">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search request">
+            </div>
+            <button class="header-icon-btn"><i class="fa-regular fa-bell"></i></button>
+            <a href="profile-hr.html" class="user-profile-menu">
+                <div class="user-avatar-circle" id="topAvatar">CJ</div>
+                <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN FORM CONTAINER -->
+    <main class="form-container">
+        <h1 class="page-title" id="workflowPageTitle">Edit Workflow : Leave Application</h1>
+
+        <form id="workflowForm">
+            <!-- DYNAMIC STEPS CONTAINER -->
+            <div class="steps-wrapper" id="stepsWrapper">
+                <!-- Steps rendered via JS based on workflow type -->
+            </div>
+
+            <!-- ADD APPROVAL STEP BUTTON -->
+            <button type="button" class="btn-add-approval-step" id="addStepBtn">
+                + Add Approval Step
+            </button>
+
+            <!-- ACTION BUTTONS -->
+            <div class="bottom-actions">
+                <a href="workflow-settings.html" class="btn-action-back">Back</a>
+                <button type="submit" class="btn-action-save">Save Workflow</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="../assets/js/hr/edit-workflow.js"></script>
+</body>
+</html>

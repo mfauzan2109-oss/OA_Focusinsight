@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Adjustment Request | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/Salary-adjustment.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i>
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header">
+            <h2 class="page-header-title">Salary Adjustment Request</h2>
+            <div class="header-actions">
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
+                    </div>
+                </div>
+
+                <!-- Notification Bell -->
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="form-container">
+                <form id="salaryAdjustmentForm" novalidate>
+
+                    <!-- REQUEST INFORMATION -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-file-blank'></i> Request Information</h3>
+                        <div class="sa-grid">
+                            <div class="sa-input-group">
+                                <label for="requestedBy">Requested By</label>
+                                <input type="text" id="requestedBy" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="requestDate">Request Date</label>
+                                <input type="text" id="requestDate" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="requesterDept">Department</label>
+                                <input type="text" id="requesterDept" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EMPLOYEE INFORMATION -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-id-card'></i> Employee Information</h3>
+                        <div class="sa-grid">
+                            <div class="sa-input-group sa-full">
+                                <label for="employeeId">Employee ID<span class="req">*</span></label>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <span class="sa-helper" id="employeeLookupStatus"></span>
+                            </div>
+                            <div class="sa-input-group sa-full">
+                                <label for="employeeName">Employee Name</label>
+                                <input type="text" id="employeeName" disabled placeholder="Auto-filled after Employee ID">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employeeDept">Department</label>
+                                <input type="text" id="employeeDept" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employeePosition">Position</label>
+                                <input type="text" id="employeePosition" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employmentType">Employment Type</label>
+                                <input type="text" id="employmentType" disabled>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="employmentDate">Employment Date</label>
+                                <input type="text" id="employmentDate" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SALARY ADJUSTMENT -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-trending-up'></i> Salary Adjustment</h3>
+                        <div class="sa-grid">
+                            <div class="sa-input-group">
+                                <label for="currentSalary">Current Basic Salary</label>
+                                <input type="text" id="currentSalary" disabled placeholder="RM 0.00">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="adjustmentType">Adjustment Type<span class="req">*</span></label>
+                                <select id="adjustmentType" required>
+                                    <option value="">Select type</option>
+                                    <option value="Annual Increment">Annual Increment</option>
+                                    <option value="Promotion">Promotion</option>
+                                    <option value="Market Adjustment">Market Adjustment</option>
+                                    <option value="Performance-Based">Performance-Based</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="proposedSalary">Proposed Basic Salary<span class="req">*</span></label>
+                                <input type="number" id="proposedSalary" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="adjustmentAmount">Adjustment Amount</label>
+                                <input type="text" id="adjustmentAmount" disabled placeholder="Auto-calculated">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="adjustmentPercentage">Adjustment Percentage (%)</label>
+                                <input type="text" id="adjustmentPercentage" disabled placeholder="Auto-calculated">
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="effectiveDate">Effective Date<span class="req">*</span></label>
+                                <input type="date" id="effectiveDate" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JUSTIFICATION -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-comment-detail'></i> Justification</h3>
+                        <div class="sa-input-group">
+                            <textarea id="justification" rows="4" placeholder="Insert your justification" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- SUPPORTING DOCUMENT -->
+                    <div class="sa-section">
+                        <h3 class="sa-section-title"><i class='bx bx-paperclip'></i> Supporting Document (if applicable)</h3>
+                        <input type="file" id="salaryAttachmentInput" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="sa-dropzone" id="dropzone">
+                            <i class='bx bx-cloud-upload'></i>
+                            Drag &amp; drop or <a href="#" id="browseFilesLink">browse files</a>
+                            <small>PDF, JPG, PNG up to 5MB</small>
+                        </div>
+                        <div class="sa-file-preview" id="filePreview">
+                            <i class='bx bx-check-circle'></i>
+                            <span id="fileNameText"></span>
+                            <a href="#" id="removeFileLink" style="margin-left:auto;color:#ef4444;font-size:12px;">Remove</a>
+                        </div>
+                    </div>
+
+                    <div class="sa-btn-row">
+                        <button type="button" class="sa-btn sa-btn-cancel" id="btnCancel">Cancel</button>
+                        <button type="submit" class="sa-btn sa-btn-submit" id="btnSubmit">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="assets/js/Salary-adjustment.js"></script>
+
+</body>
+</html>

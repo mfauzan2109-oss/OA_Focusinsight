@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Transfer Request | OA Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer">
+                <i class='bx bx-user'></i>
+            </div>
+            <div class="profile-info">
+                <h4 id="profileName">Loading...</h4>
+                <p id="profileMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="approval-queue.html" class="nav-item" id="approvalQueueItem" style="display: none;">
+                <i class='bx bx-check-shield'></i>
+                <span>Approval Queue</span>
+                <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
+            </a>
+
+            <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
+            <a href="application-center.html" class="nav-item active"><i class='bx bx-grid-alt'></i> Application Center</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item" id="signOutLink"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+            <h2 class="page-header-title">Job Transfer Request Form</h2>
+            <div class="header-actions">
+                <div class="search-container">
+                    <div class="search-pill">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
+                    </div>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-inner">
+        <form class="form-card" id="jobTransferForm">
+
+            <div class="error-banner" id="errorBanner" style="display: none;"></div>
+
+            <section class="form-section">
+                <span class="form-section-title">Employee Information</span>
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="employee-id">Employee ID</label>
+                        <input type="text" id="employee-id" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label for="employee-name">Employee Name</label>
+                        <input type="text" id="employee-name" readonly>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <span class="form-section-title">Transfer Details</span>
+
+                <div class="input-group">
+                    <label for="transfer-type">Transfer Type<span class="required">*</span></label>
+                    <select id="transfer-type" required>
+                        <option value="" selected disabled>Select transfer type</option>
+                        <option value="Department">Department</option>
+                        <option value="Position">Position</option>
+                        <option value="Location">Location</option>
+                    </select>
+                </div>
+
+                <!-- Department fields (shown when Transfer Type = Department) -->
+                <div class="form-grid form-grid-2 transfer-field-group" id="departmentFields" style="display:none;">
+                    <div class="input-group">
+                        <label for="current-department">Current Department<span class="required">*</span></label>
+                        <input type="text" id="current-department">
+                    </div>
+                    <div class="input-group">
+                        <label for="new-department">New Department<span class="required">*</span></label>
+                        <input type="text" id="new-department">
+                    </div>
+                </div>
+
+                <!-- Position fields (shown when Transfer Type = Position) -->
+                <div class="form-grid form-grid-2 transfer-field-group" id="positionFields" style="display:none;">
+                    <div class="input-group">
+                        <label for="current-position">Current Position<span class="required">*</span></label>
+                        <input type="text" id="current-position">
+                    </div>
+                    <div class="input-group">
+                        <label for="new-position">New Position<span class="required">*</span></label>
+                        <input type="text" id="new-position">
+                    </div>
+                </div>
+
+                <!-- Location fields (shown when Transfer Type = Location) -->
+                <div class="form-grid form-grid-2 transfer-field-group" id="locationFields" style="display:none;">
+                    <div class="input-group">
+                        <label for="current-location">Current Location<span class="required">*</span></label>
+                        <input type="text" id="current-location">
+                    </div>
+                    <div class="input-group">
+                        <label for="new-location">New Location<span class="required">*</span></label>
+                        <input type="text" id="new-location">
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="current-supervisor">Current Supervisor<span class="required">*</span></label>
+                        <input type="text" id="current-supervisor" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="new-supervisor">New Supervisor<span class="required">*</span></label>
+                        <input type="text" id="new-supervisor" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="proposed-transfer-date">Proposed Transfer Date<span class="required">*</span></label>
+                    <input type="date" id="proposed-transfer-date" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="reason-for-transfer">Reason for Transfer<span class="required">*</span></label>
+                    <textarea id="reason-for-transfer" rows="4" placeholder="Provide a brief description of your transfer reason..." required></textarea>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <span class="form-section-title">Salary &amp; Job Scope</span>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="current-salary">Current Salary (RM)<span class="required">*</span></label>
+                        <input type="number" id="current-salary" min="0" step="0.01" placeholder="0.00" readonly required>
+                    </div>
+                    <div class="input-group">
+                        <label for="proposed-salary">Proposed Salary (RM)</label>
+                        <input type="number" id="proposed-salary" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="job-scope-change">Job Scope Change<span class="required">*</span></label>
+                    <select id="job-scope-change" required>
+                        <option value="" selected disabled>Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+
+                <div class="input-group" id="jobDescriptionGroup" style="display:none;">
+                    <label for="job-description">If Yes, please provide the job description<span class="required">*</span></label>
+                    <textarea id="job-description" rows="4" placeholder="Describe the new job scope..."></textarea>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <span class="form-section-title">Employee Acknowledgement<span class="required">*</span></span>
+                <label style="display:flex; align-items:center; gap:8px; font-size:14px; color:#334155; font-weight:500;">
+                    <input type="checkbox" id="acknowledgement" required>
+                    I acknowledge the proposed transfer details.
+                </label>
+            </section>
+
+            <section class="form-section">
+                <span class="form-section-title">Supporting Document (if applicable)</span>
+                <div class="upload-dropzone" id="dropzone">
+                    <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                    <i class='bx bx-upload'></i>
+                    <p><span class="upload-text">Drag &amp; drop or</span> <a href="#" id="browse-link">browse files</a></p>
+                    <span class="upload-hint">PDF, JPG, PNG up to 5MB</span>
+                    <div class="file-name" id="file-name"></div>
+                </div>
+            </section>
+
+            <div class="form-actions-pill">
+                <button type="button" class="btn-cancel-pill" id="cancelBtn">Cancel</button>
+                <button type="submit" class="btn-submit-pill" id="submitBtn">Submit</button>
+            </div>
+
+        </form>
+        </div>
+
+    </main>
+
+    <script src="assets/js/job-transfer-request.js"></script>
+</body>
+</html>

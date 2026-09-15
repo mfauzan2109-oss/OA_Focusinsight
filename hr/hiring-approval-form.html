@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiring Approval Form | Focusinsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../assets/css/hr/hiring-approval-form.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+             <img src="../images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item"><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item logout-item"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Hiring Approval Form</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="form-container">
+                <form id="hiringForm" novalidate>
+
+                    <!-- REQUEST INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">Request Information</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="requestedBy">Requested By</label>
+                                <input type="text" id="requestedBy" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requestDate">Request Date</label>
+                                <input type="text" id="requestDate" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="requesterDept">Department</label>
+                                <input type="text" id="requesterDept" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1. EMPLOYMENT INFORMATION -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">1. Employment Information</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="employeeName">Employee Name<span class="req">*</span></label>
+                                <input type="text" id="employeeName" placeholder="e.g. new position reference" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="employeeId">Employee ID<span class="req">*</span></label>
+                                <input type="text" id="employeeId" placeholder="e.g. requisition / vacancy code" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="hiringType">Hiring type<span class="req">*</span></label>
+                                <select id="hiringType" required>
+                                    <option value="" disabled selected>Select hiring type</option>
+                                    <option value="New Position">New Position</option>
+                                    <option value="Replacement">Replacement</option>
+                                    <option value="Temporary">Temporary</option>
+                                    <option value="Promotion">Promotion</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="employeeReplacedSearch">Employee being replaced<span class="req">*</span></label>
+                                <div class="search-select-wrapper">
+                                    <i class='bx bx-search'></i>
+                                    <input type="text" id="employeeReplacedSearch" placeholder="Search employee" autocomplete="off" disabled>
+                                    <input type="hidden" id="employeeReplacedId">
+                                    <div class="search-dropdown" id="employeeReplacedDropdown"></div>
+                                </div>
+                                <span class="helper-text" id="replacedHelperText">Only applicable for Replacement hiring type.</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="numberOfVacancy">Number of Vacancy<span class="req">*</span></label>
+                                <input type="number" id="numberOfVacancy" min="1" step="1" placeholder="e.g. 1" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="employmentType">Employment Type<span class="req">*</span></label>
+                                <select id="employmentType" required>
+                                    <option value="" disabled selected>Select employment type</option>
+                                    <option value="Permanent">Permanent</option>
+                                    <option value="Contract">Contract</option>
+                                    <option value="Intern">Intern</option>
+                                    <option value="Probation">Probation</option>
+                                </select>
+                            </div>
+                            <div class="input-group" id="employmentPeriodGroup" style="display: none;">
+                                <label for="employmentPeriod">Period<span class="req">*</span></label>
+                                <input type="text" id="employmentPeriod" placeholder="e.g. 6 Months">
+                            </div>
+                            <div class="input-group">
+                                <label for="workLocation">Work Location<span class="req">*</span></label>
+                                <input type="text" id="workLocation" placeholder="e.g. Bukit Mertajam, Penang" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="requiredStartDate">Required Start Date<span class="req">*</span></label>
+                                <input type="date" id="requiredStartDate" required>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="reasonForHiring">Reason for Hiring<span class="req">*</span></label>
+                                <textarea id="reasonForHiring" rows="3" placeholder="Please provide your reason." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. JOB REQUIREMENT -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">2. Job Requirement</h3>
+                        <div class="input-group">
+                            <label for="jobDescription">Job Description<span class="req">*</span></label>
+                            <textarea id="jobDescription" rows="4" placeholder="Please provide job description." required></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="keyResponsibilities">Key Responsibilities<span class="req">*</span></label>
+                            <textarea id="keyResponsibilities" rows="4" placeholder="Please provide key responsibilities." required></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="minimumQualification">Minimum Qualification<span class="req">*</span></label>
+                            <input type="text" id="minimumQualification" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="requiredSkills">Required Skills<span class="req">*</span></label>
+                            <textarea id="requiredSkills" rows="3" required></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="requiredExperience">Required Experience<span class="req">*</span></label>
+                            <textarea id="requiredExperience" rows="3" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 3. COMPENSATION & BUDGET -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">3. Compensation &amp; Budget</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="salaryRange">Salary Range (RM)<span class="req">*</span></label>
+                                <input type="text" id="salaryRange" placeholder="e.g. RM 3,000 - RM 4,500" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="budgetCostCenter">Budget / Cost Center<span class="req">*</span></label>
+                                <input type="text" id="budgetCostCenter" required>
+                            </div>
+                            <div class="input-group form-full">
+                                <label for="hiringPriority">Hiring Priority<span class="req">*</span></label>
+                                <select id="hiringPriority" required>
+                                    <option value="" disabled selected>Select priority</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-group form-full" style="margin-top: 16px;">
+                            <label>Supporting Document (if applicable)</label>
+                            <input type="file" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="dropzone" id="dropzone">
+                                <i class='bx bx-cloud-upload'></i>
+                                Drag &amp; drop or <a href="#" id="browseFilesLink">browse files</a>
+                                <small>PDF, JPG, PNG up to 5MB</small>
+                            </div>
+                            <div class="file-preview" id="filePreview">
+                                <i class='bx bx-check-circle'></i>
+                                <span id="fileNameText"></span>
+                                <a href="#" id="removeFileLink" style="margin-left:auto;color:#ef4444;font-size:12px;">Remove</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <div class="btn-group-actions">
+                            <button type="button" class="form-btn btn-cancel" id="btnCancel">Cancel</button>
+                            <button type="submit" class="form-btn btn-submit" id="btnSubmit">Submit</button>
+                        </div>
+                        <a href="hr-operation.html" class="back-link">&lt; Back to HR Operations</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/hr/hiring-approval-form.js"></script>
+
+</body>
+</html>
