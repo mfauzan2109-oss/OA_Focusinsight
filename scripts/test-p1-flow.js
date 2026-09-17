@@ -14,6 +14,20 @@ const ACTORS = {
     'project manager': 'MGR001'
 };
 
+function actorFor(type, role) {
+    if (type === 'disbursement') {
+        if (role === 'project manager') {
+            return 'MGR001';
+        }
+
+        if (role === 'head of department') {
+            return 'TEST_HOD_EE';
+        }
+    }
+
+    return ACTORS[role];
+}
+
 const norm = value => String(value || '').trim().toLowerCase();
 
 async function main() {
@@ -87,7 +101,7 @@ async function main() {
 
             const step = rows[0];
             const role = norm(step.approver_role);
-            const actor = ACTORS[role];
+            const actor = actorFor(type, role);
 
             if (!actor) {
                 throw new Error(
@@ -141,6 +155,16 @@ async function main() {
             parentQuery = `
         SELECT id, status
         FROM travel
+        WHERE id = ?
+    `;
+        } else if (type === 'disbursement') {
+            parentQuery = `
+        SELECT
+            id,
+            status,
+            total_amount,
+            department
+        FROM disbursements
         WHERE id = ?
     `;
         } else {

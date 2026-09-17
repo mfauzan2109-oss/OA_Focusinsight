@@ -66,6 +66,30 @@ const TARGETS = {
         `,
 
         notificationPrefix: 'TRAVEL'
+    },
+
+    disbursement: {
+        stepsTable: 'disbursement_approval_steps',
+        foreignKey: 'disbursement_id',
+        ccTable: 'disbursement_cc_recipients',
+        notificationsTable: 'disbursement_notifications',
+        notificationForeignKey: 'disbursement_id',
+
+        parentQuery: `
+        SELECT id, employee_id, department, status
+        FROM disbursements
+        WHERE id = ?
+        FOR UPDATE
+    `,
+
+        updateParentQuery: `
+        UPDATE disbursements
+        SET status = ?
+        WHERE id = ?
+          AND status = 'Pending'
+    `,
+
+        notificationPrefix: 'DISBURSEMENT'
     }
 };
 
@@ -75,9 +99,7 @@ function isHOD(user) {
     return (
         pos === 'manager' ||
         pos === 'head of department' ||
-        pos === 'hod' ||
-        pos === 'project manager' ||
-        pos === 'supervisor'
+        pos === 'hod'
     );
 }
 
@@ -126,7 +148,10 @@ function canAct(user, record, step) {
     }
 
     if (role === 'project manager') {
-        return norm(user.position) === 'project manager';
+        return (
+            norm(user.position) === 'project manager' &&
+            norm(user.department) === norm(record.department)
+        );
     }
 
     return false;
@@ -412,7 +437,7 @@ async function decide(
 
     } catch (error) {
         if (started) {
-            await connection.rollback().catch(() => {});
+            await connection.rollback().catch(() => { });
         }
 
         throw error;

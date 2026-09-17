@@ -66,7 +66,11 @@ router.put('/api/approval-queue/:type/:id', requireLogin, (req, res, next) => {
         )(req, res);
     }
 
-    if (type === 'leave' || type === 'travel') {
+    if (
+        type === 'leave' ||
+        type === 'travel' ||
+        type === 'disbursement'
+    ) {
         return endpoint((connection, request) =>
             p1Approval.decide(
                 connection,
@@ -110,7 +114,6 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
 
     // Keep legacy form fields, amounts and department visibility unchanged.
     const sources = [
-        ['disbursements', 'id', 'employee_id', 'employee_name', 'department', 'Disbursement', 'total_amount', 'created_at', 'status'],
         ['overtime', 'id', 'employee_id', 'employee_name', 'department', 'Overtime', 'total_claim', 'created_at', 'status'],
         ['loans', 'id', 'employee_id', 'employee_name', 'department', 'Loan', 'amount_requested', 'created_at', 'status']
     ];
@@ -207,6 +210,48 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
             can_approve: true
         });
     }
+
+    const [disbursementRequests] = await connection.query(`
+    SELECT
+        d.id,
+        d.employee_id,
+        d.employee_name,
+        d.department,
+        d.created_at AS date_submitted,
+        d.last_reminder_sent,
+        d.status,
+        d.total_amount,
+        s.step_order,
+        s.approver_role,
+        s.status AS step_status
+    FROM disbursements d
+    JOIN disbursement_approval_steps s
+        ON s.disbursement_id = d.id
+    WHERE d.status = 'Pending'
+      AND s.status = 'Pending'
+`);
+
+    for (const row of disbursementRequests) {
+        if (!p1Approval.canAct(
+            user,
+            row,
+            {
+                approver_role: row.approver_role,
+                status: row.step_status
+            }
+        )) continue;
+
+        combined.push({
+            ...row,
+            request_type: 'Disbursement',
+            amount: `RM ${parseFloat(
+                row.total_amount || 0
+            ).toFixed(2)}`,
+            table_source: 'disbursements',
+            can_approve: true
+        });
+    }
+
     const [requests] = await connection.query(`
         SELECT r.id, r.requested_by, r.requested_by_name, r.employee_id, r.employee_name,
             r.department, r.created_at AS date_submitted, r.last_reminder_sent, r.status,

@@ -12,6 +12,11 @@ const TARGETS = {
     travel: {
         stepsTable: 'travel_approval_steps',
         foreignKey: 'travel_id'
+    },
+
+    disbursement: {
+        stepsTable: 'disbursement_approval_steps',
+        foreignKey: 'disbursement_id'
     }
 };
 
@@ -19,7 +24,8 @@ async function saveWithApprovalSteps({
     type,
     insertQuery,
     values,
-    roles
+    roles,
+    afterInsert = null
 }) {
     const config = TARGETS[type];
 
@@ -64,6 +70,10 @@ async function saveWithApprovalSteps({
             insertQuery,
             values
         );
+
+        if (typeof afterInsert === 'function') {
+            await afterInsert(connection, result);
+        }
 
         const approvalRows = roles.map((role, index) => [
             result.insertId,

@@ -118,64 +118,149 @@ router.post(
     '/api/submit-disbursement',
     requireLogin,
     upload.single('attachment'),
-    (req, res) => {
+    async (req, res) => {
         const employee_id = req.session.user.user_id;
         const employee_name = req.session.user.name;
         const department = req.session.user.department;
 
-        let rawAmount = req.body.total_amount || "0";
-        let total_amount = parseFloat(rawAmount.toString().replace(/[^0-9.]/g, '')) || 0.00;
+        const rawAmount = req.body.total_amount || '0';
+        const total_amount =
+            parseFloat(
+                rawAmount
+                    .toString()
+                    .replace(/[^0-9.]/g, '')
+            ) || 0.00;
 
-        const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+        const attachment_path =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        let expenseItems = [];
+
+        try {
+            expenseItems = JSON.parse(
+                req.body.items || '[]'
+            );
+        } catch (parseErr) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid format for expense items.'
+            });
+        }
+
+        if (!Array.isArray(expenseItems)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Expense items must be an array.'
+            });
+        }
 
         const masterQuery = `
-        INSERT INTO \`disbursements\` 
-        (\`employee_id\`, \`employee_name\`, \`department\`, \`total_amount\`, \`supporting_document\`, \`status\`, \`created_at\`) 
-        VALUES (?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
-
-        db.query(masterQuery, [employee_id, employee_name, department, total_amount, attachment_path], (err, masterResult) => {
-            if (err) {
-                console.error('Master SQL Error:', err);
-                return res.status(500).json({ success: false, message: 'Failed to save master record: ' + err.message });
-            }
-
-            const disbursementId = masterResult.insertId;
-            let expenseItems = [];
-            try {
-                expenseItems = JSON.parse(req.body.items || '[]');
-            } catch (parseErr) {
-                return res.status(400).json({ success: false, message: 'Invalid format for expense items.' });
-            }
-
-            if (expenseItems.length === 0) {
-                return res.json({ success: true, message: 'Disbursement saved successfully without itemized lines.' });
-            }
-
-            const itemsQuery = `
-            INSERT INTO \`disbursement_items\` 
-            (\`disbursement_id\`, \`invoice_date\`, \`invoice_no\`, \`supplier_name\`, \`description\`, \`amount\`, \`remark\`) 
-            VALUES ?
+            INSERT INTO disbursements
+            (
+                employee_id,
+                employee_name,
+                department,
+                total_amount,
+                supporting_document,
+                status,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?, 'Pending', NOW())
         `;
 
-            const itemsValues = expenseItems.map(item => [
-                disbursementId,
-                item.invoice_date,
-                item.invoice_no,
-                item.supplier_name,
-                item.description,
-                parseFloat(String(item.amount || 0).replace(/[^0-9.]/g, '')) || 0.00,
-                item.remark || ''
-            ]);
+        const roles = [
+            'Project Manager',
+            'Head of Department',
+            'VGM'
+        ];
 
-            db.query(itemsQuery, [itemsValues], (err) => {
-                if (err) {
-                    console.error('Child Table SQL Error:', err);
-                    return res.status(500).json({ success: false, message: 'Failed to save itemized rows: ' + err.message });
+        if (total_amount > 3000) {
+            roles.push(
+                'CEO',
+                'Chairman'
+            );
+        }
+
+        try {
+            const result = await saveWithApprovalSteps({
+                type: 'disbursement',
+
+                insertQuery: masterQuery,
+
+                values: [
+                    employee_id,
+                    employee_name,
+                    department,
+                    total_amount,
+                    attachment_path
+                ],
+
+                roles,
+
+                afterInsert: async (
+                    connection,
+                    masterResult
+                ) => {
+                    if (expenseItems.length === 0) {
+                        return;
+                    }
+
+                    const itemsQuery = `
+                        INSERT INTO disbursement_items
+                        (
+                            disbursement_id,
+                            invoice_date,
+                            invoice_no,
+                            supplier_name,
+                            description,
+                            amount,
+                            remark
+                        )
+                        VALUES ?
+                    `;
+
+                    const itemsValues =
+                        expenseItems.map(item => [
+                            masterResult.insertId,
+                            item.invoice_date,
+                            item.invoice_no,
+                            item.supplier_name,
+                            item.description,
+                            parseFloat(
+                                String(item.amount || 0)
+                                    .replace(/[^0-9.]/g, '')
+                            ) || 0.00,
+                            item.remark || ''
+                        ]);
+
+                    await connection.query(
+                        itemsQuery,
+                        [itemsValues]
+                    );
                 }
-                return res.json({ success: true, message: 'Disbursement form and all rows saved successfully!' });
             });
-        });
+
+            return res.json({
+                success: true,
+                id: result.insertId,
+                message:
+                    'Disbursement submitted successfully!'
+            });
+
+        } catch (err) {
+            console.error(
+                'Disbursement workflow error:',
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Failed to submit disbursement.'
+            });
+        }
     }
 );
 
