@@ -7,6 +7,7 @@ const { requireLogin } = require('../middleware/auth');
 const approval = require('../utils/resignation-approval');
 const probationService = require('../utils/probation-service');
 const salaryAdjustmentApproval = require('../utils/salary-adjustment-approval');
+const p1Approval = require('../utils/p1-approval');
 
 const router = express.Router();
 async function openConnection() {
@@ -65,6 +66,19 @@ router.put('/api/approval-queue/:type/:id', requireLogin, (req, res, next) => {
         )(req, res);
     }
 
+    if (type === 'leave' || type === 'travel') {
+        return endpoint((connection, request) =>
+            p1Approval.decide(
+                connection,
+                type,
+                request.session.user.user_id,
+                request.params.id,
+                request.body.status,
+                request.body.remarks || request.body.comment || null
+            )
+        )(req, res);
+    }
+
     return next();
 });
 
@@ -93,14 +107,14 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
     const user = await approval.freshUser(connection, req.session.user.user_id);
     if (!approval.canOpenQueue(user)) throw approval.problem(403, 'Access denied: approver account required.');
     const legacy = approval.legacyAccess(user), combined = [];
+
     // Keep legacy form fields, amounts and department visibility unchanged.
     const sources = [
-        ['leave', 'ID', 'Employee ID', 'Employee Name', 'Department', 'Leave', null, 'Created At', 'Status'],
         ['disbursements', 'id', 'employee_id', 'employee_name', 'department', 'Disbursement', 'total_amount', 'created_at', 'status'],
-        ['travel', 'id', 'employee_id', 'employee_name', 'department', 'Travel', 'total_amount', 'created_at', 'status'],
         ['overtime', 'id', 'employee_id', 'employee_name', 'department', 'Overtime', 'total_claim', 'created_at', 'status'],
         ['loans', 'id', 'employee_id', 'employee_name', 'department', 'Loan', 'amount_requested', 'created_at', 'status']
     ];
+
     if (legacy.allowed) {
         for (const [table, id, employeeId, name, department, type, amount, date, status] of sources) {
             const [rows] = await connection.query(`
@@ -116,6 +130,82 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
                 amount: amount ? `RM ${parseFloat(row.amount || 0).toFixed(2)}` : 'Not Applicable'
             })));
         }
+    }
+    const [leaveRequests] = await connection.query(`
+    SELECT
+        l.ID AS id,
+        l.\`Employee ID\` AS employee_id,
+        l.\`Employee Name\` AS employee_name,
+        l.Department AS department,
+        l.\`Created At\` AS date_submitted,
+        l.last_reminder_sent,
+        l.Status AS status,
+        s.step_order,
+        s.approver_role,
+        s.status AS step_status
+    FROM \`leave\` l
+    JOIN leave_approval_steps s
+        ON s.leave_id = l.ID
+    WHERE l.Status = 'Pending'
+      AND s.status = 'Pending'
+`);
+
+    for (const row of leaveRequests) {
+        if (!p1Approval.canAct(
+            user,
+            row,
+            {
+                approver_role: row.approver_role,
+                status: row.step_status
+            }
+        )) continue;
+
+        combined.push({
+            ...row,
+            request_type: 'Leave',
+            amount: 'Not Applicable',
+            table_source: 'leave',
+            can_approve: true
+        });
+    }
+
+    const [travelRequests] = await connection.query(`
+    SELECT
+        t.id,
+        t.employee_id,
+        t.employee_name,
+        t.department,
+        t.created_at AS date_submitted,
+        t.last_reminder_sent,
+        t.status,
+        t.total_amount,
+        s.step_order,
+        s.approver_role,
+        s.status AS step_status
+    FROM travel t
+    JOIN travel_approval_steps s
+        ON s.travel_id = t.id
+    WHERE t.status = 'Pending'
+      AND s.status = 'Pending'
+`);
+
+    for (const row of travelRequests) {
+        if (!p1Approval.canAct(
+            user,
+            row,
+            {
+                approver_role: row.approver_role,
+                status: row.step_status
+            }
+        )) continue;
+
+        combined.push({
+            ...row,
+            request_type: 'Travel',
+            amount: `RM ${parseFloat(row.total_amount || 0).toFixed(2)}`,
+            table_source: 'travel',
+            can_approve: true
+        });
     }
     const [requests] = await connection.query(`
         SELECT r.id, r.requested_by, r.requested_by_name, r.employee_id, r.employee_name,
@@ -133,7 +223,7 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
     }
 
     const [salaryAdjustmentRequests] =
-    await connection.query(`
+        await connection.query(`
         SELECT
             sa.id,
             sa.requested_by,
@@ -155,31 +245,31 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
           AND s.status = 'Pending'
     `);
 
-for (const row of salaryAdjustmentRequests) {
-    if (
-        !salaryAdjustmentApproval.canAct(
-            user,
-            row,
-            {
-                approver_role: row.approver_role,
-                status: row.step_status
-            }
-        )
-    ) {
-        continue;
-    }
+    for (const row of salaryAdjustmentRequests) {
+        if (
+            !salaryAdjustmentApproval.canAct(
+                user,
+                row,
+                {
+                    approver_role: row.approver_role,
+                    status: row.step_status
+                }
+            )
+        ) {
+            continue;
+        }
 
-    combined.push({
-        ...row,
-        request_type: 'Salary Adjustment',
-        amount:
-            row.adjustment_amount != null
-                ? `RM ${parseFloat(row.adjustment_amount).toFixed(2)}`
-                : 'Not Applicable',
-        table_source: 'salary_adjustments',
-        can_approve: true
-    });
-}
+        combined.push({
+            ...row,
+            request_type: 'Salary Adjustment',
+            amount:
+                row.adjustment_amount != null
+                    ? `RM ${parseFloat(row.adjustment_amount).toFixed(2)}`
+                    : 'Not Applicable',
+            table_source: 'salary_adjustments',
+            can_approve: true
+        });
+    }
 
     const probationQueue = await probationService.queue(
         connection,

@@ -4,6 +4,7 @@ const db = require('../config/database');
 const upload = require('../middleware/upload');
 const { requireLogin } = require('../middleware/auth');
 const { getAnnualEntitlement, getSickEntitlement, isWeekend, countBusinessDays } = require('../utils/helpers');
+const { saveWithApprovalSteps } = require('../utils/p1-workflow');
 
 const router = express.Router();
 
@@ -159,13 +160,50 @@ router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
         `;
 
-        db.query(query, [employee_id, employee_name, department, leave_type, start_date, end_date, day_type, num_days, reason, attachment_path], (err, result) => {
-            if (err) {
-                console.error('SQL Error:', err);
-                return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
-            }
-            return res.json({ success: true, message: 'Leave application submitted successfully!' });
-        });
+        const roles = ['Head of Department'];
+
+        if (num_days > 3) {
+            roles.push('VGM');
+        }
+
+        if (num_days > 5) {
+            roles.push('CEO', 'Chairman');
+        }
+
+        roles.push('HR');
+
+        saveWithApprovalSteps({
+            type: 'leave',
+            insertQuery: query,
+            values: [
+                employee_id,
+                employee_name,
+                department,
+                leave_type,
+                start_date,
+                end_date,
+                day_type,
+                num_days,
+                reason,
+                attachment_path
+            ],
+            roles
+        })
+            .then(result => {
+                return res.json({
+                    success: true,
+                    id: result.insertId,
+                    message: 'Leave application submitted successfully!'
+                });
+            })
+            .catch(err => {
+                console.error('Leave workflow error:', err);
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to submit leave application.'
+                });
+            });
     });
 });
 

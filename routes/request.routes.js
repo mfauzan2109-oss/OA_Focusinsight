@@ -1,6 +1,7 @@
 const express = require('express');
 const { saveResignationWithWorkflow } = require('../utils/resignation-workflow');
 const { saveSalaryAdjustmentWithWorkflow } = require('../utils/salary-adjustment-workflow');
+const { saveWithApprovalSteps } = require('../utils/p1-workflow');
 const db = require('../config/database');
 const { requireLogin, requireHRAccess } = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -78,14 +79,39 @@ const handleTravelSubmission = (req, res) => {
         safeNum(req.body.hotel_price)
     ];
 
-    db.query(query, values, (err, result) => {
-        if (err) {
-            console.error('Travel Submission SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
-        }
-        console.log('Successfully saved travel record ID:', result.insertId);
-        return res.json({ success: true, message: 'Travel application submitted successfully!' });
-    });
+    const roles = [
+        'Head of Department',
+        'VGM',
+        'CEO',
+        'Chairman'
+    ];
+
+    saveWithApprovalSteps({
+        type: 'travel',
+        insertQuery: query,
+        values,
+        roles
+    })
+        .then(result => {
+            console.log(
+                'Successfully saved travel record ID:',
+                result.insertId
+            );
+
+            return res.json({
+                success: true,
+                id: result.insertId,
+                message: 'Travel application submitted successfully!'
+            });
+        })
+        .catch(err => {
+            console.error('Travel workflow error:', err);
+
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to submit travel application.'
+            });
+        });
 }
 
 router.post(
