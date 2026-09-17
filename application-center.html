@@ -550,6 +550,24 @@
             color: #f59e0b;
         }
 
+        .app-card-badge {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: #f59e0b;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+        }
+
         .app-card.green    { border-color: #bbf7d0; }
         .app-card.green    .app-icon-box { background: #bbf7d0; color: #16a34a; }
         .app-card.green    .app-arrow    { color: #16a34a; }
@@ -794,6 +812,15 @@
                         </div>
                         <i class="fa-solid fa-arrow-right app-arrow"></i>
                     </a>
+
+                    <a href="probation-confirmation-list.html" class="app-card orange" data-name="Probation Confirmation" id="probationConfirmationCard">
+                        <span class="app-card-badge" id="probationConfirmationBadge" style="display: none;">0</span>
+                        <div class="app-icon-box"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="app-card-text">
+                            <p class="app-card-title">Probation Confirmation</p>
+                        </div>
+                        <i class="fa-solid fa-arrow-right app-arrow"></i>
+                    </a>
                 </section>
 
                 <div class="app-tab-locked" id="employeeRequestLocked">
@@ -856,11 +883,37 @@
             if (employeeRequestLocked) employeeRequestLocked.style.display = 'none';
             if (tabEmployeeRequest) tabEmployeeRequest.style.display = 'inline-flex';
             if (appTabsBar) appTabsBar.style.display = 'flex';
+            updateProbationConfirmationBadge();
         } else {
             if (employeeRequestGrid) employeeRequestGrid.style.display = 'none';
             if (employeeRequestLocked) employeeRequestLocked.style.display = 'flex';
             if (tabEmployeeRequest) tabEmployeeRequest.style.display = 'none';
             if (appTabsBar) appTabsBar.style.display = 'none';
+        }
+
+        // ==================================================================
+        // PROBATION CONFIRMATION BADGE: shows how many probation confirmation
+        // forms this HOD/manager still needs to fill in and submit for their
+        // team. Mirrors the sidebar Approval Queue badge pattern. Swap the
+        // endpoint below for the real one once the backend route exists.
+        // ==================================================================
+        async function updateProbationConfirmationBadge() {
+            const badge = document.getElementById('probationConfirmationBadge');
+            if (!badge) return;
+            try {
+                const res = await fetch(`/api/probation-confirmation/pending-count?user_id=${encodeURIComponent(userId)}`);
+                const data = await res.json();
+                const pendingCount = (data && data.success && typeof data.count === 'number') ? data.count : 0;
+                if (pendingCount > 0) {
+                    badge.textContent = pendingCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Probation confirmation badge check failed:', e);
+                badge.style.display = 'none';
+            }
         }
 
         function activateTab(tab) {
@@ -983,7 +1036,7 @@
 
         async function fetchNotifications() {
             try {
-                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
                 const data = await response.json();
 
                 if (data.success && data.notifications && data.notifications.length > 0) {
