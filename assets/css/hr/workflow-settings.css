@@ -15,7 +15,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #bcdbe5;
+            background-color: var(--color-bg);
             margin: 0;
             display: flex;
             min-height: 100vh;
@@ -31,7 +31,7 @@
         .sidebar-section-title {
             font-size: 11px;
             font-weight: 700;
-            color: #2563eb;
+            color: var(--color-primary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 12px 14px 4px 14px;
@@ -43,12 +43,12 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 2px;
-            background: #ffffff;
-            border-radius: 12px;
+            background: var(--color-white);
+            border-radius: var(--radius-12);
             padding: 4px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-xs);
+            border: 1px solid var(--color-slate-200);
         }
 
         .admin-tab-btn {
@@ -56,9 +56,9 @@
             text-align: center;
             font-size: 13px;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--color-slate-800);
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: var(--radius-8);
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -67,21 +67,21 @@
 
         .admin-tab-btn.active {
             background-color: #5eead4;
-            color: #0f172a;
-            border: 2px solid #2563eb;
+            color: var(--color-slate-900);
+            border: 2px solid var(--color-primary);
         }
 
         .admin-tab-btn:hover:not(.active) {
-            background-color: #f8fafc;
-            color: #2563eb;
+            background-color: var(--color-slate-50);
+            color: var(--color-primary);
         }
 
         /* --- CONTENT CARD --- */
         .admin-card {
-            background-color: #ffffff;
-            border-radius: 16px;
+            background-color: var(--color-white);
+            border-radius: var(--radius-16);
             padding: 24px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--shadow-sm);
             border: 2px solid #5eead4;
         }
 
@@ -95,16 +95,16 @@
         .card-title {
             font-size: 16px;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--color-slate-900);
             margin: 0;
         }
 
         .btn-add-workflow {
-            background-color: #1d4ed8;
-            color: #ffffff;
+            background-color: var(--color-primary-hover);
+            color: var(--color-white);
             border: none;
             padding: 8px 20px;
-            border-radius: 20px;
+            border-radius: var(--radius-20);
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
@@ -125,9 +125,9 @@
         }
 
         .workflow-item {
-            background-color: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 14px;
+            background-color: var(--color-slate-50);
+            border: 1px solid var(--color-slate-300);
+            border-radius: var(--radius-14);
             padding: 18px 24px;
             display: flex;
             justify-content: space-between;
@@ -138,20 +138,20 @@
         .workflow-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            border-color: #94a3b8;
+            border-color: var(--color-slate-400);
         }
 
         .workflow-info h3 {
             font-size: 15px;
             font-weight: 800;
-            color: #0f172a;
+            color: var(--color-slate-900);
             margin: 0 0 6px 0;
         }
 
         .workflow-info p {
             font-size: 12px;
             font-weight: 600;
-            color: #64748b;
+            color: var(--color-slate-500);
             margin: 0;
         }
 
@@ -167,13 +167,13 @@
             font-size: 11px;
             font-weight: 800;
             padding: 6px 14px;
-            border-radius: 12px;
+            border-radius: var(--radius-12);
         }
 
         .btn-edit-link {
             font-size: 12px;
             font-weight: 700;
-            color: #2563eb;
+            color: var(--color-primary);
             text-decoration: none;
         }
 
@@ -189,7 +189,7 @@
             background: transparent;
             border: none;
             font-size: 16px;
-            color: #475569;
+            color: var(--color-slate-600);
             cursor: pointer;
             width: 34px;
             height: 34px;
@@ -199,14 +199,14 @@
             justify-content: center;
             transition: background 0.15s ease;
         }
-        .noti-bell-btn:hover { background-color: #f1f5f9; }
+        .noti-bell-btn:hover { background-color: var(--color-slate-100); }
 
         .noti-badge {
             position: absolute;
             top: 2px;
             right: 2px;
-            background-color: #ef4444;
-            color: #ffffff;
+            background-color: var(--color-danger);
+            color: var(--color-white);
             font-size: 9px;
             font-weight: 800;
             min-width: 15px;
@@ -243,10 +243,10 @@
             width: 340px;
             max-height: 420px;
             overflow-y: auto;
-            background: #ffffff;
-            border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-            border: 1px solid #e2e8f0;
+            background: var(--color-white);
+            border-radius: var(--radius-14);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-slate-200);
             z-index: 100;
         }
         .noti-dropdown.open { display: block; }
@@ -255,18 +255,18 @@
             padding: 14px 16px;
             font-size: 13px;
             font-weight: 800;
-            color: #0f172a;
-            border-bottom: 1px solid #e2e8f0;
+            color: var(--color-slate-900);
+            border-bottom: 1px solid var(--color-slate-200);
         }
 
         .noti-list-body { padding: 8px; }
 
         .noti-card {
-            background: #f8fafc;
-            border-radius: 10px;
+            background: var(--color-slate-50);
+            border-radius: var(--radius-10);
             padding: 10px 12px;
             margin-bottom: 8px;
-            border-left: 4px solid #f59e0b;
+            border-left: 4px solid var(--color-warning);
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -275,24 +275,24 @@
             transition: transform 0.15s ease;
         }
         .noti-card:hover { transform: translateX(2px); }
-        .noti-card.status-approved { border-left-color: #22c55e; }
-        .noti-card.status-rejected { border-left-color: #ef4444; }
+        .noti-card.status-approved { border-left-color: var(--color-success); }
+        .noti-card.status-rejected { border-left-color: var(--color-danger); }
         .noti-card.status-review { border-left-color: #0ea5e9; }
-        .noti-card.status-pending { border-left-color: #f59e0b; }
+        .noti-card.status-pending { border-left-color: var(--color-warning); }
 
-        .noti-card-title { font-size: 12.5px; font-weight: 700; color: #0f172a; margin: 0 0 2px 0; }
-        .noti-card-formno { font-size: 11px; font-weight: 600; color: #475569; margin: 0; }
-        .noti-card-date { font-size: 10.5px; color: #94a3b8; margin: 2px 0 0 0; }
+        .noti-card-title { font-size: 12.5px; font-weight: 700; color: var(--color-slate-900); margin: 0 0 2px 0; }
+        .noti-card-formno { font-size: 11px; font-weight: 600; color: var(--color-slate-600); margin: 0; }
+        .noti-card-date { font-size: 10.5px; color: var(--color-slate-400); margin: 2px 0 0 0; }
         .noti-status-pill {
             font-size: 9px;
             font-weight: 800;
             padding: 3px 8px;
-            border-radius: 10px;
+            border-radius: var(--radius-10);
             text-transform: uppercase;
             white-space: nowrap;
-            color: #ffffff;
+            color: var(--color-white);
         }
-        .noti-status-pill.pending { background: #f59e0b; }
-        .noti-status-pill.approved { background: #22c55e; }
-        .noti-status-pill.rejected { background: #ef4444; }
+        .noti-status-pill.pending { background: var(--color-warning); }
+        .noti-status-pill.approved { background: var(--color-success); }
+        .noti-status-pill.rejected { background: var(--color-danger); }
         .noti-status-pill.review { background: #0ea5e9; }

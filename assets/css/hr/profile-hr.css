@@ -1,6 +1,80 @@
+:root {
+    /* Primary (blue) */
+    --color-primary: #2563eb;
+    --color-primary-hover: #1d4ed8;
+    --color-primary-light: #3b82f6;
+    --color-primary-bg: #eff6ff;
+
+    /* Neutrals / text (slate scale) */
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-slate-900: #0f172a;
+    --color-slate-800: #1e293b;
+    --color-slate-700: #334155;
+    --color-slate-600: #475569;
+    --color-slate-500: #64748b;
+    --color-slate-400: #94a3b8;
+    --color-slate-300: #cbd5e1;
+    --color-slate-200: #e2e8f0;
+    --color-slate-100: #f1f5f9;
+    --color-slate-50: #f8fafc;
+    --color-text-base: #030c1b;
+    --color-gray-legacy: #333;
+
+    /* Danger (red) */
+    --color-danger: #ef4444;
+    --color-danger-hover: #dc2626;
+    --color-danger-bg: #fef2f2;
+    --color-danger-bg-alt: #fff1f2;
+    --color-danger-bg-soft: #fee2e2;
+
+    /* Success (green) */
+    --color-success: #22c55e;
+    --color-success-hover: #16a34a;
+    --color-success-bg: #f0fdf4;
+    --color-success-bg-alt: #dcfce7;
+
+    /* Warning (amber) */
+    --color-warning: #f59e0b;
+    --color-warning-bg: #fffbeb;
+
+    /* Page background (teal) */
+    --color-bg: #bcdbe5;
+    --color-bg-admin: #aedce2;
+
+    /* Accent indigo family (HR admin forms) */
+    --color-accent-indigo-light: #c7d2fe;
+    --color-accent-indigo-mid: #a5b4fc;
+    --color-accent-indigo-mid2: #b4c6fc;
+    --color-accent-indigo-dark: #1e1b4b;
+
+    /* Corner radius scale */
+    --radius-4: 4px;
+    --radius-6: 6px;
+    --radius-8: 8px;
+    --radius-10: 10px;
+    --radius-12: 12px;
+    --radius-14: 14px;
+    --radius-15: 15px;
+    --radius-16: 16px;
+    --radius-20: 20px;
+    --radius-22: 22px;
+    --radius-30: 30px;
+
+    /* Shadows */
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.15);
+    --shadow-focus-primary: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    --shadow-card: 0 4px 10px rgba(15, 23, 42, 0.08);
+    --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
+    --shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-2xs: 0 2px 4px rgba(0, 0, 0, 0.02);
+    --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-subtle-slate: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
 body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #bcdbe5; 
+            background-color: var(--color-bg); 
             margin: 0; 
             padding: 20px; 
             display: flex; 
@@ -10,15 +84,15 @@ body {
         .profile-container { 
             width: 100%; 
             max-width: 800px; 
-            background: #bcdbe5; 
-            border-radius: 15px; 
+            background: var(--color-bg); 
+            border-radius: var(--radius-15); 
             padding: 25px; 
             box-shadow: none; 
             border: none; 
         }
         .profile-card-header { 
             background: white; 
-            border-radius: 12px; 
+            border-radius: var(--radius-12); 
             padding: 20px; 
             display: flex; 
             align-items: center; 
@@ -35,13 +109,13 @@ body {
         .avatar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; opacity: 0; transition: opacity 0.2s ease; }
         .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
 
-        .meta-details p { margin: 4px 0; color: #333; font-size: 14px; }
+        .meta-details p { margin: 4px 0; color: var(--color-gray-legacy); font-size: 14px; }
         .meta-details p span { color: #004ffe; font-weight: 600; }
         
         /* Dynamic Status Badge Colors */
         .status-badge { 
             padding: 8px 20px; 
-            border-radius: 20px; 
+            border-radius: var(--radius-20); 
             font-weight: 600; 
             font-size: 14px; 
             color: white; 
@@ -52,13 +126,13 @@ body {
         .status-trip { background-color: #00a8e8; }                      /* Blue */
         .status-probation { background-color: #f77f00; }                 /* Orange */
 
-        .section-box { background: rgba(255, 255, 255, 0.9); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .section-box { background: rgba(255, 255, 255, 0.9); border-radius: var(--radius-12); padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .section-title { font-size: 16px; font-weight: 600; color: #222; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: span 2; }
         .input-group { display: flex; flex-direction: column; }
         label { font-size: 13px; font-weight: 500; color: #444; margin-bottom: 5px; }
-        input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: #fff; width: 100%; box-sizing: border-box; }
+        input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: var(--radius-6); font-size: 14px; background: var(--color-white); width: 100%; box-sizing: border-box; }
         input:disabled, textarea:disabled { background: #f0f0f0; color: #666; cursor: not-allowed; border: 1px solid #ddd; }
         
         /* Error highlighting */
@@ -67,8 +141,8 @@ body {
         }
 
         .btn-container { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
-        .btn { padding: 10px 25px; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-back { background: #b0bcd4; color: #333; }
+        .btn { padding: 10px 25px; border: none; border-radius: var(--radius-20); font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-back { background: #b0bcd4; color: var(--color-gray-legacy); }
         .btn-action { background: #004ffe; color: white; }
         .btn:hover { opacity: 0.9; }
 
