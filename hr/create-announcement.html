@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Announcement - FocusInsight HR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <!-- HR Security Guard -->
+    <script src="../js/auth_check.js"></script>
+    <link rel="stylesheet" href="../assets/css/hr/create-announcement.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="../images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
+        </div>
+
+        <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
+            <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
+            <div class="profile-info">
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
+            </div>
+        </a>
+
+        <nav class="nav-menu">
+            <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
+
+            <div class="sidebar-section-title">HR Management</div>
+            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
+            <a href="reports.html" class="nav-item"><i class='bx bx-bar-chart-alt-2'></i> Reports</a>
+            <a href="hr-operation.html" class="nav-item active"><i class='bx bx-briefcase'></i> HR Operations</a>
+
+            <div class="sidebar-section-title">My Workspace</div>
+            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../index.html" class="nav-item logout-item" id="logoutBtn"><i class='bx bx-log-out'></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-title">
+                <h1>Create Announcement</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                </div>
+
+                <div class="notification-container">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="noti-badge" id="notiBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="top-bar-divider"></div>
+
+                <a href="profile-hr.html" style="text-decoration: none;">
+                    <div class="avatar-circle" id="topAvatar">--</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="announcement-card">
+                <form id="createAnnouncementForm">
+                    <div class="form-group">
+                        <label class="form-label" for="annTitle">Title <span class="required-mark">*</span></label>
+                        <input type="text" id="annTitle" class="form-input" placeholder="Enter announcement title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="annMessage">Message <span class="required-mark">*</span></label>
+                        <textarea id="annMessage" class="form-textarea" placeholder="Enter announcement message..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="annAudience">Target Audience <span class="required-mark">*</span></label>
+                        <select id="annAudience" class="form-select" required>
+                            <option value="" disabled selected>Select target audience</option>
+                            <option value="All">All</option>
+                            <option value="Employee">Employee</option>
+                            <option value="Manager">Manager</option>
+                            <option value="CEO">CEO</option>
+                            <option value="HR">HR</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="annPublishDate">Publish Date <span class="required-mark">*</span></label>
+                            <input type="date" id="annPublishDate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="annExpiryDate">Expiry Date <span class="required-mark">*</span></label>
+                            <input type="date" id="annExpiryDate" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="bottom-actions">
+                        <a href="hr-operation.html" class="btn-action-cancel">Cancel</a>
+                        <button type="submit" class="btn-action-submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="../assets/js/hr/create-announcement.js"></script>
+</body>
+</html>

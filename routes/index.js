@@ -12,6 +12,7 @@ router.use(require('./users.routes'));
 router.use(require('./reports.routes'));
 router.use(require('./reminder.routes'));
 router.use(require('./workflow.routes'));
+router.use(require('./announcements.routes'));
 router.use(require('./printing-production'));
 router.use(require('./legacy-forms.routes'));
 
