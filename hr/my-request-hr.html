@@ -591,7 +591,7 @@
            ============================================================== */
         // When the page is served by Express (port 3000) relative calls work.
         // When opened through Live Server / file://, fall back to the API host.
-        const API_BASE = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+        const API_BASE = (window.location.port === '3000') ? '' : '';
 
         const userId     = sessionStorage.getItem('userId') || 'HR4001';
         const username   = sessionStorage.getItem('username') || 'Chen Jun';

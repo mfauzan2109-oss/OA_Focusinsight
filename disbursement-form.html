@@ -676,9 +676,10 @@
                     <div class="upload-dropzone" id="dropzone">
                         <i class='bx bx-upload'></i>
                         <p>Drag & drop or <a href="#" id="browseLink">browse files</a></p>
-                        <span class="upload-hint">PDF, JPG, PNG up to 5MB</span>
-                        <input type="file" id="fileInput" hidden accept=".pdf,.jpg,.jpeg,.png">
+                        <span class="upload-hint">PDF, JPG, PNG up to 5MB each (multiple files allowed)</span>
+                        <input type="file" id="fileInput" hidden multiple accept=".pdf,.jpg,.jpeg,.png">
                         <div class="file-name" id="fileNameDisplay"></div>
+                        <ul id="fileList" class="file-list"></ul>
                     </div>
                 </div>
 
@@ -754,7 +755,7 @@
 
             async function fetchUserRequestsForSearch() {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                    const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
                     const data = await response.json();
                     if (data.success && data.notifications) {
                         userRequestsCache = data.notifications;
@@ -870,7 +871,7 @@
 
             async function fetchNotifications() {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                    const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
                     const data = await response.json();
 
                     if (data.success && data.notifications && data.notifications.length > 0) {
@@ -1122,6 +1123,60 @@
             const fileInput = document.getElementById('fileInput');
             const browseLink = document.getElementById('browseLink');
             const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const fileListEl = document.getElementById('fileList');
+
+            // Running collection of selected files (persists across multiple picks/drops)
+            let selectedFiles = [];
+
+            function syncFileInput() {
+                const dt = new DataTransfer();
+                selectedFiles.forEach(f => dt.items.add(f));
+                fileInput.files = dt.files;
+            }
+
+            function renderFileList() {
+                fileListEl.innerHTML = '';
+                if (selectedFiles.length === 0) {
+                    fileNameDisplay.textContent = '';
+                    return;
+                }
+                fileNameDisplay.textContent = `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected`;
+                selectedFiles.forEach((file, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'file-list-item';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = file.name;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn-remove-file';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
+                    removeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        selectedFiles.splice(idx, 1);
+                        syncFileInput();
+                        renderFileList();
+                        saveFormDraft();
+                    });
+
+                    li.appendChild(nameSpan);
+                    li.appendChild(removeBtn);
+                    fileListEl.appendChild(li);
+                });
+            }
+
+            function addFiles(newFiles) {
+                Array.from(newFiles).forEach(file => {
+                    const isDup = selectedFiles.some(f => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified);
+                    if (!isDup) {
+                        selectedFiles.push(file);
+                    }
+                });
+                syncFileInput();
+                renderFileList();
+            }
 
             if (browseLink && fileInput) {
                 browseLink.addEventListener('click', function(e) {
@@ -1139,7 +1194,8 @@
 
                 fileInput.addEventListener('change', function() {
                     if (this.files.length > 0) {
-                        fileNameDisplay.textContent = `Selected: ${this.files[0].name}`;
+                        addFiles(this.files);
+                        saveFormDraft();
                     }
                 });
 
@@ -1154,8 +1210,8 @@
                     e.preventDefault();
                     this.classList.remove('dragover');
                     if (e.dataTransfer.files.length > 0) {
-                        fileInput.files = e.dataTransfer.files;
-                        fileNameDisplay.textContent = `Selected: ${e.dataTransfer.files[0].name}`;
+                        addFiles(e.dataTransfer.files);
+                        saveFormDraft();
                     }
                 });
             }
@@ -1173,7 +1229,9 @@
                 formData.append('total_amount', totalClaimInput.value);
 
                 if (fileInput && fileInput.files.length > 0) {
-                    formData.append('attachment', fileInput.files[0]);
+                    Array.from(fileInput.files).forEach(file => {
+                        formData.append('attachments', file);
+                    });
                 }
 
                 const itemsArray = [];
@@ -1202,7 +1260,7 @@
                 formData.append('items', JSON.stringify(itemsArray));
 
                 try {
-                    const response = await fetch('http://localhost:3000/api/submit-disbursement', {
+                    const response = await fetch('/api/submit-disbursement', {
                         method: 'POST',
                         body: formData
                     });
@@ -1241,7 +1299,7 @@
             if (pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userId || '').toUpperCase().startsWith('MGR')) {
                 if (queueItem) queueItem.style.display = 'flex';
                 try {
-                    const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                    const res = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
                     const data = await res.json();
                     if (data.success && data.data) {
                         const pendingCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;

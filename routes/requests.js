@@ -27,6 +27,8 @@ router.get('/api/request-details', (req, res) => {
         query = `SELECT o.*, u.phone_no, u.email FROM \`overtime\` o LEFT JOIN users u ON LOWER(o.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE o.id = ?`;
     } else if (reqType.includes('loan')) {
         query = `SELECT ln.*, u.phone_no, u.email FROM \`loans\` ln LEFT JOIN users u ON LOWER(ln.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE ln.id = ?`;
+    } else if (reqType.includes('probation')) {
+        query = `SELECT p.*, u.phone_no, u.email FROM \`probation_confirmations\` p LEFT JOIN users u ON LOWER(p.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE p.id = ?`;
     } else {
         return res.status(400).json({ success: false, message: 'Invalid or unsupported request type.' });
     }
@@ -97,6 +99,9 @@ router.get('/api/approval-queue', (req, res) => {
     let travelQuery = `SELECT id, employee_id, employee_name, department, 'Travel' as request_type, total_amount as amount, created_at as date_submitted, last_reminder_sent, resubmission_count, TRIM(status) as status FROM \`travel\` WHERE 1=1`;
     let otQuery     = `SELECT id, employee_id, employee_name, department, 'Overtime' as request_type, total_claim as amount, created_at as date_submitted, last_reminder_sent, resubmission_count, TRIM(status) as status FROM \`overtime\` WHERE 1=1`;
     let loanQuery   = `SELECT id, employee_id, employee_name, department, 'Loan' as request_type, amount_requested as amount, created_at as date_submitted, last_reminder_sent, resubmission_count, TRIM(status) as status FROM \`loans\` WHERE 1=1`;
+    // probation_confirmations has no resubmission_count column, so it's hardcoded to 0 here
+    // to keep the row shape identical to the other tables the frontend expects.
+    let probationQuery = `SELECT id, employee_id, employee_name, department, 'Probation Confirmation' as request_type, 'Not Applicable' as amount, created_at as date_submitted, last_reminder_sent, 0 as resubmission_count, TRIM(status) as status FROM \`probation_confirmations\` WHERE 1=1`;
 
     const params = isGlobalApprover ? [] : [userDept];
 
@@ -106,6 +111,7 @@ router.get('/api/approval-queue', (req, res) => {
         travelQuery += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
         otQuery     += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
         loanQuery   += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
+        probationQuery += ` AND LOWER(TRIM(department)) = LOWER(TRIM(?))`;
     }
 
     db.query(leaveQuery, params, (err1, leaveResults) => {
@@ -113,17 +119,20 @@ router.get('/api/approval-queue', (req, res) => {
             db.query(travelQuery, params, (err3, travelResults) => {
                 db.query(otQuery, params, (err4, otResults) => {
                     db.query(loanQuery, params, (err5, loanResults) => {
-                        const combinedQueue = [];
+                        db.query(probationQuery, params, (err6, probationResults) => {
+                            const combinedQueue = [];
 
-                        (leaveResults || []).forEach(row => combinedQueue.push({ ...row, table_source: 'leave' }));
-                        (disResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'disbursements' }));
-                        (travelResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'travel' }));
-                        (otResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'overtime' }));
-                        (loanResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'loans' }));
+                            (leaveResults || []).forEach(row => combinedQueue.push({ ...row, table_source: 'leave' }));
+                            (disResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'disbursements' }));
+                            (travelResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'travel' }));
+                            (otResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'overtime' }));
+                            (loanResults || []).forEach(row => combinedQueue.push({ ...row, amount: `RM ${parseFloat(row.amount || 0).toFixed(2)}`, table_source: 'loans' }));
+                            (probationResults || []).forEach(row => combinedQueue.push({ ...row, table_source: 'probation_confirmations' }));
 
-                        combinedQueue.sort((a, b) => new Date(b.date_submitted) - new Date(a.date_submitted));
+                            combinedQueue.sort((a, b) => new Date(b.date_submitted) - new Date(a.date_submitted));
 
-                        return res.json({ success: true, data: combinedQueue });
+                            return res.json({ success: true, data: combinedQueue });
+                        });
                     });
                 });
             });
@@ -157,6 +166,13 @@ router.put('/api/approval-queue/:type/:id', (req, res) => {
         tableName = 'overtime';
     } else if (reqType === 'loan' || reqType === 'loans') {
         tableName = 'loans';
+    } else if (reqType === 'probation' || reqType === 'probation confirmation' || reqType === 'probation_confirmations') {
+        // Note: the Approval Queue page actually posts probation decisions to
+        // the dedicated /api/probation-confirmation/:id/decision route
+        // instead, since that one also saves the manager's assessment. This
+        // branch just stops a bare status update from erroring out if
+        // something ever hits this generic route for a probation record.
+        tableName = 'probation_confirmations';
     } else {
         return res.status(400).json({ success: false, message: 'Invalid request type.' });
     }
@@ -334,7 +350,13 @@ router.get('/api/my-requests', (req, res) => {
         let travelQuery = `SELECT * FROM \`travel\``;
         let otQuery     = `SELECT * FROM \`overtime\``;
         let loanQuery   = `SELECT * FROM \`loans\``;
+        // Probation Confirmation is different from every other table here:
+        // `employee_id` on that table is the employee being ASSESSED, not
+        // the person who submitted the form. "My Requests" needs to match
+        // on `requested_by` instead, so it gets its own query/param set.
+        let probationQuery = `SELECT * FROM \`probation_confirmations\``;
         let queryParams = [];
+        let probationParams = [];
 
         if (!isManagement) {
             leaveQuery  = `SELECT * FROM \`leave\` WHERE LOWER(\`Employee ID\`) = LOWER(?)`;
@@ -342,7 +364,9 @@ router.get('/api/my-requests', (req, res) => {
             travelQuery = `SELECT * FROM \`travel\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             otQuery     = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             loanQuery   = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            probationQuery = `SELECT * FROM \`probation_confirmations\` WHERE LOWER(\`requested_by\`) = LOWER(?)`;
             queryParams = [req_user_id];
+            probationParams = [req_user_id];
         }
 
         db.query(leaveQuery, queryParams, (err, leaveResults) => {
@@ -350,6 +374,7 @@ router.get('/api/my-requests', (req, res) => {
                 db.query(travelQuery, queryParams, (err, travelResults) => {
                     db.query(otQuery, queryParams, (err, otResults) => {
                         db.query(loanQuery, queryParams, (err, loanResults) => {
+                            db.query(probationQuery, probationParams, (err, probationResults) => {
                             const combinedData = [];
 
                             (leaveResults || []).forEach(row => {
@@ -449,6 +474,25 @@ router.get('/api/my-requests', (req, res) => {
                                 });
                             });
 
+                            (probationResults || []).forEach(row => {
+                                const rawDate = row['created_at'] || '—';
+                                let formattedDate = '—';
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+
+                                combinedData.push({
+                                    id: row.id || 0,
+                                    employee_id: row['employee_id'] || '—',
+                                    employee_name: row['employee_name'] || '—',
+                                    request_type: 'Probation Confirmation',
+                                    details: row['probation_period'] ? `Probation Review (${row['probation_period']})` : 'Probation Review',
+                                    date_submitted: formattedDate,
+                                    created_at: row['created_at'] || null,
+                                    last_reminder_sent: row.last_reminder_sent || null,
+                                    amount: 'Not Applicable',
+                                    status: (row['status'] || 'Pending').trim()
+                                });
+                            });
+
                             combinedData.sort((a, b) => {
                                 if (a.date_submitted === '—') return 1;
                                 if (b.date_submitted === '—') return -1;
@@ -456,6 +500,7 @@ router.get('/api/my-requests', (req, res) => {
                             });
 
                             return res.json({ success: true, data: combinedData });
+                            });
                         });
                     });
                 });
@@ -482,6 +527,7 @@ router.post('/api/send-reminder', (req, res) => {
     else if (reqType.includes('travel')) tableName = 'travel';
     else if (reqType.includes('overtime')) tableName = 'overtime';
     else if (reqType.includes('loan')) tableName = 'loans';
+    else if (reqType.includes('probation')) tableName = 'probation_confirmations';
     else return res.status(400).json({ success: false, message: 'Invalid request type.' });
 
     const checkQuery = `SELECT id, created_at, last_reminder_sent, status FROM \`${tableName}\` WHERE id = ? OR ID = ?`;

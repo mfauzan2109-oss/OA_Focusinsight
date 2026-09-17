@@ -13,6 +13,7 @@ body {
     background-color: #bcdbe5; /* Soft blue backdrop */
     color: #030c1b;
     line-height: 1.5;
+    overflow-x: hidden;
 }
 
 /* Base layout arrangement when sidebar is present */
@@ -253,6 +254,16 @@ body:has(.sidebar) {
     flex-grow: 1;
 }
 
+.sidebar-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 14px 4px 14px;
+    margin-top: 6px;
+}
+
 .nav-item {
     display: flex;
     align-items: center;
@@ -336,6 +347,7 @@ body:has(.sidebar) {
     flex-grow: 1;
     padding: 24px 32px 60px 32px;
     width: calc(100% - 250px);
+    overflow-x: hidden;
 }
 
 .top-header {
@@ -1328,6 +1340,52 @@ body:has(.sidebar) {
     font-weight: 500;
 }
 
+.file-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    width: 100%;
+    text-align: left;
+}
+
+.file-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.file-list-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 8px;
+}
+
+.btn-remove-file {
+    background-color: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-remove-file:hover {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
 
 /* ==========================================================================
    10. ALLOWANCE CALCULATION SECTION
@@ -2038,4 +2096,3 @@ body:has(.sidebar) {
     border-radius: 50%;
     line-height: 1;
 }
-

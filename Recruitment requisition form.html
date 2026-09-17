@@ -735,7 +735,7 @@
 
                     <div class="accordion-item">
                         <div class="accordion-header ${pos.openSections[3] ? 'open' : ''}" onclick="toggleAccordion(${pos.id}, 3)">
-                            <span>3. COMPENSATION & BUDGET</span>
+                            <span>3. SALARY INFORMATION</span>
                             <i class='bx bx-chevron-down'></i>
                         </div>
                         <div class="accordion-body ${pos.openSections[3] ? 'open' : ''}">
@@ -762,9 +762,8 @@
                                 <div class="input-group">
                                     <label>Recruitment Source<span class="required">*</span></label>
                                     <select onchange="updatePositionField(${pos.id}, 'recruitmentSource', this.value)">
-                                        <option value="Internal" ${pos.recruitmentSource === 'Internal' ? 'selected' : ''}>Internal</option>
+                                        <option value="Employee Recommendation" ${pos.recruitmentSource === 'Employee Recommendation' ? 'selected' : ''}>Employee Recommendation</option>
                                         <option value="Job Portal" ${pos.recruitmentSource === 'Job Portal' ? 'selected' : ''}>Job Portal</option>
-                                        <option value="Agency" ${pos.recruitmentSource === 'Agency' ? 'selected' : ''}>Agency</option>
                                         <option value="Referral" ${pos.recruitmentSource === 'Referral' ? 'selected' : ''}>Referral</option>
                                         <option value="Campus Hiring" ${pos.recruitmentSource === 'Campus Hiring' ? 'selected' : ''}>Campus Hiring</option>
                                     </select>

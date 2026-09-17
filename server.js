@@ -10,7 +10,7 @@ const port = 3000;
 
 // ==========================================================================
 // MIDDLEWARE & STATIC FILE ROUTING
-// ==========================================================================
+// ========================================================================== 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -36,6 +36,8 @@ app.use(require('./routes/overtime'));
 app.use(require('./routes/loans'));
 app.use(require('./routes/salary'));
 app.use(require('./routes/probation'));
+app.use(require('./routes/probation-list-endpoint'));
+app.use(require('./routes/probation-confirmation-detail'));
 app.use(require('./routes/resignation'));
 app.use(require('./routes/recruitment'));
 app.use(require('./routes/manpower'));

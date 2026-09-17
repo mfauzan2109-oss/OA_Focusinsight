@@ -1,3 +1,4 @@
+//Update
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -466,6 +467,21 @@
                     <input type="text" id="company" name="company" placeholder="Fetching company name..." readonly required>
                 </div>
 
+                <div class="form-grid form-grid-3">
+                    <div class="input-group">
+                        <label for="travel-proj-name">Project Name</label>
+                        <input type="text" id="travel-proj-name" name="proj_name" placeholder="e.g. System Upgrade Phase 2">
+                    </div>
+                    <div class="input-group">
+                        <label for="travel-model-no">Model Number</label>
+                        <input type="text" id="travel-model-no" name="model_no" placeholder="e.g. MX-2200">
+                    </div>
+                    <div class="input-group">
+                        <label for="travel-pic">Person in Charge</label>
+                        <input type="text" id="travel-pic" name="person_in_charge" placeholder="e.g. John Tan">
+                    </div>
+                </div>
+
                 <div class="employee-toolbar">
                     <div class="employee-search">
                         <i class='bx bx-search'></i>
@@ -808,7 +824,7 @@
 
             const CONFIG = {
                 apiBaseUrl: window.APP_CONFIG?.apiBaseUrl || (window.location.origin.includes('localhost') 
-                    ? 'http://localhost:3000/api' 
+                    ? '/api' 
                     : '/api'),
                 loginPage: window.APP_CONFIG?.loginPage || 'login.html',
                 dashboardPage: window.APP_CONFIG?.dashboardPage || 'dashboard.html',

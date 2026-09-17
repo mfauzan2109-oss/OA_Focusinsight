@@ -1,3 +1,5 @@
+//update upload multiple doc (15/9/2026)
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -261,6 +263,52 @@
             margin-top: 4px;
         }
 
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0;
+            width: 100%;
+            text-align: left;
+        }
+
+        .file-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .file-list-item span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+
+        .btn-remove-file {
+            background-color: transparent;
+            border: none;
+            color: #ef4444;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-remove-file:hover {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
         .form-actions {
             display: flex;
             justify-content: flex-start;
@@ -512,7 +560,7 @@
             <a href="administration.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
             <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
             <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
-            <a href="hr-operations.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+            <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
 
             <div class="sidebar-section-title">My Workspace</div>
             <a href="disbursement-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
@@ -632,9 +680,10 @@
                     <div class="file-upload-box" id="dropZone">
                         <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
                         <div class="upload-text">Drag & drop or <span id="browseBtn">browse files</span></div>
-                        <div class="upload-hint">PDF, JPG, PNG up to 5MB</div>
-                        <input type="file" id="attachment" name="attachment" style="display: none;">
+                        <div class="upload-hint">PDF, JPG, PNG up to 5MB each (multiple files allowed)</div>
+                        <input type="file" id="attachment" name="attachment" multiple style="display: none;">
                         <div id="fileSelectedName" style="margin-top: 8px; font-size: 12px; font-weight: 600; color: #16a34a;"></div>
+                        <ul id="fileList" class="file-list"></ul>
                     </div>
                 </div>
 
@@ -652,7 +701,7 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const API_BASE = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+        const API_BASE = (window.location.port === '3000') ? '' : '';
 
         const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || 'HR4001';
         const username = sessionStorage.getItem('username') || 'Chen Jun';
@@ -856,13 +905,66 @@
         const fileInput = document.getElementById('attachment');
         const browseBtn = document.getElementById('browseBtn');
         const fileSelectedName = document.getElementById('fileSelectedName');
+        const fileListEl = document.getElementById('fileList');
+
+        // Running collection of selected files (persists across multiple picks/drops)
+        let selectedFiles = [];
+
+        function syncFileInput() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(f => dt.items.add(f));
+            fileInput.files = dt.files;
+        }
+
+        function renderFileList() {
+            fileListEl.innerHTML = '';
+            if (selectedFiles.length === 0) {
+                fileSelectedName.textContent = '';
+                return;
+            }
+            fileSelectedName.textContent = `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected`;
+            selectedFiles.forEach((file, idx) => {
+                const li = document.createElement('li');
+                li.className = 'file-list-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = file.name;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn-remove-file';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.setAttribute('aria-label', `Remove ${file.name}`);
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedFiles.splice(idx, 1);
+                    syncFileInput();
+                    renderFileList();
+                });
+
+                li.appendChild(nameSpan);
+                li.appendChild(removeBtn);
+                fileListEl.appendChild(li);
+            });
+        }
+
+        function addFiles(newFiles) {
+            Array.from(newFiles).forEach(file => {
+                const isDup = selectedFiles.some(f => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified);
+                if (!isDup) {
+                    selectedFiles.push(file);
+                }
+            });
+            syncFileInput();
+            renderFileList();
+        }
 
         browseBtn.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
-                fileSelectedName.textContent = `Selected: ${fileInput.files[0].name}`;
+                addFiles(fileInput.files);
             }
         });
 
@@ -883,8 +985,7 @@
             dropZone.style.backgroundColor = '#fafafa';
 
             if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                fileSelectedName.textContent = `Selected: ${e.dataTransfer.files[0].name}`;
+                addFiles(e.dataTransfer.files);
             }
         });
 

@@ -817,7 +817,7 @@
 
         async function fetchNotifications() {
             try {
-                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
                 const data = await response.json();
 
                 if (data.success && data.notifications && data.notifications.length > 0) {

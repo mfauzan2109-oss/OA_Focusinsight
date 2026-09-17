@@ -551,6 +551,20 @@
                         <input type="text" id="department" readonly>
                     </div>
                 </div>
+                <div class="form-grid form-grid-3">
+                    <div class="input-group">
+                        <label for="loan-proj-name">Project Name</label>
+                        <input type="text" id="loan-proj-name" name="proj_name" placeholder="e.g. System Upgrade Phase 2">
+                    </div>
+                    <div class="input-group">
+                        <label for="loan-model-no">Model Number</label>
+                        <input type="text" id="loan-model-no" name="model_no" placeholder="e.g. MX-2200">
+                    </div>
+                    <div class="input-group">
+                        <label for="loan-pic">Person in Charge</label>
+                        <input type="text" id="loan-pic" name="person_in_charge" placeholder="e.g. John Tan">
+                    </div>
+                </div>
             </section>
 
             <section class="form-section">
@@ -682,7 +696,7 @@
                 return;
             }
             try {
-                const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
+                const res = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
                 const data = await res.json();
                 if (data.success && data.data) {
                     const pendingApprovalCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;
@@ -766,7 +780,7 @@
                 searchDropdown.classList.add('active');
 
                 try {
-                    const response = await fetch(`http://localhost:3000/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                    const response = await fetch(`/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
                     const result = await response.json();
 
                     if (result.success && Array.isArray(result.data)) {
@@ -864,7 +878,7 @@
 
         async function fetchNotifications() {
             try {
-                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
                 const data = await response.json();
 
                 if (data.success && data.notifications && data.notifications.length > 0) {
@@ -1011,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function fetchUserRequestsForSearch() {
         try {
-            const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+            const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
             const data = await response.json();
             if (data.success && data.notifications) {
                 userRequestsCache = data.notifications;
@@ -1140,7 +1154,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     async function fetchNotifications() {
         const currentUserId = formattedUserId || 'EMP001';
         try {
-            const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(currentUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+            const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(currentUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
             const data = await response.json();
 
             if (data.success && data.notifications && data.notifications.length > 0) {
@@ -1257,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (deptInput) deptInput.value = department || '';
 
    try {
-    const response = await fetch(`http://localhost:3000/api/profile/${encodeURIComponent(formattedUserId)}`);
+    const response = await fetch(`/api/profile/${encodeURIComponent(formattedUserId)}`);
     const result = await response.json();
     
     console.log('API Response received:', result); // Check what the backend actually sent
@@ -1409,6 +1423,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         formData.append('employee_id', formattedUserId);
         formData.append('employee_name', username || '');
         formData.append('department', department || '');
+        formData.append('proj_name', document.getElementById('loan-proj-name')?.value?.trim() || '');
+        formData.append('model_no', document.getElementById('loan-model-no')?.value?.trim() || '');
+        formData.append('person_in_charge', document.getElementById('loan-pic')?.value?.trim() || '');
         formData.append('loan_type', document.getElementById('loan-type').value);
         formData.append('repayment_period', document.getElementById('repayment-period').value);
         formData.append('monthly_salary', salaryInput.value || '0.00');
@@ -1423,7 +1440,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/submit-loan', {
+            const response = await fetch('/api/submit-loan', {
                 method: 'POST',
                 body: formData
             });
@@ -1472,7 +1489,7 @@ async function checkApprovalQueueAccess(userId, department, position) {
     if (pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userId || '').toUpperCase().startsWith('MGR')) {
         if (queueItem) queueItem.style.display = 'flex';
         try {
-            const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+            const res = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
             const data = await res.json();
             if (data.success && data.data) {
                 const pendingCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;
