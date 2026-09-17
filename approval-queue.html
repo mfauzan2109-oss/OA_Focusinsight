@@ -1427,19 +1427,15 @@
         }
 
         const commentText = document.getElementById('comment').value.trim();
-        if (actionStatus === 'Rejected' && !commentText) {
-          alert('Please state your reason/comment before rejecting.');
-          return;
-        }
-
-        const endpoint = `/api/approval-queue/${encodeURIComponent(selectedType)}/${selectedRawId}`;
-        const body = { status: actionStatus, comment: commentText };
 
         try {
-          const response = await fetch(endpoint, {
+          const response = await fetch(`/api/approval-queue/${encodeURIComponent(selectedType)}/${selectedRawId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+            body: JSON.stringify({ 
+              status: actionStatus,
+              comment: commentText 
+            })
           });
 
           const result = await response.json();

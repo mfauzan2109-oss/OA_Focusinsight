@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const CONFIG = {
                 apiBaseUrl: window.APP_CONFIG?.apiBaseUrl || (window.location.origin.includes('localhost') 
-                    ? 'http://localhost:3000/api' 
+                    ? '/api' 
                     : '/api'),
                 loginPage: window.APP_CONFIG?.loginPage || 'login.html',
                 dashboardPage: window.APP_CONFIG?.dashboardPage || 'dashboard.html',

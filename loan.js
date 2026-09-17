@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function fetchUserRequestsForSearch() {
         try {
-            const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+            const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
             const data = await response.json();
             if (data.success && data.notifications) {
                 userRequestsCache = data.notifications;
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     async function fetchNotifications() {
         const currentUserId = formattedUserId || 'EMP001';
         try {
-            const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(currentUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+            const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(currentUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
             const data = await response.json();
 
             if (data.success && data.notifications && data.notifications.length > 0) {
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (deptInput) deptInput.value = department || '';
 
     try {
-        const response = await fetch(`http://localhost:3000/api/profile/${encodeURIComponent(formattedUserId)}`);
+        const response = await fetch(`/api/profile/${encodeURIComponent(formattedUserId)}`);
         const result = await response.json();
 
         if (result.success && result.data) {
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/submit-loan', {
+            const response = await fetch('/api/submit-loan', {
                 method: 'POST',
                 body: formData
             });
@@ -506,7 +506,7 @@ async function checkApprovalQueueAccess(userId, department, position) {
     if (pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userId || '').toUpperCase().startsWith('MGR')) {
         if (queueItem) queueItem.style.display = 'flex';
         try {
-            const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+            const res = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
             const data = await res.json();
             if (data.success && data.data) {
                 const pendingCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;

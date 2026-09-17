@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         async function loadRequesterInfo() {
             if (!formattedUserId) return;
             try {
-                const res = await fetch(`http://localhost:3000/api/profile/${formattedUserId}`);
+                const res = await fetch(`/api/profile/${formattedUserId}`);
                 const result = await res.json();
                 if (result.success && result.data) {
                     const data = result.data;
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             statusEl.style.color = '#94a3b8';
 
             try {
-                const res = await fetch(`http://localhost:3000/api/profile/${empId}`);
+                const res = await fetch(`/api/profile/${empId}`);
                 const result = await res.json();
 
                 if (result.success && result.data) {
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedFile) formData.append('attachment', selectedFile);
 
             try {
-                const res = await fetch('http://localhost:3000/api/submit-salary-adjustment', { method: 'POST', body: formData });
+                const res = await fetch('/api/submit-salary-adjustment', { method: 'POST', body: formData });
                 const result = await res.json();
 
                 if (result.success) {

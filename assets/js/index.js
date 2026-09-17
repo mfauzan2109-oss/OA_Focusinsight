@@ -7,7 +7,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
             try {
                 // Post credentials directly to your live Node.js server
-                const response = await fetch('http://localhost:3000/api/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id, password })

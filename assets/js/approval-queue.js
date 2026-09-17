@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         try {
-          const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
+          const res = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
           const data = await res.json();
           if (data.success && data.data) {
             const pendingApprovalCount = data.data.filter(i => (i.status || '').toLowerCase() === 'pending').length;
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       async function fetchNotifications() {
           try {
-              const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+              const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
               const data = await response.json();
 
               if (data.success && data.notifications && data.notifications.length > 0) {
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         container.innerHTML = `<div style="padding: 12px; color: #2563eb; font-weight: 600;"><i class='bx bx-loader-alt bx-spin'></i> Fetching complete record from database...</div>`;
 
         try {
-          const res = await fetch(`http://localhost:3000/api/request-details?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`);
+          const res = await fetch(`/api/request-details?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`);
           const result = await res.json();
 
           if (!result.success || !result.data) {
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
           const docPath = data.supporting_document || data['Supporting Documen'];
           const docHTML = docPath 
-            ? `<a href="http://localhost:3000/${docPath}" target="_blank" class="doc-link-btn"><i class='bx bx-file'></i> View Attachment</a>` 
+            ? `<a href="/${docPath}" target="_blank" class="doc-link-btn"><i class='bx bx-file'></i> View Attachment</a>` 
             : `<span style="color: #94a3b8;">No Attachment</span>`;
 
           const lowerType = reqType.toLowerCase();
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
             position: position || ''
           });
 
-          const res = await fetch(`http://localhost:3000/api/approval-queue?${queryParams.toString()}`);
+          const res = await fetch(`/api/approval-queue?${queryParams.toString()}`);
           const result = await res.json();
 
           const queueList = document.getElementById('queueList');
@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const commentText = document.getElementById('comment').value.trim();
 
         try {
-          const response = await fetch(`http://localhost:3000/api/approval-queue/${encodeURIComponent(selectedType)}/${selectedRawId}`, {
+          const response = await fetch(`/api/approval-queue/${encodeURIComponent(selectedType)}/${selectedRawId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 

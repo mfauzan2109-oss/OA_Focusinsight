@@ -99,7 +99,7 @@ let previousNotiState = {};
 
     async function fetchNotifications(userId, department, position) {
         try {
-            const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+            const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
             const result = await response.json();
 
             if (result.success && Array.isArray(result.notifications)) {
