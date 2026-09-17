@@ -17,7 +17,12 @@ const TARGETS = {
     disbursement: {
         stepsTable: 'disbursement_approval_steps',
         foreignKey: 'disbursement_id'
-    }
+    },
+
+    loan: {
+    stepsTable: 'loan_approval_steps',
+    foreignKey: 'loan_id'
+}
 };
 
 async function saveWithApprovalSteps({

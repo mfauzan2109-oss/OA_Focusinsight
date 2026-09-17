@@ -546,8 +546,7 @@ router.post(
     '/api/submit-loan',
     requireLogin,
     upload.single('attachment'),
-    (req, res) => {
-
+    async (req, res) => {
         const {
             loan_type,
             repayment_period,
@@ -578,7 +577,10 @@ router.post(
         }
 
         const cleanAmount =
-            parseFloat(amount_requested);
+            parseFloat(
+                String(amount_requested || '')
+                    .replace(/[^0-9.]/g, '')
+            );
 
         if (
             Number.isNaN(cleanAmount) ||
@@ -595,74 +597,90 @@ router.post(
                 ? `uploads/${req.file.filename}`
                 : null;
 
-        const salaryQuery = `
-            SELECT basic_salary
-            FROM users
-            WHERE LOWER(user_id) = LOWER(?)
-            LIMIT 1
-        `;
+        try {
+            const salaryQuery = `
+                SELECT basic_salary
+                FROM users
+                WHERE LOWER(user_id) = LOWER(?)
+                LIMIT 1
+            `;
 
-        db.query(
-            salaryQuery,
-            [employee_id],
-            (salaryErr, salaryResults) => {
+            const salaryResults = await new Promise(
+                (resolve, reject) => {
+                    db.query(
+                        salaryQuery,
+                        [employee_id],
+                        (err, rows) => {
+                            if (err) {
+                                return reject(err);
+                            }
 
-                if (salaryErr) {
-                    console.error(
-                        'Loan Salary Lookup Error:',
-                        salaryErr
+                            resolve(rows);
+                        }
                     );
-
-                    return res.status(500).json({
-                        success: false,
-                        message:
-                            'Failed to retrieve employee salary.'
-                    });
                 }
+            );
 
-                if (
-                    !salaryResults ||
-                    salaryResults.length === 0
-                ) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Employee record not found.'
-                    });
-                }
+            if (
+                !salaryResults ||
+                salaryResults.length === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Employee record not found.'
+                });
+            }
 
-                const monthly_salary =
-                    parseFloat(
-                        salaryResults[0].basic_salary
-                    ) || 0;
+            const monthly_salary =
+                parseFloat(
+                    salaryResults[0].basic_salary
+                ) || 0;
 
-                const query = `
-                    INSERT INTO loans
-                    (
-                        employee_id,
-                        employee_name,
-                        department,
-                        loan_type,
-                        repayment_period,
-                        monthly_salary,
-                        amount_requested,
-                        disbursement_method,
-                        account_holder,
-                        account_number,
-                        bank_details,
-                        supporting_document,
-                        status,
-                        created_at
-                    )
-                    VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                        'Pending',
-                        NOW()
-                    )
-                `;
+            const query = `
+                INSERT INTO loans
+                (
+                    employee_id,
+                    employee_name,
+                    department,
+                    loan_type,
+                    repayment_period,
+                    monthly_salary,
+                    amount_requested,
+                    disbursement_method,
+                    account_holder,
+                    account_number,
+                    bank_details,
+                    supporting_document,
+                    status,
+                    created_at
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    'Pending',
+                    NOW()
+                )
+            `;
 
-                db.query(
-                    query,
-                    [
+            const roles = [
+                'Project Manager',
+                'Head of Department',
+                'VGM'
+            ];
+
+            if (cleanAmount > 3000) {
+                roles.push(
+                    'CEO',
+                    'Chairman'
+                );
+            }
+
+            const result =
+                await saveWithApprovalSteps({
+                    type: 'loan',
+
+                    insertQuery: query,
+
+                    values: [
                         employee_id,
                         employee_name,
                         department,
@@ -676,32 +694,29 @@ router.post(
                         bank_details,
                         attachment_path
                     ],
-                    (err, result) => {
 
-                        if (err) {
-                            console.error(
-                                'Loan SQL Error:',
-                                err
-                            );
+                    roles
+                });
 
-                            return res.status(500).json({
-                                success: false,
-                                message:
-                                    'Database Error: ' +
-                                    err.message
-                            });
-                        }
+            return res.json({
+                success: true,
+                id: result.insertId,
+                message:
+                    'Loan application submitted successfully!'
+            });
 
-                        return res.json({
-                            success: true,
-                            message:
-                                'Loan application submitted successfully!',
-                            id: result.insertId
-                        });
-                    }
-                );
-            }
-        );
+        } catch (err) {
+            console.error(
+                'Loan workflow error:',
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Failed to submit loan application.'
+            });
+        }
     }
 );
 

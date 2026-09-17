@@ -15,7 +15,10 @@ const ACTORS = {
 };
 
 function actorFor(type, role) {
-    if (type === 'disbursement') {
+    if (
+        type === 'disbursement' ||
+        type === 'loan'
+    ) {
         if (role === 'project manager') {
             return 'MGR001';
         }
@@ -165,6 +168,16 @@ async function main() {
             total_amount,
             department
         FROM disbursements
+        WHERE id = ?
+    `;
+        } else if (type === 'loan') {
+            parentQuery = `
+        SELECT
+            id,
+            status,
+            amount_requested,
+            department
+        FROM loans
         WHERE id = ?
     `;
         } else {

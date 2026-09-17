@@ -69,7 +69,8 @@ router.put('/api/approval-queue/:type/:id', requireLogin, (req, res, next) => {
     if (
         type === 'leave' ||
         type === 'travel' ||
-        type === 'disbursement'
+        type === 'disbursement' ||
+        type === 'loan'
     ) {
         return endpoint((connection, request) =>
             p1Approval.decide(
@@ -115,7 +116,6 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
     // Keep legacy form fields, amounts and department visibility unchanged.
     const sources = [
         ['overtime', 'id', 'employee_id', 'employee_name', 'department', 'Overtime', 'total_claim', 'created_at', 'status'],
-        ['loans', 'id', 'employee_id', 'employee_name', 'department', 'Loan', 'amount_requested', 'created_at', 'status']
     ];
 
     if (legacy.allowed) {
@@ -248,6 +248,47 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
                 row.total_amount || 0
             ).toFixed(2)}`,
             table_source: 'disbursements',
+            can_approve: true
+        });
+    }
+
+    const [loanRequests] = await connection.query(`
+    SELECT
+        l.id,
+        l.employee_id,
+        l.employee_name,
+        l.department,
+        l.created_at AS date_submitted,
+        l.last_reminder_sent,
+        l.status,
+        l.amount_requested,
+        s.step_order,
+        s.approver_role,
+        s.status AS step_status
+    FROM loans l
+    JOIN loan_approval_steps s
+        ON s.loan_id = l.id
+    WHERE l.status = 'Pending'
+      AND s.status = 'Pending'
+`);
+
+    for (const row of loanRequests) {
+        if (!p1Approval.canAct(
+            user,
+            row,
+            {
+                approver_role: row.approver_role,
+                status: row.step_status
+            }
+        )) continue;
+
+        combined.push({
+            ...row,
+            request_type: 'Loan',
+            amount: `RM ${parseFloat(
+                row.amount_requested || 0
+            ).toFixed(2)}`,
+            table_source: 'loans',
             can_approve: true
         });
     }

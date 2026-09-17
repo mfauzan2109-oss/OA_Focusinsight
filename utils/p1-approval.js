@@ -90,6 +90,30 @@ const TARGETS = {
     `,
 
         notificationPrefix: 'DISBURSEMENT'
+    },
+
+    loan: {
+        stepsTable: 'loan_approval_steps',
+        foreignKey: 'loan_id',
+        ccTable: 'loan_cc_recipients',
+        notificationsTable: 'loan_notifications',
+        notificationForeignKey: 'loan_id',
+
+        parentQuery: `
+        SELECT id, employee_id, department, status
+        FROM loans
+        WHERE id = ?
+        FOR UPDATE
+    `,
+
+        updateParentQuery: `
+        UPDATE loans
+        SET status = ?
+        WHERE id = ?
+          AND status = 'Pending'
+    `,
+
+        notificationPrefix: 'LOAN'
     }
 };
 
