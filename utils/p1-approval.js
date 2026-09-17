@@ -92,6 +92,7 @@ const TARGETS = {
         notificationPrefix: 'DISBURSEMENT'
     },
 
+
     loan: {
         stepsTable: 'loan_approval_steps',
         foreignKey: 'loan_id',
@@ -114,6 +115,30 @@ const TARGETS = {
     `,
 
         notificationPrefix: 'LOAN'
+    },
+
+    overtime: {
+        stepsTable: 'overtime_approval_steps',
+        foreignKey: 'overtime_id',
+        ccTable: 'overtime_cc_recipients',
+        notificationsTable: 'overtime_notifications',
+        notificationForeignKey: 'overtime_id',
+
+        parentQuery: `
+        SELECT id, employee_id, department, status
+        FROM overtime
+        WHERE id = ?
+        FOR UPDATE
+    `,
+
+        updateParentQuery: `
+        UPDATE overtime
+        SET status = ?
+        WHERE id = ?
+          AND status = 'Pending'
+    `,
+
+        notificationPrefix: 'OVERTIME'
     }
 };
 

@@ -70,7 +70,8 @@ router.put('/api/approval-queue/:type/:id', requireLogin, (req, res, next) => {
         type === 'leave' ||
         type === 'travel' ||
         type === 'disbursement' ||
-        type === 'loan'
+        type === 'loan' ||
+        type === 'overtime'
     ) {
         return endpoint((connection, request) =>
             p1Approval.decide(
@@ -114,9 +115,7 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
     const legacy = approval.legacyAccess(user), combined = [];
 
     // Keep legacy form fields, amounts and department visibility unchanged.
-    const sources = [
-        ['overtime', 'id', 'employee_id', 'employee_name', 'department', 'Overtime', 'total_claim', 'created_at', 'status'],
-    ];
+    const sources = [];
 
     if (legacy.allowed) {
         for (const [table, id, employeeId, name, department, type, amount, date, status] of sources) {
@@ -248,6 +247,47 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
                 row.total_amount || 0
             ).toFixed(2)}`,
             table_source: 'disbursements',
+            can_approve: true
+        });
+    }
+
+    const [overtimeRequests] = await connection.query(`
+    SELECT
+        o.id,
+        o.employee_id,
+        o.employee_name,
+        o.department,
+        o.created_at AS date_submitted,
+        o.last_reminder_sent,
+        o.status,
+        o.total_claim,
+        s.step_order,
+        s.approver_role,
+        s.status AS step_status
+    FROM overtime o
+    JOIN overtime_approval_steps s
+        ON s.overtime_id = o.id
+    WHERE o.status = 'Pending'
+      AND s.status = 'Pending'
+`);
+
+    for (const row of overtimeRequests) {
+        if (!p1Approval.canAct(
+            user,
+            row,
+            {
+                approver_role: row.approver_role,
+                status: row.step_status
+            }
+        )) continue;
+
+        combined.push({
+            ...row,
+            request_type: 'Overtime',
+            amount: `RM ${parseFloat(
+                row.total_claim || 0
+            ).toFixed(2)}`,
+            table_source: 'overtime',
             can_approve: true
         });
     }

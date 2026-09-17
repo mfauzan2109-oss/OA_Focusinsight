@@ -20,9 +20,14 @@ const TARGETS = {
     },
 
     loan: {
-    stepsTable: 'loan_approval_steps',
-    foreignKey: 'loan_id'
-}
+        stepsTable: 'loan_approval_steps',
+        foreignKey: 'loan_id'
+    },
+
+    overtime: {
+        stepsTable: 'overtime_approval_steps',
+        foreignKey: 'overtime_id'
+    }
 };
 
 async function saveWithApprovalSteps({

@@ -17,7 +17,7 @@ const ACTORS = {
 function actorFor(type, role) {
     if (
         type === 'disbursement' ||
-        type === 'loan'
+        type === 'loan' || type === 'overtime'
     ) {
         if (role === 'project manager') {
             return 'MGR001';
@@ -178,6 +178,16 @@ async function main() {
             amount_requested,
             department
         FROM loans
+        WHERE id = ?
+    `;
+        } else if (type === 'overtime') {
+            parentQuery = `
+        SELECT
+            id,
+            status,
+            total_claim,
+            department
+        FROM overtime
         WHERE id = ?
     `;
         } else {

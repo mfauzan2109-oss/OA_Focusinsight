@@ -282,7 +282,7 @@ router.post(
     '/api/submit-overtime',
     requireLogin,
     upload.none(),
-    (req, res) => {
+    async (req, res) => {
 
         const {
             ot_date,
@@ -301,7 +301,8 @@ router.post(
         if (!ot_date || !start_time || !end_time || !reason) {
             return res.status(400).json({
                 success: false,
-                message: 'OT Date, Start Time, End Time and Reason are required.'
+                message:
+                    'OT Date, Start Time, End Time and Reason are required.'
             });
         }
 
@@ -329,10 +330,16 @@ router.post(
             return (hours * 60) + minutes;
         }
 
-        const startMinutes = timeToMinutes(start_time);
-        let endMinutes = timeToMinutes(end_time);
+        const startMinutes =
+            timeToMinutes(start_time);
 
-        if (startMinutes === null || endMinutes === null) {
+        let endMinutes =
+            timeToMinutes(end_time);
+
+        if (
+            startMinutes === null ||
+            endMinutes === null
+        ) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid overtime time.'
@@ -343,16 +350,19 @@ router.post(
             endMinutes += 24 * 60;
         }
 
-        const totalMinutes = endMinutes - startMinutes;
+        const totalMinutes =
+            endMinutes - startMinutes;
 
         if (totalMinutes <= 0) {
             return res.status(400).json({
                 success: false,
-                message: 'End Time must be after Start Time.'
+                message:
+                    'End Time must be after Start Time.'
             });
         }
 
-        const totalHours = totalMinutes / 60;
+        const totalHours =
+            totalMinutes / 60;
 
         const cleanDayType =
             String(day_type || '')
@@ -364,136 +374,179 @@ router.post(
 
         const nightRequested =
             ['1', 'true', 'on'].includes(
-                String(night_allowance_check || '').toLowerCase()
+                String(
+                    night_allowance_check || ''
+                ).toLowerCase()
             );
 
         const mealRequested =
             ['1', 'true', 'on'].includes(
-                String(meal_allowance_check || '').toLowerCase()
+                String(
+                    meal_allowance_check || ''
+                ).toLowerCase()
             );
 
-        const salaryQuery = `
-            SELECT basic_salary
-            FROM users
-            WHERE LOWER(user_id) = LOWER(?)
-            LIMIT 1
-        `;
+        try {
+            const salaryQuery = `
+                SELECT basic_salary
+                FROM users
+                WHERE LOWER(user_id) = LOWER(?)
+                LIMIT 1
+            `;
 
-        db.query(
-            salaryQuery,
-            [employee_id],
-            (salaryErr, salaryResults) => {
+            const salaryResults =
+                await new Promise(
+                    (resolve, reject) => {
+                        db.query(
+                            salaryQuery,
+                            [employee_id],
+                            (err, rows) => {
+                                if (err) {
+                                    return reject(err);
+                                }
 
-                if (salaryErr) {
-                    console.error(
-                        'OT Salary Lookup Error:',
-                        salaryErr
-                    );
-
-                    return res.status(500).json({
-                        success: false,
-                        message: 'Failed to retrieve employee salary.'
-                    });
-                }
-
-                if (!salaryResults || salaryResults.length === 0) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Employee record not found.'
-                    });
-                }
-
-                const basicSalary =
-                    parseFloat(salaryResults[0].basic_salary) || 0;
-
-                let hourlyRate = 0;
-                let otRateCode = '';
-
-                if (basicSalary > 0) {
-                    if (basicSalary <= 3999.99) {
-                        const ORP = basicSalary / 26 / 8;
-
-                        const multiplier =
-                            isHoliday ? 2.0 : 1.5;
-
-                        hourlyRate = ORP * multiplier;
-
-                        otRateCode =
-                            `${multiplier.toFixed(1)}x`;
-                    } else {
-                        hourlyRate =
-                            isHoliday ? 20.00 : 15.00;
-
-                        otRateCode =
-                            isHoliday
-                                ? 'Fixed RM20'
-                                : 'Fixed RM15';
+                                resolve(rows);
+                            }
+                        );
                     }
-                } else {
+                );
+
+            if (
+                !salaryResults ||
+                salaryResults.length === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        'Employee record not found.'
+                });
+            }
+
+            const basicSalary =
+                parseFloat(
+                    salaryResults[0].basic_salary
+                ) || 0;
+
+            let hourlyRate = 0;
+            let otRateCode = '';
+
+            if (basicSalary > 0) {
+                if (basicSalary <= 3999.99) {
+                    const ORP =
+                        basicSalary / 26 / 8;
+
                     const multiplier =
-                        isHoliday ? 2.0 : 1.5;
+                        isHoliday
+                            ? 2.0
+                            : 1.5;
+
+                    hourlyRate =
+                        ORP * multiplier;
 
                     otRateCode =
                         `${multiplier.toFixed(1)}x`;
+
+                } else {
+                    hourlyRate =
+                        isHoliday
+                            ? 20.00
+                            : 15.00;
+
+                    otRateCode =
+                        isHoliday
+                            ? 'Fixed RM20'
+                            : 'Fixed RM15';
                 }
 
-                const otPayment =
-                    totalHours * hourlyRate;
+            } else {
+                const multiplier =
+                    isHoliday
+                        ? 2.0
+                        : 1.5;
 
-                const mealAllowance =
-                    mealRequested && totalHours >= 3
-                        ? 5.00
-                        : 0.00;
+                otRateCode =
+                    `${multiplier.toFixed(1)}x`;
+            }
 
-                const nightAllowance =
-                    nightRequested
-                        ? 50.00
-                        : 0.00;
+            const otPayment =
+                totalHours * hourlyRate;
 
-                const totalClaim =
-                    otPayment +
-                    mealAllowance +
-                    nightAllowance;
+            const mealAllowance =
+                mealRequested &&
+                    totalHours >= 3
+                    ? 5.00
+                    : 0.00;
 
-                const period =
-                    `${totalHours.toFixed(1)} hrs`;
+            const nightAllowance =
+                nightRequested
+                    ? 50.00
+                    : 0.00;
 
-                const cleanOtPayment =
-                    Number(otPayment.toFixed(2));
+            const totalClaim =
+                otPayment +
+                mealAllowance +
+                nightAllowance;
 
-                const cleanTotalClaim =
-                    Number(totalClaim.toFixed(2));
+            const period =
+                `${totalHours.toFixed(1)} hrs`;
 
-                const query = `
-                    INSERT INTO overtime
-                    (
-                        employee_id,
-                        employee_name,
-                        department,
-                        ot_date,
-                        start_time,
-                        end_time,
-                        period,
-                        day_type,
-                        ot_allowance,
-                        ot_rate,
-                        night_allowance,
-                        meal_allowance,
-                        reason,
-                        total_claim,
-                        status,
-                        created_at
-                    )
-                    VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                        'Pending',
-                        NOW()
-                    )
-                `;
+            const cleanOtPayment =
+                Number(
+                    otPayment.toFixed(2)
+                );
 
-                db.query(
-                    query,
-                    [
+            const cleanTotalClaim =
+                Number(
+                    totalClaim.toFixed(2)
+                );
+
+            const query = `
+                INSERT INTO overtime
+                (
+                    employee_id,
+                    employee_name,
+                    department,
+                    ot_date,
+                    start_time,
+                    end_time,
+                    period,
+                    day_type,
+                    ot_allowance,
+                    ot_rate,
+                    night_allowance,
+                    meal_allowance,
+                    reason,
+                    total_claim,
+                    status,
+                    created_at
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    'Pending',
+                    NOW()
+                )
+            `;
+
+            const roles = [
+                'Project Manager',
+                'Head of Department',
+                'VGM'
+            ];
+
+            if (cleanTotalClaim > 3000) {
+                roles.push(
+                    'CEO',
+                    'Chairman'
+                );
+            }
+
+            const result =
+                await saveWithApprovalSteps({
+                    type: 'overtime',
+
+                    insertQuery: query,
+
+                    values: [
                         employee_id,
                         employee_name,
                         department,
@@ -507,38 +560,36 @@ router.post(
                         cleanOtPayment,
                         otRateCode,
                         nightRequested ? 1 : 0,
-                        mealRequested && totalHours >= 3
+                        mealRequested &&
+                            totalHours >= 3
                             ? 1
                             : 0,
                         reason,
                         cleanTotalClaim
                     ],
-                    (err, result) => {
 
-                        if (err) {
-                            console.error(
-                                'Overtime SQL Error:',
-                                err
-                            );
+                    roles
+                });
 
-                            return res.status(500).json({
-                                success: false,
-                                message:
-                                    'Database Error: ' +
-                                    err.message
-                            });
-                        }
+            return res.json({
+                success: true,
+                message:
+                    'Overtime claim submitted successfully!',
+                id: result.insertId
+            });
 
-                        return res.json({
-                            success: true,
-                            message:
-                                'Overtime claim submitted successfully!',
-                            id: result.insertId
-                        });
-                    }
-                );
-            }
-        );
+        } catch (err) {
+            console.error(
+                'Overtime workflow error:',
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Failed to submit overtime claim.'
+            });
+        }
     }
 );
 
