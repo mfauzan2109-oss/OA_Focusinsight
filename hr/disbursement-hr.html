@@ -1,6 +1,5 @@
-//update upload multiple doc (15/9/2026)
-
 <!DOCTYPE html>
+<!-- update upload multiple doc (15/9/2026) -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -37,6 +36,12 @@
             letter-spacing: 0.5px;
             padding: 12px 14px 4px 14px;
             margin-top: 6px;
+        }
+
+        .top-bar-divider {
+            width: 1px;
+            height: 24px;
+            background-color: #e2e8f0;
         }
 
         .form-nav-tabs {
@@ -563,7 +568,7 @@
             <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
 
             <div class="sidebar-section-title">My Workspace</div>
-            <a href="disbursement-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
+            <a href="application-form-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
             <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
         </nav>
 
@@ -577,18 +582,18 @@
 
         <!-- HEADER TOP BAR -->
         <header class="top-header">
-            <h1>Disbursement Form</h1>
-            <div class="header-right">
-                <div class="search-box-wrapper">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="headerSearchInput" placeholder="Search request">
-                    </div>
+            <div class="header-title">
+                <h1>Disbursement Form</h1>
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="headerSearchInput" placeholder="Search request">
                 </div>
 
                 <!-- NOTIFICATION BELL + DROPDOWN (data comes from /api/notifications) -->
                 <div class="notification-container">
-                    <button class="icon-btn noti-bell-btn" id="notiBellBtn">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
                         <span class="noti-badge" id="notiBadge">0</span>
                     </button>
@@ -607,21 +612,13 @@
                     </div>
                 </div>
 
+                <div class="top-bar-divider"></div>
+
                 <a href="profile-hr.html" style="text-decoration: none;">
-                    <div class="avatar-circle" id="topAvatar">CJ</div>
+                    <div class="avatar-circle" id="topAvatar">--</div>
                 </a>
             </div>
         </header>
-
-        <!-- FORM SWITCHER TABS -->
-        <div class="form-nav-tabs">
-            <a href="leave-application-hr.html" class="tab-btn">Leave Application</a>
-            <a href="loan-application-hr.html" class="tab-btn">Loan Application</a>
-            <a href="travel-request-hr.html" class="tab-btn">Travel Request</a>
-            <a href="disbursement-hr.html" class="tab-btn active">Disbursement Form</a>
-            <a href="overtime-claim-hr.html" class="tab-btn">Overtime Claim</a>
-            <a href="Salary-adjustment-hr.html" class="tab-btn">Salary Adjustment</a>
-        </div>
 
         <!-- FORM CARD -->
         <section class="form-card">
@@ -643,6 +640,20 @@
                     <div class="form-group">
                         <label>Department</label>
                         <input type="text" id="empDept" name="department" readonly class="form-control">
+                    </div>
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>Project Name</label>
+                        <input type="text" id="projName" name="proj_name" class="form-control" placeholder="e.g. System Upgrade Phase 2">
+                    </div>
+                    <div class="form-group">
+                        <label>Model Number</label>
+                        <input type="text" id="modelNo" name="model_no" class="form-control" placeholder="e.g. MX-2200">
+                    </div>
+                    <div class="form-group">
+                        <label>Person in Charge</label>
+                        <input type="text" id="pic" name="person_in_charge" class="form-control" placeholder="e.g. John Tan">
                     </div>
                 </div>
 
@@ -823,6 +834,14 @@
                         if (unreadCount > 0) {
                             notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
                             notiBadge.style.display = 'flex';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
                         } else {
                             notiBadge.style.display = 'none';
                         }
