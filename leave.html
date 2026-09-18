@@ -380,6 +380,41 @@
             60%      { transform: rotate(-8deg); }
             80%      { transform: rotate(6deg); }
         }
+        .leave-balance-table {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .leave-balance-table th,
+        .leave-balance-table td {
+            border: 1px solid #cbd5e1;
+        }
+        .leave-balance-table thead th {
+            background-color: #dbeafe;
+            color: #1e293b;
+            border-top: none;
+        }
+        .leave-balance-table thead th:first-child {
+            border-left: none;
+        }
+        .leave-balance-table thead th:last-child {
+            border-right: none;
+        }
+        .leave-balance-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .leave-balance-table tbody td:first-child {
+            border-left: none;
+        }
+        .leave-balance-table tbody td:last-child {
+            border-right: none;
+        }
+        .leave-balance-table td.balance-remaining {
+            font-weight: 700;
+        }
+        .leave-balance-table td.balance-low {
+            color: #dc2626;
+        }
     </style>
 </head>
 <body>
@@ -485,6 +520,23 @@
                         <input type="text" id="department" name="department" value="" readonly required>
                     </div>
                 </div>
+            </section>
+
+            <section class="form-section">
+                <h3 class="form-section-title">Leave Balance</h3>
+                <table class="data-table leave-balance-table" id="leaveBalanceTable">
+                    <thead>
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Entitlement</th>
+                            <th>Used</th>
+                            <th>Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveBalanceBody">
+                        <tr><td colspan="4" style="text-align:center; color:#94a3b8;">Loading balance…</td></tr>
+                    </tbody>
+                </table>
             </section>
 
             <section class="form-section">
@@ -927,7 +979,62 @@
             } else {
                 annualNote.style.display = 'none';
             }
+
+            highlightBalanceRow(leaveTypeSelect.value);
         });
+
+        // ==========================================
+        // LEAVE BALANCE TABLE
+        // ==========================================
+        let currentLeaveBalance = [];
+
+        function normalizeLeaveTypeClient(rawType) {
+            const t = (rawType || '').toString().trim().toLowerCase();
+            if (t === 'annual' || t === 'annual leave') return 'Annual Leave';
+            if (t === 'sick' || t === 'sick leave') return 'Sick Leave';
+            if (t === 'hospitalization' || t === 'medical leave') return 'Hospitalization';
+            if (t === 'maternity') return 'Maternity';
+            if (t === 'paternity') return 'Paternity';
+            return null;
+        }
+
+        function highlightBalanceRow(leaveTypeVal) {
+            const norm = normalizeLeaveTypeClient(leaveTypeVal);
+            document.querySelectorAll('#leaveBalanceBody tr').forEach(tr => {
+                tr.style.background = (norm && tr.dataset.type === norm) ? '#eff6ff' : '';
+            });
+        }
+
+        async function loadLeaveBalance() {
+            const tbody = document.getElementById('leaveBalanceBody');
+            try {
+                const res = await fetch(`/api/leave-balance?employee_id=${encodeURIComponent(userId)}`);
+                const result = await res.json();
+                if (!result.success || !Array.isArray(result.data)) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Unable to load leave balance.</td></tr>';
+                    return;
+                }
+                currentLeaveBalance = result.data;
+                tbody.innerHTML = '';
+                result.data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.type = row.leave_type;
+                    const lowClass = row.remaining <= 2 ? ' balance-low' : '';
+                    tr.innerHTML = `
+                        <td>${row.leave_type}</td>
+                        <td>${row.entitlement}${row.carried_forward ? ' (+' + row.carried_forward + ' c/f)' : ''} days</td>
+                        <td>${row.used} days</td>
+                        <td class="balance-remaining${lowClass}">${row.remaining} days</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Leave balance load failed:', err);
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Unable to load leave balance.</td></tr>';
+            }
+        }
+
+        loadLeaveBalance();
 
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('file-input');

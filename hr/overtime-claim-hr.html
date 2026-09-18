@@ -35,6 +35,12 @@
             margin-top: 6px;
         }
 
+        .top-bar-divider {
+            width: 1px;
+            height: 24px;
+            background-color: #e2e8f0;
+        }
+
         .form-nav-tabs {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -478,7 +484,7 @@
             <a href="hr-operations.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
 
             <div class="sidebar-section-title">My Workspace</div>
-            <a href="overtime-claim-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
+            <a href="application-form-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
             <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
         </nav>
 
@@ -492,18 +498,18 @@
 
         <!-- HEADER TOP BAR -->
         <header class="top-header">
-            <h1>Overtime Claim</h1>
-            <div class="header-right">
-                <div class="search-box-wrapper">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="headerSearchInput" placeholder="Search request">
-                    </div>
+            <div class="header-title">
+                <h1>Overtime Claim</h1>
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="headerSearchInput" placeholder="Search request">
                 </div>
 
                 <!-- NOTIFICATION BELL + DROPDOWN (data comes from /api/notifications) -->
                 <div class="notification-container">
-                    <button class="icon-btn noti-bell-btn" id="notiBellBtn">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
                         <span class="noti-badge" id="notiBadge">0</span>
                     </button>
@@ -522,21 +528,13 @@
                     </div>
                 </div>
 
+                <div class="top-bar-divider"></div>
+
                 <a href="profile-hr.html" style="text-decoration: none;">
-                    <div class="avatar-circle" id="topAvatar">CJ</div>
+                    <div class="avatar-circle" id="topAvatar">--</div>
                 </a>
             </div>
         </header>
-
-        <!-- FORM SWITCHER TABS -->
-        <div class="form-nav-tabs">
-            <a href="leave-application-hr.html" class="tab-btn">Leave Application</a>
-            <a href="loan-application-hr.html" class="tab-btn">Loan Application</a>
-            <a href="travel-request-hr.html" class="tab-btn">Travel Request</a>
-            <a href="disbursement-hr.html" class="tab-btn">Disbursement Form</a>
-            <a href="overtime-claim-hr.html" class="tab-btn active">Overtime Claim</a>
-            <a href="Salary-adjustment-hr.html" class="tab-btn">Salary Adjustment</a>
-        </div>
 
         <!-- FORM CARD -->
         <section class="form-card">
@@ -546,7 +544,7 @@
 
                 <!-- 1. EMPLOYEE INFORMATION -->
                 <div class="section-title">Employee Information</div>
-                <div class="form-grid-3">
+                <div class="form-grid-3" style="margin-bottom: 8px;">
                     <div class="form-group">
                         <label>Employee ID</label>
                         <input type="text" id="empId" name="employee_id" readonly class="form-control">
@@ -558,6 +556,20 @@
                     <div class="form-group">
                         <label>Department</label>
                         <input type="text" id="empDept" name="department" readonly class="form-control">
+                    </div>
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>Project Name</label>
+                        <input type="text" id="projName" name="proj_name" class="form-control" placeholder="e.g. System Upgrade Phase 2">
+                    </div>
+                    <div class="form-group">
+                        <label>Model Number</label>
+                        <input type="text" id="modelNo" name="model_no" class="form-control" placeholder="e.g. MX-2200">
+                    </div>
+                    <div class="form-group">
+                        <label>Person in Charge</label>
+                        <input type="text" id="pic" name="person_in_charge" class="form-control" placeholder="e.g. John Tan">
                     </div>
                 </div>
 
@@ -600,9 +612,11 @@
                             <label class="checkbox-label">
                                 <input type="checkbox" id="nightCheck" name="night_allowance_check"> Night Allowance (RM 50.00)
                             </label>
+                            <small id="nightWarning" style="display:none; color:#dc2626; font-size:11px;">Only for full night shift (≥ 12 hrs)</small>
                             <label class="checkbox-label">
                                 <input type="checkbox" id="mealCheck" name="meal_allowance_check"> Meal Allowance (RM 5.00)
                             </label>
+                            <small id="mealWarning" style="display:none; color:#dc2626; font-size:11px;">Requires ≥ 3 hrs of OT on a weekday</small>
                         </div>
 
                         <div class="form-group">
@@ -641,11 +655,11 @@
                                     <span id="sumOtPayment" style="font-weight:700;">RM 0.00</span>
                                 </div>
                                 <div class="summary-row">
-                                    <span>Meal Allowance</span>
+                                    <span>Meal Allowance (Weekday, Min 3h)</span>
                                     <span id="sumMealAllowance" style="font-weight:700;">RM 0.00</span>
                                 </div>
                                 <div class="summary-row">
-                                    <span>Night Allowance</span>
+                                    <span>Night Allowance (Night Shift ≥12h)</span>
                                     <span id="sumNightAllowance" style="font-weight:700;">RM 0.00</span>
                                 </div>
                             </div>
@@ -803,6 +817,14 @@
                         if (unreadCount > 0) {
                             notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
                             notiBadge.style.display = 'flex';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
                         } else {
                             notiBadge.style.display = 'none';
                         }
@@ -870,6 +892,8 @@
         const dayTypeSelect = document.getElementById('dayType');
         const nightCheck = document.getElementById('nightCheck');
         const mealCheck = document.getElementById('mealCheck');
+        const nightWarning = document.getElementById('nightWarning');
+        const mealWarning = document.getElementById('mealWarning');
 
         const sumTotalHours = document.getElementById('sumTotalHours');
         const sumHourlyRate = document.getElementById('sumHourlyRate');
@@ -927,12 +951,29 @@
                 ? `RM ${effectiveRate.toFixed(2)}/hr (Fixed)`
                 : `RM ${effectiveRate.toFixed(2)}/hr`;
 
-            // Business rule: meal allowance only applies if OT is 3 hours or more
-            const mealEligible = hours >= 3;
+            // Business rule: meal allowance only applies on weekdays with OT of 3 hours or more
+            const isWeekday = dayTypeSelect.value === 'Weekdays & Saturday';
+            const mealEligible = hours >= 3 && isWeekday;
             if (mealCheck.checked && !mealEligible) {
                 mealCheck.checked = false;
             }
             mealCheck.disabled = !mealEligible;
+            if (hours > 0 && !mealEligible) {
+                mealWarning.textContent = !isWeekday
+                    ? 'Meal allowance is for weekdays only'
+                    : 'Requires ≥ 3 hrs of OT';
+                mealWarning.style.display = 'block';
+            } else {
+                mealWarning.style.display = 'none';
+            }
+
+            // Business rule: night allowance only applies for a full night shift (OT of 12 hours or more)
+            const nightEligible = hours >= 12;
+            if (nightCheck.checked && !nightEligible) {
+                nightCheck.checked = false;
+            }
+            nightCheck.disabled = !nightEligible;
+            nightWarning.style.display = (hours > 0 && !nightEligible) ? 'block' : 'none';
 
             const mealAllow = mealCheck.checked ? 5.00 : 0.00;
             const nightAllow = nightCheck.checked ? 50.00 : 0.00;
@@ -986,6 +1027,9 @@
                 employee_id: userId,
                 employee_name: username,
                 department: department,
+                proj_name: document.getElementById('projName')?.value?.trim() || '',
+                model_no: document.getElementById('modelNo')?.value?.trim() || '',
+                person_in_charge: document.getElementById('pic')?.value?.trim() || '',
                 ot_date: document.getElementById('otDate').value,
                 start_time: startTimeInput.value,
                 end_time: endTimeInput.value,

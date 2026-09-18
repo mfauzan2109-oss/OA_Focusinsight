@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     
     <style>
         :root {
@@ -37,134 +38,10 @@
             color: #333;
         }
 
-        /* ================= SIDEBAR STYLES ================= */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            padding: 24px 16px;
-            min-height: 100vh;
-            flex-shrink: 0;
-        }
-
-        .sidebar-logo {
-            background-color: #ffffff;
-            padding: 10px 16px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 28px;
-        }
-
-        .sidebar-logo img {
-            max-height: 38px;
-            width: auto;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 0 4px 24px 4px;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            margin-bottom: 24px;
-        }
-
-        .profile-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background-color: #2563EB;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        .profile-avatar img,
-        .profile-avatar-top img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .profile-info h4 {
-            color: #fbfbfb;
-            font-size: 15px;
-            font-weight: 600;
-            margin: 0 0 2px 0;
-        }
-
-        .profile-info p {
-            color: #3B82F6;
-            font-size: 12px;
-            margin: 0;
-        }
-
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-grow: 1;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            color: #94A3B8;
-            text-decoration: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item i {
-            font-size: 20px;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            color: #ffffff;
-            background-color: #1E293B;
-        }
-
-        .nav-item.active {
-            font-weight: 600;
-        }
-
-        .nav-item .nav-badge {
-            margin-left: auto;
-            background-color: #f97316;
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 12px;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .logout-item:hover {
-            background-color: rgba(239, 68, 68, 0.15);
-            color: #EF4444;
-        }
+        /* ================= SIDEBAR STYLES =================
+           Sidebar visuals (logo sizing, text, icons) now come from the
+           shared style.css — same source dashboard.html uses — so this
+           page matches it exactly instead of keeping a separate copy. */
 
         /* ================= MAIN CONTENT & HEADER ================= */
         .main-content {
@@ -546,6 +423,13 @@
             overflow: hidden;
         }
 
+        .profile-avatar-top img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
         .profile-dropdown .arrow-icon {
             font-size: 16px;
             color: #64748b;
@@ -831,10 +715,10 @@
     <!-- Dark Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-             <img src="images/company-logo.jpg" alt="Focusinsight Logo">
+             <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
         </div>
-
-        <a href="profile.html" class="user-profile">
+        
+        <a href="profile.html" class="user-profile" style="text-decoration: none; display: flex;">
             <div class="profile-avatar" id="sidebarAvatarContainer"><i class='bx bx-user'></i></div>
             <div class="profile-info">
                 <h4 id="sidebarName">Loading...</h4>
@@ -851,11 +735,7 @@
 
             <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
             <a href="my-request.html" class="nav-item active"><i class='bx bx-file'></i> My Request</a>
-            <a href="leave.html" class="nav-item"><i class='bx bx-calendar'></i> Leave Application</a>
-            <a href="travel-request.html" class="nav-item"><i class='bx bx-paper-plane'></i> Travel Request</a>
-            <a href="overtime-claim.html" class="nav-item"><i class='bx bx-time-five'></i> Overtime Claim</a>
-            <a href="loan-application.html" class="nav-item"><i class='bx bx-wallet'></i> Loan Application</a>
-            <a href="disbursement-form.html" class="nav-item"><i class='bx bx-receipt'></i> Disbursement Form</a>
+            <a href="application-center.html" class="nav-item"><i class='bx bx-calendar-check'></i> Application Center</a>
         </nav>
 
         <div class="sidebar-footer">

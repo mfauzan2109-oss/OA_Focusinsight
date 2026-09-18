@@ -1353,7 +1353,24 @@
                 queueList.appendChild(div);
               });
 
-              queueList.querySelector('.request-card')?.click();
+              // Keep whichever card the manager currently has open selected across
+              // a background refresh, instead of always jumping back to card #1 —
+              // that would yank them out of a request they're mid-review on.
+              let cardToReselect = null;
+              if (selectedRawId && selectedType) {
+                cardToReselect = Array.from(queueList.querySelectorAll('.request-card')).find(
+                  el => String(el.dataset.rawId) === String(selectedRawId) && el.dataset.type === selectedType
+                );
+              }
+
+              if (cardToReselect) {
+                document.querySelectorAll('.request-card').forEach(i => i.classList.remove('active'));
+                cardToReselect.classList.add('active');
+              } else {
+                // No prior selection, or it's no longer pending (approved/rejected since
+                // the last refresh) — fall back to selecting the first card, as before.
+                queueList.querySelector('.request-card')?.click();
+              }
             } else {
               queueList.innerHTML = `<div style="padding: 20px; text-align: center; color: #64748b;">No pending requests for ${department || 'this'} department.</div>`;
               resetDetailCard();
@@ -1473,6 +1490,7 @@
       });
 
       fetchApprovalQueue();
+      setInterval(fetchApprovalQueue, 5000);
     });
   </script>
 </body>

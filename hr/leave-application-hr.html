@@ -3,28 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Application - FocusInsight</title>
+    <title>Leave Application | Focusinsight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <!-- FIX: Link to stylesheet in parent directory -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #bcdbe5;
-            margin: 0;
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Inter', sans-serif; 
+        }
+
+        body { 
+            display: flex; 
+            background-color: #BCE3E6; 
+            min-height: 100vh; 
+            color: #333; 
+        }
+
+        .profile-avatar img,
+        .avatar-circle img,
+        .header-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .profile-avatar, .avatar-circle, .header-avatar {
+            overflow: hidden;
             display: flex;
-            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
         }
 
-        .main-content {
-            margin-left: 250px;
-            flex-grow: 1;
-            padding: 24px 32px;
-            width: calc(100% - 250px);
+        .main-content { 
+            flex-grow: 1; 
+            padding: 0;
+            display: flex; 
+            flex-direction: column; 
+            gap: 0; 
+            overflow-y: auto; 
+            background: transparent; 
         }
 
+        .main-inner {
+            padding: 24px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ==================================================================
+           SIDEBAR SECTION TITLES & FORM SWITCHER TABS
+           — matches leave-application-hr.html's styling
+           ================================================================== */
         .sidebar-section-title {
             font-size: 11px;
             font-weight: 700;
@@ -35,34 +72,34 @@
             margin-top: 6px;
         }
 
-        /* Top Horizontal Form Navigation Tabs */
         .form-nav-tabs {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 2px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
             background: #ffffff;
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 20px;
+            border-radius: 16px;
+            padding: 16px 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid #e2e8f0;
         }
 
         .tab-btn {
-            padding: 10px 12px;
+            padding: 12px 20px;
             text-align: center;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             color: #1e293b;
             text-transform: uppercase;
             letter-spacing: 0.3px;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
             transition: all 0.2s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             line-height: 1.2;
+            white-space: nowrap;
         }
 
         .tab-btn.active {
@@ -75,160 +112,129 @@
             color: #2563eb;
         }
 
-        /* Form Card Container */
-        .form-card {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 28px 32px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-        }
-
-        .section-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: #0f172a;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 16px;
-        }
-
-        .form-grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .form-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .form-group {
+        /* --- WHITE HEADER BAR --- */
+        .page-header {
             display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 16px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 32px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            flex-shrink: 0;
         }
 
-        .form-group label {
+        .page-header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
             font-size: 12px;
-            font-weight: 600;
+            width: 200px;
+            background-color: #f8fafc;
             color: #334155;
         }
 
-        .form-group label span.required {
-            color: #ef4444;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 13px;
-            outline: none;
-            box-sizing: border-box;
-            background-color: #ffffff;
-            color: #0f172a;
-            transition: border-color 0.15s ease;
-        }
-
-        .form-control:focus {
-            border-color: #2563eb;
-        }
-
-        .form-control[readonly] {
-            background-color: #f8fafc;
-            color: #64748b;
-        }
-
-        /* Drag & Drop File Upload Area */
-        .file-upload-box {
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 28px;
-            text-align: center;
-            background-color: #fafafa;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .file-upload-box:hover {
-            border-color: #2563eb;
-            background-color: #f0f9ff;
-        }
-
-        .upload-icon {
-            font-size: 24px;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
-
-        .upload-text {
-            font-size: 13px;
-            color: #475569;
-            font-weight: 500;
-        }
-
-        .upload-text span {
-            color: #2563eb;
-            font-weight: 600;
-            text-decoration: underline;
-        }
-
-        .upload-hint {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
-
-        /* Action Buttons */
-        .form-actions {
-            display: flex;
-            justify-content: flex-start;
-            gap: 12px;
-            margin-top: 28px;
-        }
-
-        .btn-cancel {
-            background-color: #e2e8f0;
-            color: #475569;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-submit {
-            background-color: #1d4ed8;
+        .user-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #2563eb;
             color: #ffffff;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 20px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
             cursor: pointer;
         }
 
-        .error-banner {
-            background-color: #fef2f2;
-            border-left: 4px solid #ef4444;
-            color: #991b1b;
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 16px;
-            display: none;
+        .dropdown-chevron {
+            font-size: 11px;
+            color: #64748b;
         }
 
-        /* ==================================================================
-           NOTIFICATION DROPDOWN PANEL — matches my-request-hr.html design
-           ================================================================== */
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        /* Search Bar & Dropdown Styles */
+        .search-container { 
+            position: relative; 
+        }
+
+        .search-container input { 
+            background-color: #ffffff; 
+            border: 1px solid #D5DBDB; 
+            border-radius: 20px; 
+            padding: 8px 16px 8px 36px; 
+            font-size: 14px; 
+            outline: none; 
+            width: 260px; 
+        }
+
+        .search-container .search-icon { 
+            position: absolute; 
+            left: 14px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: #7F8C8D; 
+            font-size: 16px; 
+            display: flex;
+            align-items: center;
+        }
+
+        .search-dropdown {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 45px;
+            width: 320px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            flex-direction: column;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .search-dropdown.active {
+            display: flex;
+        }
+
+        /* --- NOTIFICATION BELL & DROPDOWN --- */
         .notification-container {
             position: relative;
         }
@@ -267,24 +273,9 @@
             align-items: center;
             justify-content: center;
             padding: 0 3px;
+            border: 2px solid #ffffff;
         }
 
-        @keyframes notiBadgePop {
-            0%   { transform: scale(0); opacity: 0; }
-            60%  { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .noti-badge.noti-badge-pop {
-            animation: notiBadgePop 0.4s ease-out;
-        }
-
-        @keyframes notiBellShake {
-            0%, 100% { transform: rotate(0deg); }
-            20%      { transform: rotate(-12deg); }
-            40%      { transform: rotate(10deg); }
-            60%      { transform: rotate(-8deg); }
-            80%      { transform: rotate(6deg); }
-        }
         .noti-bell-btn.noti-bell-shake {
             animation: notiBellShake 0.5s ease-in-out;
         }
@@ -303,7 +294,6 @@
             border: 1px solid #e2e8f0;
             z-index: 1000;
         }
-
         .notification-dropdown.active {
             display: block;
         }
@@ -318,14 +308,12 @@
             color: #0f172a;
             border-bottom: 1px solid #e2e8f0;
         }
-
         .noti-header h3 {
             font-size: 13px;
             font-weight: 800;
             color: #0f172a;
             margin: 0;
         }
-
         .btn-mark-read {
             background: none;
             border: none;
@@ -355,12 +343,10 @@
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             cursor: pointer;
         }
-
         .noti-card:hover {
             transform: translateX(2px);
             box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
         }
-
         .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
         .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
         .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
@@ -404,29 +390,102 @@
             border-top: 1px solid #e2e8f0;
             text-align: center;
         }
-
-        .noti-footer a {
-            font-size: 13px;
-            font-weight: 600;
+        .view-all-link {
+            font-size: 12px;
+            font-weight: 700;
             color: #2563eb;
             text-decoration: none;
+        }
+        .view-all-link:hover { text-decoration: underline; }
+
+        /* Approval Queue Menu Badge Styling */
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background-color: #f97316;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        @keyframes navBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .nav-badge.noti-badge-pop {
+            animation: navBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+        .leave-balance-table {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .leave-balance-table th,
+        .leave-balance-table td {
+            border: 1px solid #cbd5e1;
+        }
+        .leave-balance-table thead th {
+            background-color: #dbeafe;
+            color: #1e293b;
+            border-top: none;
+        }
+        .leave-balance-table thead th:first-child {
+            border-left: none;
+        }
+        .leave-balance-table thead th:last-child {
+            border-right: none;
+        }
+        .leave-balance-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .leave-balance-table tbody td:first-child {
+            border-left: none;
+        }
+        .leave-balance-table tbody td:last-child {
+            border-right: none;
+        }
+        .leave-balance-table td.balance-remaining {
+            font-weight: 700;
+        }
+        .leave-balance-table td.balance-low {
+            color: #dc2626;
         }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR NAVIGATION -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <!-- FIX: Image source path pointing up to parent images directory -->
+            <!-- FIX: Updated relative logo image path -->
             <img src="../images/company-logo.jpg" class="clean-logo" alt="FocusInsight Logo">
         </div>
 
         <a href="profile-hr.html" class="user-profile" style="text-decoration: none; display: flex;">
-            <div class="profile-avatar" id="sidebarAvatarContainer"><i class="fa-solid fa-user"></i></div>
+            <div class="profile-avatar" id="sidebarAvatarContainer">
+                <i class='bx bx-user'></i>
+            </div>
             <div class="profile-info">
-                <h4 id="sidebarName">Chen Jun</h4>
-                <p id="sidebarMeta">HR4001 . Human Resources</p>
+                <h4 id="sidebarName">Loading...</h4>
+                <p id="sidebarMeta">Loading...</p>
             </div>
         </a>
 
@@ -434,13 +493,13 @@
             <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
 
             <div class="sidebar-section-title">HR Management</div>
-            <a href="user-management.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="administration.html" class="nav-item"><i class='bx bx-user-check'></i> Administration</a>
             <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
             <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
             <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
 
             <div class="sidebar-section-title">My Workspace</div>
-            <a href="leave-application-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
+            <a href="application-form-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
             <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
         </nav>
 
@@ -449,27 +508,29 @@
         </div>
     </aside>
 
-    <!-- MAIN FORM CONTENT -->
     <main class="main-content">
 
-        <!-- HEADER TOP BAR -->
-        <header class="top-header">
-            <h1>Leave Application</h1>
-            <div class="header-right">
-                <div class="search-box-wrapper" style="position: relative;">
-                    <div class="search-box">
+        <!-- WHITE HEADER BAR -->
+        <header class="page-header">
+            <h2 class="page-header-title">Leave Application</h2>
+            <div class="header-actions">
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-pill">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="headerSearchInput" placeholder="Search request">
+                        <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    </div>
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Type to search your requests...</div>
                     </div>
                 </div>
 
-                <!-- NOTIFICATION BELL + DROPDOWN (data comes from /api/notifications) -->
+                <!-- Notification Bell -->
                 <div class="notification-container">
-                    <button class="icon-btn noti-bell-btn" id="notiBellBtn">
+                    <button class="noti-bell-btn" id="notiBellBtn">
                         <i class="fa-regular fa-bell"></i>
                         <span class="noti-badge" id="notiBadge">0</span>
                     </button>
-
                     <div class="notification-dropdown" id="notiDropdown">
                         <div class="noti-header">
                             <h3>Notifications</h3>
@@ -479,172 +540,349 @@
                             <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
                         </div>
                         <div class="noti-footer">
-                            <a href="my-request-hr.html" id="notiViewAllBtn">View All Requests</a>
+                            <a href="my-request.html" class="view-all-link">View All Requests</a>
                         </div>
                     </div>
                 </div>
 
-                <a href="profile-hr.html" style="text-decoration: none;">
-                    <div class="avatar-circle" id="topAvatar">CJ</div>
+                <!-- User Avatar -->
+                <a href="profile.html" class="user-profile-menu">
+                    <div class="user-avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down dropdown-chevron"></i>
                 </a>
             </div>
         </header>
 
-        <!-- FORM SWITCHER TABS -->
-        <div class="form-nav-tabs">
-            <a href="leave-application-hr.html" class="tab-btn active">Leave Application</a>
-            <a href="loan-application-hr.html" class="tab-btn">Loan Application</a>
-            <a href="travel-request-hr.html" class="tab-btn">Travel Request</a>
-            <a href="disbursement-hr.html" class="tab-btn">Disbursement Form</a>
-            <a href="overtime-claim-hr.html" class="tab-btn">Overtime Claim</a>
-            <a href="Salary-adjustment-hr.html" class="tab-btn">Salary Adjustment</a>
-        </div>
+        <div class="main-inner">
 
-        <!-- FORM CARD -->
-        <section class="form-card">
-            <div id="errorBanner" class="error-banner"></div>
+        
 
-            <form id="hrLeaveForm" enctype="multipart/form-data">
+        <form class="form-card" id="leaveForm" enctype="multipart/form-data">
+            
+            <div id="draftNotice" class="draft-indicator" style="display: none; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 8px; margin-bottom: 20px;">
+                💾 <strong>Draft Restored:</strong> Unsaved form changes were restored from your previous session.
+            </div>
 
-                <!-- 1. EMPLOYEE INFORMATION -->
-                <div class="section-title">Employee Information</div>
-                <div class="form-grid-3">
-                    <div class="form-group">
-                        <label>Employee ID</label>
-                        <input type="text" id="empId" name="employee_id" readonly class="form-control">
+            <section class="form-section">
+                <h3 class="form-section-title">Employee Information</h3>
+                <div class="form-grid form-grid-3">
+                    <div class="input-group">
+                        <label for="employee-id">Employee ID</label>
+                        <input type="text" id="employee-id" name="employee_id" value="" readonly required>
                     </div>
-                    <div class="form-group">
-                        <label>Employee Name</label>
-                        <input type="text" id="empName" name="employee_name" readonly class="form-control">
+                    <div class="input-group">
+                        <label for="employee-name">Employee Name</label>
+                        <input type="text" id="employee-name" name="employee_name" value="" readonly required>
                     </div>
-                    <div class="form-group">
-                        <label>Department</label>
-                        <input type="text" id="empDept" name="department" readonly class="form-control">
+                    <div class="input-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" name="department" value="" readonly required>
                     </div>
                 </div>
+            </section>
 
-                <!-- 2. LEAVE DETAILS -->
-                <div class="section-title">Leave Details</div>
+            <section class="form-section">
+                <h3 class="form-section-title">Leave Balance</h3>
+                <table class="data-table leave-balance-table" id="leaveBalanceTable">
+                    <thead>
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Entitlement</th>
+                            <th>Used</th>
+                            <th>Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveBalanceBody">
+                        <tr><td colspan="4" style="text-align:center; color:#94a3b8;">Loading balance…</td></tr>
+                    </tbody>
+                </table>
+            </section>
 
-                <div class="form-group">
-                    <label>Leave Type <span class="required">*</span></label>
-                    <select id="leaveType" name="leave_type" required class="form-control">
-                        <option value="" disabled selected>Select leave type</option>
-                        <option value="Annual Leave">Annual Leave</option>
-                        <option value="Medical Leave">Medical Leave (MC)</option>
-                        <option value="Hospitalization Leave">Hospitalization Leave</option>
-                        <option value="Unpaid Leave">Unpaid Leave</option>
+            <section class="form-section">
+                <h3 class="form-section-title">Leave Details</h3>
+
+                <div class="input-group">
+                    <label for="leave-type">Leave Type<span class="required">*</span></label>
+                    <select id="leave-type" name="leave_type" required>
+                        <option value="" selected disabled>Select leave type</option>
+                        <option value="annual">Annual</option>
+                        <option value="unpaid">Unpaid</option>
+                        <option value="sick">Sick</option>
+                        <option value="hospitalization">Hospitalization</option>
+                        <option value="marriage">Marriage</option>
+                        <option value="maternity">Maternity</option>
+                        <option value="paternity">Paternity</option>
+                        <option value="compassionate">Compassionate</option>
                         <option value="others">Others</option>
                     </select>
-                </div>
-
-                <div class="form-group" id="specifyGroup" style="display: none;">
-                    <label>Please Specify <span class="required">*</span></label>
-                    <input type="text" id="leaveTypeOthers" name="leave_type_others" class="form-control" placeholder="Specify other leave type...">
-                </div>
-
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label>Start Date <span class="required">*</span></label>
-                        <input type="date" id="startDate" name="start_date" required class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>End Date <span class="required">*</span></label>
-                        <input type="date" id="endDate" name="end_date" required class="form-control">
+                    <div id="annual-leave-note" class="rule-note" style="display: none;">
+                        ℹ️ <strong>Note:</strong> Maximum 6 days can be carried forward for Annual Leave only, valid until June next year.
                     </div>
                 </div>
 
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label>Day Type <span class="required">*</span></label>
-                        <select id="dayType" name="day_type" required class="form-control">
-                            <option value="Full Day">Full Day</option>
-                            <option value="Half Day (Morning)">Half Day (Morning)</option>
-                            <option value="Half Day (Afternoon)">Half Day (Afternoon)</option>
+                <div class="input-group" id="others-group" style="display: none;">
+                    <label for="leave-type-others">Please Specify<span class="required">*</span></label>
+                    <input type="text" id="leave-type-others" name="leave_type_others" placeholder="Enter leave type">
+                </div>
+
+                <div class="input-group" id="relationship-group" style="display: none;">
+                    <label for="relationship">Relationship to Close Relative<span class="required">*</span></label>
+                    <select id="relationship" name="relationship">
+                        <option value="" selected disabled>Select relationship</option>
+                        <option value="parent">Parent</option>
+                        <option value="spouse">Spouse</option>
+                        <option value="child">Child</option>
+                        <option value="sibling">Sibling</option>
+                        <option value="grandparent">Grandparent</option>
+                    </select>
+                    <div class="field-hint">📌 Compassionate leave must involve a close relative (parent, spouse, child, sibling, or grandparent).</div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="start-date">Start Date<span class="required">*</span></label>
+                        <input type="date" id="start-date" name="start_date" required>
+                        <div class="field-hint">📌 Leave must be submitted at least 3 days in advance.</div>
+                    </div>
+                    <div class="input-group">
+                        <label for="end-date">End Date<span class="required">*</span></label>
+                        <input type="date" id="end-date" name="end_date" required>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="input-group">
+                        <label for="day-type">Day Type<span class="required">*</span></label>
+                        <select id="day-type" name="day_type" required>
+                            <option value="" selected disabled>Select day type</option>
+                            <option value="full">Full Day</option>
+                            <option value="half-am">1st Half (8:00 AM – 12:00 PM)</option>
+                            <option value="half-pm">2nd Half (1:00 PM – 5:00 PM)</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>No. of Days <span class="required">*</span></label>
-                        <input type="text" id="numDays" name="num_days" readonly class="form-control" placeholder="0">
+                    <div class="input-group">
+                        <label for="num-days">No. of Days<span class="required">*</span></label>
+                        <input type="number" id="num-days" name="num_days" min="0" step="0.5" placeholder="0" readonly required>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Reason/ Description <span class="required">*</span></label>
-                    <textarea id="reason" name="reason" rows="4" required class="form-control" placeholder="Provide a brief description of your leave reason..."></textarea>
+                <div class="input-group">
+                    <label for="reason">Reason / Description<span class="required">*</span></label>
+                    <textarea id="reason" name="reason" rows="4" placeholder="Provide a brief description of your leave reason..." required></textarea>
                 </div>
+            </section>
 
-                <!-- 3. ATTACHMENT -->
-                <div class="form-group">
-                    <label>Supporting Document (if applicable)</label>
-                    <div class="file-upload-box" id="dropZone">
-                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                        <div class="upload-text">Drag & drop or <span id="browseBtn">browse files</span></div>
-                        <div class="upload-hint">PDF, JPG, PNG up to 5MB</div>
-                        <input type="file" id="attachment" name="attachment" style="display: none;">
-                        <div id="fileSelectedName" style="margin-top: 8px; font-size: 12px; font-weight: 600; color: #16a34a;"></div>
-                    </div>
+            <section class="form-section">
+                <label class="form-section-title" for="file-input">Supporting Document (if applicable)</label>
+                <div class="upload-dropzone" id="dropzone" style="border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer;">
+                    <input type="file" id="file-input" name="attachment" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                    <i class='bx bx-upload' style="font-size: 24px; color: #64748b;"></i>
+                    <p><span class="upload-text">Drag &amp; drop or</span> <a href="#" id="browse-link">browse files</a></p>
+                    <span class="upload-hint" style="font-size: 12px; color: #94a3b8;">PDF, JPG, PNG up to 5MB</span>
+                    <div class="file-name" id="file-name" style="margin-top: 8px; font-weight: 500; color: #0f172a;"></div>
                 </div>
+            </section>
 
-                <!-- FORM ACTIONS -->
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
-                    <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
-                </div>
+            <div class="form-actions-pill" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                <button type="button" class="btn-cancel-pill" id="cancelBtn" style="padding: 10px 20px; border-radius: 20px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer;">Cancel</button>
+                <button type="submit" class="btn-submit-pill" style="padding: 10px 24px; border-radius: 20px; border: none; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer;">Submit</button>
+            </div>
 
-            </form>
-        </section>
+        </form>
+        </div><!-- /.main-inner -->
 
     </main>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const API_BASE = (window.location.port === '3000') ? '' : '';
+    document.addEventListener('DOMContentLoaded', async function() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const department = sessionStorage.getItem('department');
+        const position = sessionStorage.getItem('position');
 
-        const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || 'HR4001';
-        const username = sessionStorage.getItem('username') || 'Chen Jun';
-        const department = sessionStorage.getItem('department') || 'Human Resources';
-        const position = sessionStorage.getItem('position') || sessionStorage.getItem('userPosition') || '';
+        if (!username || !userId) {
+            window.location.href = "index.html";
+            return;
+        }
 
-        document.getElementById('empId').value = userId;
-        document.getElementById('empName').value = username;
-        document.getElementById('empDept').value = department;
+        const formattedUserId = userId.toUpperCase();
+
+        // Manager Check for Sidebar Menu
+        const isManager = (userId && formattedUserId.startsWith('MGR')) || 
+                          (position && position.toLowerCase().includes('manager'));
+        if (isManager) {
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem) {
+                approvalQueueItem.style.display = 'flex';
+            }
+            const managementSectionTitle = document.getElementById('managementSectionTitle');
+            if (managementSectionTitle) {
+                managementSectionTitle.style.display = 'block';
+            }
+        }
+
+        // Indicator badge di sebelah "Approval Queue" - papar bilangan pending & auto refresh
+        async function checkApprovalQueueAccess(userIdParam, departmentParam, positionParam) {
+            const pos = (positionParam || '').toLowerCase();
+            const dept = (departmentParam || '').toLowerCase();
+
+            if (!(pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || (userIdParam || '').toUpperCase().startsWith('MGR'))) {
+                return;
+            }
+            try {
+                const res = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const pendingApprovalCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;
+                    const badge = document.getElementById('approvalQueueBadge');
+                    if (badge) {
+                        if (pendingApprovalCount > 0) {
+                            const wasHidden = badge.style.display === 'none' || badge.style.display === '';
+                            const prevCount = badge.textContent;
+                            badge.textContent = pendingApprovalCount;
+                            badge.style.display = 'inline-block';
+                            if (wasHidden || prevCount !== String(pendingApprovalCount)) {
+                                badge.classList.remove('noti-badge-pop');
+                                void badge.offsetWidth;
+                                badge.classList.add('noti-badge-pop');
+                            }
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Approval queue badge check failed:', e);
+            }
+        }
+
+        checkApprovalQueueAccess(userId, department, position);
+        setInterval(() => checkApprovalQueueAccess(userId, department, position), 5000);
 
         document.getElementById('sidebarName').textContent = username;
-        document.getElementById('sidebarMeta').textContent = `${userId} . ${department}`;
+        document.getElementById('sidebarMeta').textContent = `${formattedUserId} • ${department || 'General'}`;
         
-        const initials = username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        document.getElementById('topAvatar').textContent = initials || 'HR';
+        const initials = username.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+        document.getElementById('topAvatar').textContent = initials;
 
-        /* Load profile picture set on profile-hr.html into the sidebar and top bar */
-        (function loadSidebarAvatar() {
-            const formattedUserId = (userId || '').toUpperCase();
-            const avatarKey = `userAvatar_${formattedUserId}`;
+        const specificAvatarKey = `userAvatar_${formattedUserId}`;
+        function updateAvatarDisplay(avatarBase64) {
+            if (!avatarBase64) return;
             const sidebarAvatar = document.getElementById('sidebarAvatarContainer');
-            const topAvatar = document.getElementById('topAvatar');
+            const topAvatarEl = document.getElementById('topAvatar');
+            const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
 
-            function renderSavedAvatar(base64Image) {
-                const imgHtml = `<img src="${base64Image}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-                if (sidebarAvatar) sidebarAvatar.innerHTML = imgHtml;
-                if (topAvatar) topAvatar.innerHTML = imgHtml;
+            if (sidebarAvatar) sidebarAvatar.innerHTML = imgHTML;
+            if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+        }
+
+        const savedAvatar = localStorage.getItem(specificAvatarKey);
+        updateAvatarDisplay(savedAvatar);
+
+        window.addEventListener('storage', function(e) {
+            if (e.key === specificAvatarKey) {
+                updateAvatarDisplay(e.newValue);
             }
+        });
 
-            const savedAvatar = localStorage.getItem(avatarKey);
-            if (savedAvatar) renderSavedAvatar(savedAvatar);
+        document.getElementById('employee-id').value = formattedUserId;
+        document.getElementById('employee-name').value = username;
+        document.getElementById('department').value = department || '';
 
-            window.addEventListener('storage', (e) => {
-                if (e.key === avatarKey && e.newValue) renderSavedAvatar(e.newValue);
+        // ==========================================
+        // SEARCH BAR WITH POPUP SCROLLABLE RESULTS
+        // ==========================================
+        const searchInput = document.getElementById('searchInput');
+        const searchDropdown = document.getElementById('searchDropdown');
+
+        if (searchInput && searchDropdown) {
+            searchInput.addEventListener('input', async function() {
+                const query = searchInput.value.trim().toLowerCase();
+                if (query.length === 0) {
+                    searchDropdown.classList.remove('active');
+                    return;
+                }
+
+                searchDropdown.innerHTML = `<div style="padding: 12px; text-align: center; color: #94a3b8; font-size: 13px;">Searching requests...</div>`;
+                searchDropdown.classList.add('active');
+
+                try {
+                    const response = await fetch(`/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                    const result = await response.json();
+
+                    if (result.success && Array.isArray(result.data)) {
+                        const filtered = result.data.filter(row => {
+                            const matchUser = row.employee_id && row.employee_id.toString().trim().toLowerCase() === userId.toString().trim().toLowerCase();
+                            const rowText = `${row.request_type || ''} REQ-${(row.request_type || '').toUpperCase()}-${row.id} ${row.status || ''} ${row.details || ''} ${row.reason || ''}`.toLowerCase();
+                            return matchUser && rowText.includes(query);
+                        });
+
+                        if (filtered.length > 0) {
+                            searchDropdown.innerHTML = '';
+                            filtered.forEach(row => {
+                                const reqType = row.request_type || 'General';
+                                const rawStatus = (row.status || '').toString().trim().toLowerCase();
+
+                                let badgeBg = '#fef3c7';
+                                let badgeColor = '#d97706';
+                                if (rawStatus.includes('approve') || rawStatus === 'completed' || rawStatus === 'processed') {
+                                    badgeBg = '#dcfce7';
+                                    badgeColor = '#15803d';
+                                } else if (rawStatus.includes('reject')) {
+                                    badgeBg = '#fee2e2';
+                                    badgeColor = '#b91c1c';
+                                } else if (rawStatus.includes('revision') || rawStatus === 'in review') {
+                                    badgeBg = '#fef3c7';
+                                    badgeColor = '#b45309';
+                                }
+
+                                const itemLink = document.createElement('a');
+                                itemLink.href = `request-details.html?id=${row.id}&type=${encodeURIComponent(reqType)}`;
+                                itemLink.style.cssText = 'display: block; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit; transition: background 0.2s;';
+                                itemLink.onmouseover = () => itemLink.style.background = '#f8fafc';
+                                itemLink.onmouseout = () => itemLink.style.background = 'transparent';
+
+                                itemLink.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 700; color: #0f172a;">REQ-${reqType.toUpperCase()}-${row.id}</div>
+                                            <div style="font-size: 12px; color: #64748b; margin-top: 1px;">${reqType} (${row.details || row.reason || 'N/A'})</div>
+                                        </div>
+                                        <span style="font-size: 10px; padding: 2px 8px; border-radius: 10px; background: ${badgeBg}; color: ${badgeColor}; font-weight: 600; text-transform: capitalize;">
+                                            ${row.status || 'Pending'}
+                                        </span>
+                                    </div>
+                                `;
+                                searchDropdown.appendChild(itemLink);
+                            });
+                        } else {
+                            searchDropdown.innerHTML = `<div style="padding: 14px; text-align: center; color: #94a3b8; font-size: 13px;">No matching requests found.</div>`;
+                        }
+                    } else {
+                        searchDropdown.innerHTML = `<div style="padding: 14px; text-align: center; color: #94a3b8; font-size: 13px;">No requests available.</div>`;
+                    }
+                } catch (err) {
+                    console.error('Search error:', err);
+                    searchDropdown.innerHTML = `<div style="padding: 14px; text-align: center; color: #ef4444; font-size: 13px;">Error loading search results.</div>`;
+                }
             });
-        })();
 
-        /* ==============================================================
-           NOTIFICATION DROPDOWN LOGIC
-           ============================================================== */
+            document.addEventListener('click', (e) => {
+                if (!searchDropdown.contains(e.target) && !searchInput.contains(e.target)) {
+                    searchDropdown.classList.remove('active');
+                }
+            });
+
+            searchDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        // ==========================================
+        // NOTIFICATION SYSTEM
+        // ==========================================
+        const notiBellBtn = document.getElementById('notiBellBtn');
         const notiDropdown = document.getElementById('notiDropdown');
-        const notiList     = document.getElementById('notiList');
-        const notiBadge    = document.getElementById('notiBadge');
-        const notiBellBtn  = document.getElementById('notiBellBtn');
+        const notiList = document.getElementById('notiList');
+        const notiBadge = document.getElementById('notiBadge');
         const refreshNotiBtn = document.getElementById('refreshNotiBtn');
 
         if (notiBellBtn && notiDropdown) {
@@ -667,7 +905,7 @@
 
         async function fetchNotifications() {
             try {
-                const response = await fetch(`${API_BASE}/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
                 const data = await response.json();
 
                 if (data.success && data.notifications && data.notifications.length > 0) {
@@ -701,7 +939,7 @@
                                 : `${item.type || 'Form'} (${item.form_no || ''})`;
 
                             const notiItem = document.createElement('a');
-                            notiItem.href = `request-details-hr.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
                             notiItem.className = `noti-card ${cardClass}`;
 
                             notiItem.innerHTML = `
@@ -722,10 +960,17 @@
                         if (unreadCount > 0) {
                             notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
                             notiBadge.style.display = 'flex';
-                        } else {
-                            notiBadge.style.display = 'none';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
                         }
                     }
+
                 } else {
                     if (notiBadge) notiBadge.style.display = 'none';
                     if (notiList) {
@@ -734,9 +979,6 @@
                 }
             } catch (err) {
                 console.error('Error fetching notifications:', err);
-                if (notiList) {
-                    notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Unable to load notifications.</div>`;
-                }
             }
         }
 
@@ -750,130 +992,358 @@
         fetchNotifications();
         setInterval(fetchNotifications, 5000);
 
-        /* ==============================================================
-           FORM LOGIC
-           ============================================================== */
-        const leaveTypeSelect = document.getElementById('leaveType');
-        const specifyGroup = document.getElementById('specifyGroup');
-        const leaveTypeOthers = document.getElementById('leaveTypeOthers');
+        // Draft and Form logic
+        function saveFormDraft() {
+            const form = document.getElementById('leaveForm');
+            if (!form) return;
+            const draftData = {};
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.id && input.type !== 'file' && input.type !== 'password') {
+                    draftData[input.id] = input.value;
+                }
+            });
+            localStorage.setItem(`draft_${formattedUserId}_leaveForm`, JSON.stringify(draftData));
+        }
 
-        leaveTypeSelect.addEventListener('change', function() {
-            if (this.value === 'others') {
-                specifyGroup.style.display = 'flex';
-                leaveTypeOthers.required = true;
+        function loadFormDraft() {
+            const rawData = localStorage.getItem(`draft_${formattedUserId}_leaveForm`);
+            if (!rawData) return false;
+            try {
+                const draftData = JSON.parse(rawData);
+                Object.keys(draftData).forEach(key => {
+                    const el = document.getElementById(key);
+                    if (el && !el.readOnly) {
+                        el.value = draftData[key];
+                    }
+                });
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        if (loadFormDraft()) {
+            document.getElementById('draftNotice').style.display = 'block';
+        }
+
+        document.querySelectorAll('#leaveForm input, #leaveForm select, #leaveForm textarea').forEach(el => {
+            el.addEventListener('input', saveFormDraft);
+            el.addEventListener('change', saveFormDraft);
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            localStorage.removeItem(`draft_${formattedUserId}_leaveForm`);
+            window.location.href = 'dashboard.html';
+        });
+
+        const leaveTypeSelect = document.getElementById('leave-type');
+        const othersGroup = document.getElementById('others-group');
+        const othersInput = document.getElementById('leave-type-others');
+        const annualNote = document.getElementById('annual-leave-note');
+        const relationshipGroup = document.getElementById('relationship-group');
+        const relationshipSelect = document.getElementById('relationship');
+
+        function medicalAttachmentRequired(leaveTypeVal) {
+            return leaveTypeVal === 'sick' || leaveTypeVal === 'hospitalization';
+        }
+
+        leaveTypeSelect.addEventListener('change', () => {
+            if (leaveTypeSelect.value === 'others') {
+                othersGroup.style.display = 'block';
+                othersInput.required = true;
             } else {
-                specifyGroup.style.display = 'none';
-                leaveTypeOthers.required = false;
-                leaveTypeOthers.value = '';
+                othersGroup.style.display = 'none';
+                othersInput.required = false;
+            }
+
+            if (leaveTypeSelect.value === 'annual') {
+                annualNote.style.display = 'block';
+            } else {
+                annualNote.style.display = 'none';
+            }
+
+            if (leaveTypeSelect.value === 'compassionate') {
+                relationshipGroup.style.display = 'block';
+                relationshipSelect.required = true;
+            } else {
+                relationshipGroup.style.display = 'none';
+                relationshipSelect.required = false;
+            }
+
+            highlightBalanceRow(leaveTypeSelect.value);
+        });
+
+        // ==========================================
+        // LEAVE BALANCE TABLE
+        // ==========================================
+        let currentLeaveBalance = [];
+
+        function normalizeLeaveTypeClient(rawType) {
+            const t = (rawType || '').toString().trim().toLowerCase();
+            if (t === 'annual' || t === 'annual leave') return 'Annual Leave';
+            if (t === 'sick' || t === 'sick leave') return 'Sick Leave';
+            if (t === 'hospitalization' || t === 'medical leave') return 'Hospitalization';
+            if (t === 'maternity') return 'Maternity';
+            if (t === 'paternity') return 'Paternity';
+            return null;
+        }
+
+        function highlightBalanceRow(leaveTypeVal) {
+            const norm = normalizeLeaveTypeClient(leaveTypeVal);
+            document.querySelectorAll('#leaveBalanceBody tr').forEach(tr => {
+                tr.style.background = (norm && tr.dataset.type === norm) ? '#eff6ff' : '';
+            });
+        }
+
+        async function loadLeaveBalance() {
+            const tbody = document.getElementById('leaveBalanceBody');
+            try {
+                const res = await fetch(`/api/leave-balance?employee_id=${encodeURIComponent(userId)}`);
+                const result = await res.json();
+                if (!result.success || !Array.isArray(result.data)) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Unable to load leave balance.</td></tr>';
+                    return;
+                }
+                currentLeaveBalance = result.data;
+                tbody.innerHTML = '';
+                result.data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.type = row.leave_type;
+                    const lowClass = row.remaining <= 2 ? ' balance-low' : '';
+                    tr.innerHTML = `
+                        <td>${row.leave_type}</td>
+                        <td>${row.entitlement}${row.carried_forward ? ' (+' + row.carried_forward + ' c/f)' : ''} days</td>
+                        <td>${row.used} days</td>
+                        <td class="balance-remaining${lowClass}">${row.remaining} days</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Leave balance load failed:', err);
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Unable to load leave balance.</td></tr>';
+            }
+        }
+
+        loadLeaveBalance();
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const browseLink = document.getElementById('browse-link');
+        const fileNameDisplay = document.getElementById('file-name');
+
+        browseLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = "Selected: " + fileInput.files[0].name;
             }
         });
 
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-        const numDaysInput = document.getElementById('numDays');
-        const dayTypeSelect = document.getElementById('dayType');
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const numDaysInput = document.getElementById('num-days');
+
+        // Sekat calendar picker daripada pilih tarikh kurang dari 3 hari notis (UX level)
+        (function setMinStartDate() {
+            const minDate = new Date();
+            minDate.setDate(minDate.getDate() + 3);
+            const yyyy = minDate.getFullYear();
+            const mm = String(minDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(minDate.getDate()).padStart(2, '0');
+            startDateInput.min = `${yyyy}-${mm}-${dd}`;
+        })();
+
+        // Weekends excluded: Saturday (6) and Sunday (0) don't count as leave days
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
+
+        // Public holidays excluded — loaded once from the server so the
+        // day count shown here matches what /api/submit-leave will accept.
+        let publicHolidaySet = new Set();
+        async function loadPublicHolidays() {
+            try {
+                const res = await fetch('/api/public-holidays');
+                const result = await res.json();
+                if (result.success && Array.isArray(result.data)) {
+                    publicHolidaySet = new Set(result.data.map(h => h.holiday_date));
+                }
+            } catch (err) {
+                console.error('Public holiday load failed:', err);
+            }
+        }
+        loadPublicHolidays();
+
+        function isPublicHoliday(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return publicHolidaySet.has(`${yyyy}-${mm}-${dd}`);
+        }
+
+        function countBusinessDays(start, end) {
+            let count = 0;
+            const cursor = new Date(start);
+            cursor.setHours(0, 0, 0, 0);
+            const endClamped = new Date(end);
+            endClamped.setHours(0, 0, 0, 0);
+            while (cursor <= endClamped) {
+                if (!isWeekend(cursor) && !isPublicHoliday(cursor)) count++;
+                cursor.setDate(cursor.getDate() + 1);
+            }
+            return count;
+        }
+
+        startDateInput.addEventListener('change', () => {
+            if (startDateInput.value) {
+                const start = new Date(startDateInput.value);
+                if (isWeekend(start)) {
+                    alert('Weekends are excluded from leave. Please choose a Start Date that falls on a weekday (Mon–Fri).');
+                    startDateInput.value = '';
+                    numDaysInput.value = '';
+                    return;
+                }
+            }
+            endDateInput.min = startDateInput.value;
+            calculateDays();
+        });
+
+        endDateInput.addEventListener('change', () => {
+            if (endDateInput.value) {
+                const end = new Date(endDateInput.value);
+                if (isWeekend(end)) {
+                    alert('Weekends are excluded from leave. Please choose an End Date that falls on a weekday (Mon–Fri).');
+                    endDateInput.value = '';
+                    numDaysInput.value = '';
+                    return;
+                }
+            }
+            calculateDays();
+        });
 
         function calculateDays() {
-            const start = startDateInput.value;
-            const end = endDateInput.value;
-
-            if (start && end) {
-                const sDate = new Date(start);
-                const eDate = new Date(end);
-
-                if (eDate >= sDate) {
-                    const diffTime = Math.abs(eDate - sDate);
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-                    if (dayTypeSelect.value.includes('Half Day')) {
-                        diffDays = 0.5;
-                    }
-                    numDaysInput.value = diffDays;
+            if (startDateInput.value && endDateInput.value) {
+                const start = new Date(startDateInput.value);
+                const end = new Date(endDateInput.value);
+                if (end >= start) {
+                    const businessDays = countBusinessDays(start, end);
+                    numDaysInput.value = businessDays;
                 } else {
-                    numDaysInput.value = '0';
+                    numDaysInput.value = 0;
                 }
             }
         }
 
-        startDateInput.addEventListener('change', calculateDays);
-        endDateInput.addEventListener('change', calculateDays);
-        dayTypeSelect.addEventListener('change', calculateDays);
+        function day_type_is_half() {
+            const dt = document.getElementById('day-type').value;
+            return dt === 'half-am' || dt === 'half-pm';
+        }
 
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('attachment');
-        const browseBtn = document.getElementById('browseBtn');
-        const fileSelectedName = document.getElementById('fileSelectedName');
-
-        browseBtn.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                fileSelectedName.textContent = `Selected: ${fileInput.files[0].name}`;
+        document.getElementById('day-type').addEventListener('change', () => {
+            if (day_type_is_half() && startDateInput.value && startDateInput.value === endDateInput.value) {
+                numDaysInput.value = 0.5;
+            } else {
+                calculateDays();
             }
         });
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#2563eb';
-            dropZone.style.backgroundColor = '#f0f9ff';
-        });
+        // --- 3 HARI NOTIS MINIMUM VALIDATION ---
+        function isAtLeast3DaysAdvance(startDateValue) {
+            if (!startDateValue) return false;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const start = new Date(startDateValue);
+            start.setHours(0, 0, 0, 0);
+            const diffDays = Math.round((start - today) / (1000 * 60 * 60 * 24));
+            return diffDays >= 3;
+        }
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.style.borderColor = '#cbd5e1';
-            dropZone.style.backgroundColor = '#fafafa';
-        });
+        async function hasOverlappingLeave(startVal, endVal) {
+            try {
+                const response = await fetch(`/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                const result = await response.json();
+                if (!result.success || !Array.isArray(result.data)) return false;
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#cbd5e1';
-            dropZone.style.backgroundColor = '#fafafa';
+                const newStart = new Date(startVal);
+                const newEnd = new Date(endVal);
 
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                fileSelectedName.textContent = `Selected: ${fileInput.files[0].name}`;
+                return result.data.some(row => {
+                    const sameUser = row.employee_id && row.employee_id.toString().trim().toLowerCase() === userId.toString().trim().toLowerCase();
+                    const isLeave = (row.request_type || '').toLowerCase() === 'leave';
+                    const status = (row.status || '').toLowerCase();
+                    const isActive = status.includes('pending') || status === 'approved';
+                    if (!sameUser || !isLeave || !isActive || !row.start_date || !row.end_date) return false;
+
+                    const existingStart = new Date(row.start_date);
+                    const existingEnd = new Date(row.end_date);
+                    return newStart <= existingEnd && newEnd >= existingStart;
+                });
+            } catch (err) {
+                console.error('Overlap pre-check failed:', err);
+                return false;
             }
-        });
+        }
 
-        document.getElementById('cancelBtn').addEventListener('click', () => {
-            window.location.href = 'hr-dashboard.html';
-        });
-
-        const form = document.getElementById('hrLeaveForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const errorBanner = document.getElementById('errorBanner');
-
-        form.addEventListener('submit', async function(e) {
+        document.getElementById('leaveForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            errorBanner.style.display = 'none';
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
+            if (!isAtLeast3DaysAdvance(startDateInput.value)) {
+                alert('Leave must be submitted at least 3 days in advance. Sila pilih Start Date yang sekurang-kurangnya 3 hari dari hari ini.');
+                return;
+            }
 
-            const formData = new FormData(form);
+            if (isWeekend(new Date(startDateInput.value)) || isWeekend(new Date(endDateInput.value))) {
+                alert('Weekends are excluded from leave. Please select weekday dates only.');
+                return;
+            }
+
+            if (await hasOverlappingLeave(startDateInput.value, endDateInput.value)) {
+                alert('You already have a pending or approved leave request that overlaps with these dates. Duplicate leave applications are not allowed.');
+                return;
+            }
+
+            if (medicalAttachmentRequired(leaveTypeSelect.value) && fileInput.files.length === 0) {
+                alert('A medical certificate (MC) attachment is required for Sick Leave / Hospitalization.');
+                return;
+            }
+
+            if (leaveTypeSelect.value === 'compassionate' && !relationshipSelect.value) {
+                alert('Please select the relationship to the close relative for Compassionate Leave.');
+                return;
+            }
+
+            const normType = normalizeLeaveTypeClient(leaveTypeSelect.value);
+            if (normType) {
+                const balRow = currentLeaveBalance.find(r => r.leave_type === normType);
+                const requestedDays = parseFloat(numDaysInput.value || '0');
+                if (balRow && requestedDays > balRow.remaining) {
+                    alert(`Insufficient ${normType} balance. You have ${balRow.remaining} day(s) remaining but requested ${requestedDays} day(s).`);
+                    return;
+                }
+            }
+
+            const formData = new FormData(this);
 
             try {
-                const response = await fetch(`${API_BASE}/api/submit-leave`, {
+                const response = await fetch('/api/submit-leave', {
                     method: 'POST',
                     body: formData
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
-                    alert('Leave Application submitted successfully!');
-                    window.location.href = 'my-request-hr.html';
+                    localStorage.removeItem(`draft_${formattedUserId}_leaveForm`);
+                    alert(result.message || "Leave application submitted successfully!");
+                    window.location.href = "my-request.html";
                 } else {
-                    errorBanner.textContent = 'Submission error: ' + (result.message || 'Server error.');
-                    errorBanner.style.display = 'block';
+                    alert("Submission error: " + result.message);
                 }
             } catch (err) {
-                console.error('Error submitting leave application:', err);
-                errorBanner.textContent = 'Failed to submit form. Please verify server connection.';
-                errorBanner.style.display = 'block';
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit';
+                console.error("Submission failed:", err);
+                alert("Submission failed. Please check your network connection.");
             }
         });
     });
