@@ -28,7 +28,10 @@ router.use(require('./reports.routes'));
 router.use(require('./reminder.routes'));
 router.use(require('./workflow.routes'));
 
-// Preserve frontend team's latest features
+// Latest main feature
+router.use(require('./announcements.routes'));
+
+// Preserve existing main features
 router.use(require('./printing-production'));
 router.use(require('./legacy-forms.routes'));
 

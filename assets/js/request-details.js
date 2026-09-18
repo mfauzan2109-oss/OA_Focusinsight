@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } catch (err) {
                 console.error('API Fetch Error:', err);
-                alert('Error connecting to Node server');
+                alert('Error connecting to the server');
             }
         });
 

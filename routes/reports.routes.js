@@ -3,6 +3,7 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit');
 const cron = require('node-cron');
 const db = require('../config/database');
 
@@ -18,7 +19,17 @@ router.get('/api/reports', (req, res) => {
     let otQuery     = `SELECT o.id, 'Overtime Claim' as request_type, o.employee_name, o.employee_id, o.department, o.created_at as request_date, u.profile_picture FROM \`overtime\` o LEFT JOIN users u ON LOWER(u.user_id) = LOWER(o.employee_id COLLATE utf8mb4_general_ci) WHERE 1=1`;
     let loanQuery   = `SELECT ln.id, 'Loan Application' as request_type, ln.employee_name, ln.employee_id, ln.department, ln.created_at as request_date, u.profile_picture FROM \`loans\` ln LEFT JOIN users u ON LOWER(u.user_id) = LOWER(ln.employee_id COLLATE utf8mb4_general_ci) WHERE 1=1`;
 
-    const params = [];
+    // Separate params array per sub-query. Each query's own WHERE clause is
+    // built independently, and the number/order of placeholders it ends up
+    // with can differ from the others (e.g. once we get to search_value,
+    // whether the search column expression is the 1st, 2nd, 3rd... condition
+    // is the same across queries here, but keeping the arrays independent
+    // avoids the queries silently sharing one another's bound values).
+    const leaveParams = [];
+    const disParams = [];
+    const travelParams = [];
+    const otParams = [];
+    const loanParams = [];
 
     if (department && department !== 'All Departments') {
         leaveQuery  += ` AND LOWER(TRIM(l.Department)) = LOWER(TRIM(?))`;
@@ -26,7 +37,11 @@ router.get('/api/reports', (req, res) => {
         travelQuery += ` AND LOWER(TRIM(t.department)) = LOWER(TRIM(?))`;
         otQuery     += ` AND LOWER(TRIM(o.department)) = LOWER(TRIM(?))`;
         loanQuery   += ` AND LOWER(TRIM(ln.department)) = LOWER(TRIM(?))`;
-        params.push(department, department, department, department, department);
+        leaveParams.push(department);
+        disParams.push(department);
+        travelParams.push(department);
+        otParams.push(department);
+        loanParams.push(department);
     }
 
     if (date_from) {
@@ -35,7 +50,11 @@ router.get('/api/reports', (req, res) => {
         travelQuery += ` AND DATE(t.created_at) >= ?`;
         otQuery     += ` AND DATE(o.created_at) >= ?`;
         loanQuery   += ` AND DATE(ln.created_at) >= ?`;
-        params.push(date_from, date_from, date_from, date_from, date_from);
+        leaveParams.push(date_from);
+        disParams.push(date_from);
+        travelParams.push(date_from);
+        otParams.push(date_from);
+        loanParams.push(date_from);
     }
 
     if (date_to) {
@@ -44,7 +63,11 @@ router.get('/api/reports', (req, res) => {
         travelQuery += ` AND DATE(t.created_at) <= ?`;
         otQuery     += ` AND DATE(o.created_at) <= ?`;
         loanQuery   += ` AND DATE(ln.created_at) <= ?`;
-        params.push(date_to, date_to, date_to, date_to, date_to);
+        leaveParams.push(date_to);
+        disParams.push(date_to);
+        travelParams.push(date_to);
+        otParams.push(date_to);
+        loanParams.push(date_to);
     }
 
     if (search_value) {
@@ -78,7 +101,11 @@ router.get('/api/reports', (req, res) => {
         otQuery     += ` AND LOWER(${cols.ot}) LIKE LOWER(?)`;
         loanQuery   += ` AND LOWER(${cols.loan}) LIKE LOWER(?)`;
         const likeVal = `%${search_value}%`;
-        params.push(likeVal, likeVal, likeVal, likeVal, likeVal);
+        leaveParams.push(likeVal);
+        disParams.push(likeVal);
+        travelParams.push(likeVal);
+        otParams.push(likeVal);
+        loanParams.push(likeVal);
     }
 
     const runLeave  = !request_type || request_type === 'All Requests' || request_type === 'Leave Application';
@@ -90,11 +117,11 @@ router.get('/api/reports', (req, res) => {
     const exec = (sql, p) => new Promise(resolve => db.query(sql, p, (e, r) => resolve(r || [])));
 
     Promise.all([
-        runLeave ? exec(leaveQuery, params) : [],
-        runDisb ? exec(disQuery, params) : [],
-        runTravel ? exec(travelQuery, params) : [],
-        runOT ? exec(otQuery, params) : [],
-        runLoan ? exec(loanQuery, params) : []
+        runLeave ? exec(leaveQuery, leaveParams) : [],
+        runDisb ? exec(disQuery, disParams) : [],
+        runTravel ? exec(travelQuery, travelParams) : [],
+        runOT ? exec(otQuery, otParams) : [],
+        runLoan ? exec(loanQuery, loanParams) : []
     ]).then(([leaves, disbs, travels, ots, loans]) => {
         let combined = [...leaves, ...disbs, ...travels, ...ots, ...loans];
 
@@ -187,6 +214,54 @@ async function writeReportExcel(filePath, formTypeLabel, statusLabel, records) {
     await workbook.xlsx.writeFile(filePath);
 }
 
+function writeReportPdf(filePath, formTypeLabel, statusLabel, records) {
+    return new Promise((resolve, reject) => {
+        const doc = new PDFDocument({ margin: 40, size: 'A4' });
+        const stream = fs.createWriteStream(filePath);
+        doc.pipe(stream);
+
+        doc.fontSize(16).text(`${formTypeLabel} - ${statusLabel}`, { align: 'left' });
+        doc.moveDown(1);
+
+        const colX = { employee_id: 40, name: 160, type: 340, date: 460 };
+        const rowHeight = 20;
+
+        const drawHeader = () => {
+            doc.fontSize(10).font('Helvetica-Bold');
+            doc.text('Employee ID', colX.employee_id, doc.y, { continued: false, width: 110 });
+            doc.text('Name', colX.name, doc.y - doc.currentLineHeight(), { width: 170 });
+            doc.text('Type of Form', colX.type, doc.y - doc.currentLineHeight(), { width: 110 });
+            doc.text('Date', colX.date, doc.y - doc.currentLineHeight(), { width: 100 });
+            doc.moveDown(0.5);
+            doc.font('Helvetica');
+        };
+
+        drawHeader();
+
+        const rows = records.length === 0
+            ? [{ employee_id: 'No records found.', name: '', date: '' }]
+            : records;
+
+        rows.forEach(rec => {
+            if (doc.y > doc.page.height - doc.page.margins.bottom - rowHeight) {
+                doc.addPage();
+                drawHeader();
+            }
+            const y = doc.y;
+            doc.fontSize(9);
+            doc.text(rec.employee_id || '-', colX.employee_id, y, { width: 110 });
+            doc.text(rec.employee_name || rec.name || '-', colX.name, y, { width: 170 });
+            doc.text(formTypeLabel, colX.type, y, { width: 110 });
+            doc.text(rec.formatted_date || rec.date || '-', colX.date, y, { width: 100 });
+            doc.moveDown(1);
+        });
+
+        doc.end();
+        stream.on('finish', resolve);
+        stream.on('error', reject);
+    });
+}
+
 router.post('/api/generate-reports', async (req, res) => {
     try {
         const result = await generateAllReports();
@@ -249,13 +324,17 @@ async function generateAllReports() {
         const typeDir = path.join(REPORTS_BASE_DIR, type);
         fs.mkdirSync(typeDir, { recursive: true });
 
-        const pendingPath = path.join(typeDir, `Pending-${monthLabel}.xlsx`);
-        const approvedPath = path.join(typeDir, `Approved-${monthLabel}.xlsx`);
+        const pendingXlsxPath = path.join(typeDir, `Pending-${monthLabel}.xlsx`);
+        const approvedXlsxPath = path.join(typeDir, `Approved-${monthLabel}.xlsx`);
+        const pendingPdfPath = path.join(typeDir, `Pending-${monthLabel}.pdf`);
+        const approvedPdfPath = path.join(typeDir, `Approved-${monthLabel}.pdf`);
 
-        await writeReportExcel(pendingPath, type, 'Pending', pending);
-        await writeReportExcel(approvedPath, type, 'Approved', approved);
+        await writeReportExcel(pendingXlsxPath, type, 'Pending', pending);
+        await writeReportExcel(approvedXlsxPath, type, 'Approved', approved);
+        await writeReportPdf(pendingPdfPath, type, 'Pending', pending);
+        await writeReportPdf(approvedPdfPath, type, 'Approved', approved);
 
-        generatedFiles.push(pendingPath, approvedPath);
+        generatedFiles.push(pendingXlsxPath, approvedXlsxPath, pendingPdfPath, approvedPdfPath);
     }
 
     return { baseFolder: REPORTS_BASE_DIR, files: generatedFiles };

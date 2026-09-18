@@ -6,7 +6,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #aedce2;
+            background-color: var(--color-bg-admin);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -18,8 +18,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 32px;
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            background-color: var(--color-white);
+            box-shadow: var(--shadow-subtle);
             width: 100%;
         }
 
@@ -44,26 +44,26 @@
         .search-pill i {
             position: absolute;
             left: 14px;
-            color: #94a3b8;
+            color: var(--color-slate-400);
             font-size: 13px;
         }
 
         .search-pill input {
             padding: 7px 16px 7px 34px;
-            border-radius: 20px;
-            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-20);
+            border: 1px solid var(--color-slate-300);
             outline: none;
             font-size: 12px;
             width: 200px;
-            background-color: #f8fafc;
-            color: #334155;
+            background-color: var(--color-slate-50);
+            color: var(--color-slate-700);
         }
 
         .header-icon-btn {
             background: transparent;
             border: none;
             font-size: 16px;
-            color: #475569;
+            color: var(--color-slate-600);
             cursor: pointer;
         }
 
@@ -78,8 +78,8 @@
             width: 34px;
             height: 34px;
             border-radius: 50%;
-            background-color: #2563eb;
-            color: #ffffff;
+            background-color: var(--color-primary);
+            color: var(--color-white);
             font-size: 16px;
             display: flex;
             align-items: center;
@@ -88,7 +88,7 @@
 
         .dropdown-chevron {
             font-size: 11px;
-            color: #64748b;
+            color: var(--color-slate-500);
         }
 
         /* --- MAIN FORM CONTAINER --- */
@@ -110,7 +110,7 @@
         .workflow-title-row h1 {
             font-size: 22px;
             font-weight: 800;
-            color: #000000;
+            color: var(--color-black);
             white-space: nowrap;
         }
 
@@ -118,19 +118,19 @@
             width: 100%;
             max-width: 600px;
             padding: 10px 18px;
-            border-radius: 12px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
+            border-radius: var(--radius-12);
+            border: 1px solid var(--color-slate-300);
+            background-color: var(--color-white);
             font-size: 14px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--color-slate-900);
             outline: none;
             transition: border-color 0.2s ease;
         }
 
         .workflow-name-input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-focus-primary);
         }
 
         /* --- STEP CARD STYLING --- */
@@ -142,11 +142,11 @@
         }
 
         .step-card {
-            background-color: #ffffff;
-            border-radius: 16px;
+            background-color: var(--color-white);
+            border-radius: var(--radius-16);
             padding: 20px 24px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--color-slate-200);
             position: relative;
         }
 
@@ -159,11 +159,11 @@
 
         .step-badge-pill {
             background-color: #dbeafe;
-            color: #2563eb;
+            color: var(--color-primary);
             font-size: 13px;
             font-weight: 800;
             padding: 6px 18px;
-            border-radius: 14px;
+            border-radius: var(--radius-14);
             border: 1px solid #bfdbfe;
             display: inline-block;
         }
@@ -171,12 +171,12 @@
         .step-role-select {
             width: 260px;
             padding: 8px 14px;
-            border-radius: 10px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
+            border-radius: var(--radius-10);
+            border: 1px solid var(--color-slate-300);
+            background-color: var(--color-white);
             font-size: 13px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--color-slate-900);
             outline: none;
             cursor: pointer;
             appearance: none;
@@ -189,12 +189,12 @@
         .step-user-position-select {
             width: 100%;
             padding: 12px 18px;
-            border-radius: 12px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
+            border-radius: var(--radius-12);
+            border: 1px solid var(--color-slate-300);
+            background-color: var(--color-white);
             font-size: 13px;
             font-weight: 600;
-            color: #0f172a;
+            color: var(--color-slate-900);
             outline: none;
             cursor: pointer;
             appearance: none;
@@ -206,8 +206,8 @@
 
         .step-role-select:focus,
         .step-user-position-select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-focus-primary);
         }
 
         .btn-remove-step {
@@ -216,7 +216,7 @@
             right: 20px;
             background: none;
             border: none;
-            color: #ef4444;
+            color: var(--color-danger);
             font-size: 16px;
             cursor: pointer;
             opacity: 0.7;
@@ -232,11 +232,11 @@
             width: 100%;
             background-color: #e0f2fe;
             border: 2px solid #38bdf8;
-            border-radius: 12px;
+            border-radius: var(--radius-12);
             padding: 14px 20px;
             font-size: 13px;
             font-weight: 800;
-            color: #1d4ed8;
+            color: var(--color-primary-hover);
             cursor: pointer;
             text-align: left;
             transition: all 0.2s ease;
@@ -259,11 +259,11 @@
         }
 
         .btn-action-back {
-            background-color: #c7d2fe;
-            color: #1e1b4b;
-            border: 1px solid #a5b4fc;
+            background-color: var(--color-accent-indigo-light);
+            color: var(--color-accent-indigo-dark);
+            border: 1px solid var(--color-accent-indigo-mid);
             padding: 10px 48px;
-            border-radius: 20px;
+            border-radius: var(--radius-20);
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
@@ -272,15 +272,15 @@
         }
 
         .btn-action-back:hover {
-            background-color: #b4c6fc;
+            background-color: var(--color-accent-indigo-mid2);
         }
 
         .btn-action-save {
-            background-color: #2563eb;
-            color: #ffffff;
+            background-color: var(--color-primary);
+            color: var(--color-white);
             border: none;
             padding: 10px 48px;
-            border-radius: 20px;
+            border-radius: var(--radius-20);
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
@@ -288,5 +288,5 @@
         }
 
         .btn-action-save:hover {
-            background-color: #1d4ed8;
+            background-color: var(--color-primary-hover);
         }

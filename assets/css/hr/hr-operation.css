@@ -7,28 +7,28 @@
         .profile-avatar, .avatar-circle {
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
-        
-        body { 
-            display: flex; 
-            background-color: #BCE3E6; 
-            min-height: 100vh; 
-            color: #333; 
+
+        body {
+            display: flex;
+            background-color: var(--color-bg);
+            min-height: 100vh;
+            color: var(--color-gray-legacy);
         }
 
         .top-header {
             position: sticky; top: 0; z-index: 100;
-            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            background: var(--color-white); border-bottom: 1px solid var(--color-slate-200);
             padding: 14px 24px; margin-bottom: 0; width: 100%; box-sizing: border-box;
             display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            box-shadow: var(--shadow-2xs);
         }
-        .header-title h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
-        .top-bar-divider { width: 1px; height: 24px; background-color: #e2e8f0; margin: 0 4px; }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: var(--color-slate-900); margin: 0; }
+        .top-bar-divider { width: 1px; height: 24px; background-color: var(--color-slate-200); margin: 0 4px; }
 
         .sidebar-section-title {
             font-size: 11px;
             font-weight: 700;
-            color: #2563eb;
+            color: var(--color-primary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 16px 14px 6px 14px;
@@ -50,7 +50,7 @@
         .ops-card {
             background-color: #e8d0f6;
             border: 1px solid #d4b5ed;
-            border-radius: 14px;
+            border-radius: var(--radius-14);
             padding: 32px 24px;
             min-height: 120px;
             display: flex;
@@ -58,7 +58,7 @@
             justify-content: center;
             text-align: center;
             text-decoration: none;
-            color: #1e1b4b;
+            color: var(--color-accent-indigo-dark);
             font-weight: 700;
             font-size: 15px;
             letter-spacing: 0.3px;
