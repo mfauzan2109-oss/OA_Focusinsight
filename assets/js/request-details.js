@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             setInterval(fetchNotifications, 5000);
 
             try {
-                const reqRes = await fetch(`http://localhost:3000/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                const reqRes = await fetch(`/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
                 const reqData = await reqRes.json();
                 if (reqData.success && Array.isArray(reqData.data)) {
                     userRequests = reqData.data;
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/request-details?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`);
+                const response = await fetch(`/api/request-details?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`);
                 const result = await response.json();
 
                 if (result.success && result.data) {
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } catch (err) {
                 console.error('API Fetch Error:', err);
-                alert('Error connecting to Node server at http://localhost:3000');
+                alert('Error connecting to Node server');
             }
         });
 
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const position        = sessionStorage.getItem('position')   || '';
 
             try {
-                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
                 const data = await response.json();
 
                 if (data.success && data.notifications && data.notifications.length > 0) {
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 btnReminder.disabled = true;
                                 btnReminder.innerText = 'Sending...';
 
-                                const res = await fetch('http://localhost:3000/api/send-reminder', {
+                                const res = await fetch('/api/send-reminder', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ id: data.id || data.ID, type: type })
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const cleanFileName = docPath.split('/').pop().split('\\').pop();
                 const fileExt = cleanFileName.split('.').pop().toLowerCase();
 
-                const fullFileUrl = docPath.startsWith('http') ? docPath : `http://localhost:3000/${docPath}`;
+                const fullFileUrl = docPath.startsWith('http') ? docPath : `/${docPath}`;
 
                 attachmentLink.href = fullFileUrl;
                 attachmentLink.style.pointerEvents = 'auto';
@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (pos.includes('manager') || pos.includes('ceo') || pos.includes('supervisor') || dept === 'management' || userId.toUpperCase().startsWith('MGR')) {
                 if (queueItem) queueItem.style.display = 'flex';
                 try {
-                    const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${userId}&department=${department}&position=${position}`);
+                    const res = await fetch(`/api/approval-queue?user_id=${userId}&department=${department}&position=${position}`);
                     const data = await res.json();
                     if (data.success && data.data) {
                         const pendingCount = data.data.filter(i => (i.status || '').toLowerCase() === 'pending').length;

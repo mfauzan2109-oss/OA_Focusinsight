@@ -2,16 +2,14 @@ const express = require('express');
 
 const db = require('../config/database');
 const upload = require('../middleware/upload');
+const { requireLogin } = require('../middleware/auth');
 const { getAnnualEntitlement, getSickEntitlement, isWeekend, countBusinessDays } = require('../utils/helpers');
+const { saveWithApprovalSteps } = require('../utils/p1-workflow');
 
 const router = express.Router();
 
-router.get('/api/user-leave-info', (req, res) => {
-    const userId = req.query.employee_id;
-
-    if (!userId) {
-        return res.status(400).json({ success: false, message: 'Employee ID is required.' });
-    }
+router.get('/api/user-leave-info', requireLogin, (req, res) => {
+    const userId = req.session.user.user_id;
 
     const userQuery = 'SELECT join_date FROM users WHERE LOWER(user_id) = LOWER(?)';
 
@@ -91,24 +89,27 @@ router.get('/api/user-leave-info', (req, res) => {
     });
 });
 
-router.post('/api/submit-leave', upload.single('attachment'), (req, res) => {
-    const employee_id   = req.body.employee_id;
-    const employee_name = req.body.employee_name;
-    const department    = req.body.department;
-    
+router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req, res) => {
+    const employee_id = req.session.user.user_id;
+    const employee_name = req.session.user.name;
+    const department = req.session.user.department;
+
     let leave_type = req.body.leave_type;
     if (leave_type === 'others' && req.body.leave_type_others) {
         leave_type = req.body.leave_type_others;
     }
-    
+
     const start_date = req.body.start_date;
-    const end_date   = req.body.end_date;
-    const day_type   = req.body.day_type;
-    const reason     = req.body.reason;
+    const end_date = req.body.end_date;
+    const day_type = req.body.day_type;
+    const reason = req.body.reason;
     const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
 
-    if (!employee_id || !start_date || !end_date) {
-        return res.status(400).json({ success: false, message: 'Employee ID, Start Date, and End Date are required.' });
+    if (!start_date || !end_date) {
+        return res.status(400).json({
+            success: false,
+            message: 'Start Date and End Date are required.'
+        });
     }
 
     const startObj = new Date(start_date);
@@ -159,13 +160,50 @@ router.post('/api/submit-leave', upload.single('attachment'), (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
         `;
 
-        db.query(query, [employee_id, employee_name, department, leave_type, start_date, end_date, day_type, num_days, reason, attachment_path], (err, result) => {
-            if (err) {
-                console.error('SQL Error:', err);
-                return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
-            }
-            return res.json({ success: true, message: 'Leave application submitted successfully!' });
-        });
+        const roles = ['Head of Department'];
+
+        if (num_days > 3) {
+            roles.push('VGM');
+        }
+
+        if (num_days > 5) {
+            roles.push('CEO', 'Chairman');
+        }
+
+        roles.push('HR');
+
+        saveWithApprovalSteps({
+            type: 'leave',
+            insertQuery: query,
+            values: [
+                employee_id,
+                employee_name,
+                department,
+                leave_type,
+                start_date,
+                end_date,
+                day_type,
+                num_days,
+                reason,
+                attachment_path
+            ],
+            roles
+        })
+            .then(result => {
+                return res.json({
+                    success: true,
+                    id: result.insertId,
+                    message: 'Leave application submitted successfully!'
+                });
+            })
+            .catch(err => {
+                console.error('Leave workflow error:', err);
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to submit leave application.'
+                });
+            });
     });
 });
 

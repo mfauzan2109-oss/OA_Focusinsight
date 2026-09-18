@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async function() {
-        const API_BASE = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+        const API_BASE = (window.location.port === '3000') ? '' : '';
 
         const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || 'HR4001';
         const username = sessionStorage.getItem('username') || 'Chen Jun';

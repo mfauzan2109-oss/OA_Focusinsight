@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         async function fetchNotifications() {
             try {
-                const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
+                const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department || '')}&position=${encodeURIComponent(position || '')}`);
                 const data = await response.json();
 
                 if (data.success && data.notifications && data.notifications.length > 0) {
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         async function fetchMetricsAndQueue() {
             try {
                 if (isManager) {
-                    const response = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+                    const response = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
                     const result = await response.json();
                     
                     if (result.success && Array.isArray(result.data)) {
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         async function loadRecentActivity() {
             try {
-                const response = await fetch(`http://localhost:3000/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                const response = await fetch(`/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
                 const result = await response.json();
 
                 if (result.success && Array.isArray(result.data)) {

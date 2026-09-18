@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = '/api';
         let selectedItem = { id: null, table: null, type: null, isTravelBooking: false };
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -292,7 +292,7 @@ const API_BASE_URL = 'http://localhost:3000/api';
                         // Attachment Box
                         const attName = document.getElementById('empAttachmentName');
                         if (req.supporting_document) {
-                            attName.innerHTML = `<a href="http://localhost:3000/${req.supporting_document}" target="_blank" style="color:#0284c7;">📄 View Uploaded Document</a>`;
+                            attName.innerHTML = `<a href="/${req.supporting_document}" target="_blank" style="color:#0284c7;">📄 View Uploaded Document</a>`;
                         } else {
                             attName.innerText = 'No File Uploaded';
                         }

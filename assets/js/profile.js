@@ -50,7 +50,7 @@ let isEditMode = false;
 
     async function checkCurrentEmployeeStatus(userId, defaultStatus = 'Active') {
         try {
-            const response = await fetch(`http://localhost:3000/api/user-status/${userId}`);
+            const response = await fetch(`/api/user-status/${userId}`);
             const result = await response.json();
 
             if (result.success && result.currentStatus) {
@@ -66,7 +66,7 @@ let isEditMode = false;
 
     async function loadUserProfile(userId) {
         try {
-            const response = await fetch(`http://localhost:3000/api/profile/${userId}`);
+            const response = await fetch(`/api/profile/${userId}`);
             const result = await response.json();
 
             if (result.success && result.data) {
@@ -229,7 +229,7 @@ let isEditMode = false;
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/profile/${formattedUserId}`, {
+                const response = await fetch(`/api/profile/${formattedUserId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(profileData)

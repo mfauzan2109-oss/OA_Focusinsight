@@ -1,3 +1,7 @@
+const os = require('os');
+require('dotenv').config();
+
+const session = require('express-session');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -6,11 +10,26 @@ const routes = require('./routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
 
 // Global middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const SESSION_TIMEOUT_MS = 1000 * 60 * 2; // 5 minutes for testing
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'focusinsight-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    cookie: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: SESSION_TIMEOUT_MS
+    }
+}));
 
 // Block direct HTTP access to backend internals and legacy files before
 // falling through to the whole-project static server below. `express.static
@@ -65,6 +84,21 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`Node Server running on: http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+    console.log(`Node Server running locally: http://localhost:${PORT}`);
+
+    const networks = os.networkInterfaces();
+
+    Object.values(networks).forEach((interfaces) => {
+        (interfaces || []).forEach((network) => {
+            if (
+                network.family === 'IPv4' &&
+                !network.internal
+            ) {
+                console.log(
+                    `LAN access: http://${network.address}:${PORT}`
+                );
+            }
+        });
+    });
 });

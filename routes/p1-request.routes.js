@@ -1,0 +1,2275 @@
+const express = require('express');
+const { saveResignationWithWorkflow } = require('../utils/resignation-workflow');
+const { saveSalaryAdjustmentWithWorkflow } = require('../utils/salary-adjustment-workflow');
+const { saveWithApprovalSteps } = require('../utils/p1-workflow');
+const db = require('../config/database');
+const { requireLogin, requireHRAccess } = require('../middleware/auth');
+const upload = require('../middleware/upload');
+const { normalizeFilePath, safeVal, safeNum } = require('../utils/helpers');
+const router = express.Router();
+
+const handleTravelSubmission = (req, res) => {
+    const employee_id = req.session.user.user_id;
+    const employee_name = req.session.user.name;
+    const department = req.session.user.department;
+
+    const company_name =
+        req.session.user.company_name || 'focusinsight';
+
+    let travelDestination = safeVal(req.body.travel_destination || req.body.destination, 255) || 'N/A';
+    let travelMode = safeVal(req.body.travel_mode, 100) || 'Flight';
+    if (travelMode === 'others' && req.body.travel_mode_others) {
+        travelMode = safeVal(req.body.travel_mode_others, 100);
+    }
+
+    const allowance_type = safeVal(req.body.allowance_type, 100) || `Travel to ${travelDestination} (${travelMode})`;
+
+    const depDateVal = safeVal(req.body.expected_departure || req.body.expected_departure_date, 20);
+    const claim_month = safeVal(req.body.claim_month, 20) || (depDateVal ? depDateVal.substring(0, 7) : new Date().toISOString().substring(0, 7));
+
+    let total_amount = safeNum(req.body.total_amount);
+    const venueAddress = safeVal(req.body.venue_address, 0);
+    const reason = safeVal(req.body.reason, 0) || `Company: ${company_name} | Venue: ${venueAddress || 'N/A'}`;
+
+    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+
+    let assigned_employees = safeVal(req.body.assigned_employees || req.body.employees_json, 0);
+    if (assigned_employees && typeof assigned_employees === 'object') {
+        assigned_employees = JSON.stringify(assigned_employees);
+    }
+
+    const query = `
+        INSERT INTO \`travel\`
+        (
+            \`employee_id\`, \`employee_name\`, \`assigned_employees\`, \`department\`, \`company_name\`,
+            \`allowance_type\`, \`claim_month\`, \`total_amount\`, \`reason\`, \`supporting_document\`,
+            \`travel_destination\`, \`travel_mode\`, \`departure_destination\`, \`arrival_destination\`,
+            \`expected_departure_date\`, \`expected_arrival_date\`, \`estimated_return_date\`, \`mileage\`,
+            \`required_accommodation\`, \`primary_contact\`, \`contact_phone\`, \`venue_address\`,
+            \`departure_channel\`, \`departure_time\`, \`arrival_time\`, \`airline\`, \`flight_type\`,
+            \`checked_baggage\`, \`flight_cost\`, \`return_channel\`, \`return_departure_time\`,
+            \`return_arrival_time\`, \`return_airline\`, \`return_flight_type\`, \`return_checked_baggage\`,
+            \`return_flight_cost\`, \`hotel_channel\`, \`hotel_name\`, \`hotel_duration\`, \`hotel_nights\`,
+            \`hotel_cost\`, \`status\`, \`created_at\`
+        )
+        VALUES (
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, 'Pending', NOW()
+        )
+    `;
+
+    const values = [
+        employee_id, employee_name, assigned_employees, department, company_name,
+        allowance_type, claim_month, total_amount, reason, attachment_path,
+        travelDestination, travelMode, safeVal(req.body.departure_destination, 255), safeVal(req.body.arrival_destination, 255),
+        safeVal(req.body.expected_departure || req.body.expected_departure_date, 20), safeVal(req.body.expected_arrival || req.body.expected_arrival_date, 20), safeVal(req.body.return_date || req.body.estimated_return_date, 20), safeVal(req.body.mileage, 50),
+        safeVal(req.body.accommodation || req.body.required_accommodation, 10) || 'Yes', safeVal(req.body.primary_contact, 150), safeVal(req.body.phone_number || req.body.contact_phone, 50), venueAddress,
+        safeVal(req.body.dep_channel, 255), safeVal(req.body.dep_time, 20), safeVal(req.body.dep_arr_time, 20), safeVal(req.body.dep_airline, 100), safeVal(req.body.dep_airline_type, 50) || 'Direct flight',
+        safeVal(req.body.dep_baggage, 50) || '25kg', safeNum(req.body.dep_price), safeVal(req.body.ret_channel, 255), safeVal(req.body.ret_time, 20),
+        safeVal(req.body.ret_arr_time, 20), safeVal(req.body.ret_airline, 100), safeVal(req.body.ret_airline_type, 50) || 'Direct flight', safeVal(req.body.ret_baggage, 50) || '25kg',
+        safeNum(req.body.ret_price), safeVal(req.body.hotel_channel, 255), safeVal(req.body.hotel_name, 150), safeVal(req.body.hotel_duration, 50), safeVal(req.body.hotel_nights, 50),
+        safeNum(req.body.hotel_price)
+    ];
+
+    const roles = [
+        'Project Manager',
+        'Head of Department',
+        'VGM',
+        'CEO',
+        'Chairman'
+    ];
+
+    saveWithApprovalSteps({
+        type: 'travel',
+        insertQuery: query,
+        values,
+        roles
+    })
+        .then(result => {
+            console.log(
+                'Successfully saved travel record ID:',
+                result.insertId
+            );
+
+            return res.json({
+                success: true,
+                id: result.insertId,
+                message: 'Travel application submitted successfully!'
+            });
+        })
+        .catch(err => {
+            console.error('Travel workflow error:', err);
+
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to submit travel application.'
+            });
+        });
+}
+
+router.post(
+    '/api/submit-disbursement',
+    requireLogin,
+    upload.single('attachment'),
+    async (req, res) => {
+        const employee_id = req.session.user.user_id;
+        const employee_name = req.session.user.name;
+        const department = req.session.user.department;
+
+        const rawAmount = req.body.total_amount || '0';
+        const total_amount =
+            parseFloat(
+                rawAmount
+                    .toString()
+                    .replace(/[^0-9.]/g, '')
+            ) || 0.00;
+
+        const attachment_path =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        let expenseItems = [];
+
+        try {
+            expenseItems = JSON.parse(
+                req.body.items || '[]'
+            );
+        } catch (parseErr) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid format for expense items.'
+            });
+        }
+
+        if (!Array.isArray(expenseItems)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Expense items must be an array.'
+            });
+        }
+
+        const masterQuery = `
+            INSERT INTO disbursements
+            (
+                employee_id,
+                employee_name,
+                department,
+                total_amount,
+                supporting_document,
+                status,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?, 'Pending', NOW())
+        `;
+
+        const roles = [
+            'Project Manager',
+            'Head of Department',
+            'VGM'
+        ];
+
+        if (total_amount > 3000) {
+            roles.push(
+                'CEO',
+                'Chairman'
+            );
+        }
+
+        try {
+            const result = await saveWithApprovalSteps({
+                type: 'disbursement',
+
+                insertQuery: masterQuery,
+
+                values: [
+                    employee_id,
+                    employee_name,
+                    department,
+                    total_amount,
+                    attachment_path
+                ],
+
+                roles,
+
+                afterInsert: async (
+                    connection,
+                    masterResult
+                ) => {
+                    if (expenseItems.length === 0) {
+                        return;
+                    }
+
+                    const itemsQuery = `
+                        INSERT INTO disbursement_items
+                        (
+                            disbursement_id,
+                            invoice_date,
+                            invoice_no,
+                            supplier_name,
+                            description,
+                            amount,
+                            remark
+                        )
+                        VALUES ?
+                    `;
+
+                    const itemsValues =
+                        expenseItems.map(item => [
+                            masterResult.insertId,
+                            item.invoice_date,
+                            item.invoice_no,
+                            item.supplier_name,
+                            item.description,
+                            parseFloat(
+                                String(item.amount || 0)
+                                    .replace(/[^0-9.]/g, '')
+                            ) || 0.00,
+                            item.remark || ''
+                        ]);
+
+                    await connection.query(
+                        itemsQuery,
+                        [itemsValues]
+                    );
+                }
+            });
+
+            return res.json({
+                success: true,
+                id: result.insertId,
+                message:
+                    'Disbursement submitted successfully!'
+            });
+
+        } catch (err) {
+            console.error(
+                'Disbursement workflow error:',
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Failed to submit disbursement.'
+            });
+        }
+    }
+);
+
+router.post(
+    '/api/submit-travel',
+    requireLogin,
+    upload.single('attachment'),
+    handleTravelSubmission
+);
+
+router.post(
+    '/api/submit-allowance',
+    requireLogin,
+    upload.single('attachment'),
+    handleTravelSubmission
+);
+
+router.post(
+    '/api/submit-overtime',
+    requireLogin,
+    upload.none(),
+    async (req, res) => {
+
+        const {
+            ot_date,
+            day_type,
+            start_time,
+            end_time,
+            reason,
+            night_allowance_check,
+            meal_allowance_check
+        } = req.body;
+
+        const employee_id = req.session.user.user_id;
+        const employee_name = req.session.user.name;
+        const department = req.session.user.department;
+
+        if (!ot_date || !start_time || !end_time || !reason) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'OT Date, Start Time, End Time and Reason are required.'
+            });
+        }
+
+        function timeToMinutes(time) {
+            const parts = String(time).split(':');
+
+            if (parts.length < 2) {
+                return null;
+            }
+
+            const hours = parseInt(parts[0], 10);
+            const minutes = parseInt(parts[1], 10);
+
+            if (
+                Number.isNaN(hours) ||
+                Number.isNaN(minutes) ||
+                hours < 0 ||
+                hours > 23 ||
+                minutes < 0 ||
+                minutes > 59
+            ) {
+                return null;
+            }
+
+            return (hours * 60) + minutes;
+        }
+
+        const startMinutes =
+            timeToMinutes(start_time);
+
+        let endMinutes =
+            timeToMinutes(end_time);
+
+        if (
+            startMinutes === null ||
+            endMinutes === null
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid overtime time.'
+            });
+        }
+
+        if (endMinutes < startMinutes) {
+            endMinutes += 24 * 60;
+        }
+
+        const totalMinutes =
+            endMinutes - startMinutes;
+
+        if (totalMinutes <= 0) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'End Time must be after Start Time.'
+            });
+        }
+
+        const totalHours =
+            totalMinutes / 60;
+
+        const cleanDayType =
+            String(day_type || '')
+                .trim()
+                .toLowerCase();
+
+        const isHoliday =
+            cleanDayType === 'holiday';
+
+        const nightRequested =
+            ['1', 'true', 'on'].includes(
+                String(
+                    night_allowance_check || ''
+                ).toLowerCase()
+            );
+
+        const mealRequested =
+            ['1', 'true', 'on'].includes(
+                String(
+                    meal_allowance_check || ''
+                ).toLowerCase()
+            );
+
+        try {
+            const salaryQuery = `
+                SELECT basic_salary
+                FROM users
+                WHERE LOWER(user_id) = LOWER(?)
+                LIMIT 1
+            `;
+
+            const salaryResults =
+                await new Promise(
+                    (resolve, reject) => {
+                        db.query(
+                            salaryQuery,
+                            [employee_id],
+                            (err, rows) => {
+                                if (err) {
+                                    return reject(err);
+                                }
+
+                                resolve(rows);
+                            }
+                        );
+                    }
+                );
+
+            if (
+                !salaryResults ||
+                salaryResults.length === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        'Employee record not found.'
+                });
+            }
+
+            const basicSalary =
+                parseFloat(
+                    salaryResults[0].basic_salary
+                ) || 0;
+
+            let hourlyRate = 0;
+            let otRateCode = '';
+
+            if (basicSalary > 0) {
+                if (basicSalary <= 3999.99) {
+                    const ORP =
+                        basicSalary / 26 / 8;
+
+                    const multiplier =
+                        isHoliday
+                            ? 2.0
+                            : 1.5;
+
+                    hourlyRate =
+                        ORP * multiplier;
+
+                    otRateCode =
+                        `${multiplier.toFixed(1)}x`;
+
+                } else {
+                    hourlyRate =
+                        isHoliday
+                            ? 20.00
+                            : 15.00;
+
+                    otRateCode =
+                        isHoliday
+                            ? 'Fixed RM20'
+                            : 'Fixed RM15';
+                }
+
+            } else {
+                const multiplier =
+                    isHoliday
+                        ? 2.0
+                        : 1.5;
+
+                otRateCode =
+                    `${multiplier.toFixed(1)}x`;
+            }
+
+            const otPayment =
+                totalHours * hourlyRate;
+
+            const mealAllowance =
+                mealRequested &&
+                    totalHours >= 3
+                    ? 5.00
+                    : 0.00;
+
+            const nightAllowance =
+                nightRequested
+                    ? 50.00
+                    : 0.00;
+
+            const totalClaim =
+                otPayment +
+                mealAllowance +
+                nightAllowance;
+
+            const period =
+                `${totalHours.toFixed(1)} hrs`;
+
+            const cleanOtPayment =
+                Number(
+                    otPayment.toFixed(2)
+                );
+
+            const cleanTotalClaim =
+                Number(
+                    totalClaim.toFixed(2)
+                );
+
+            const query = `
+                INSERT INTO overtime
+                (
+                    employee_id,
+                    employee_name,
+                    department,
+                    ot_date,
+                    start_time,
+                    end_time,
+                    period,
+                    day_type,
+                    ot_allowance,
+                    ot_rate,
+                    night_allowance,
+                    meal_allowance,
+                    reason,
+                    total_claim,
+                    status,
+                    created_at
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    'Pending',
+                    NOW()
+                )
+            `;
+
+            const roles = [
+                'Project Manager',
+                'Head of Department',
+                'VGM'
+            ];
+
+            if (cleanTotalClaim > 3000) {
+                roles.push(
+                    'CEO',
+                    'Chairman'
+                );
+            }
+
+            const result =
+                await saveWithApprovalSteps({
+                    type: 'overtime',
+
+                    insertQuery: query,
+
+                    values: [
+                        employee_id,
+                        employee_name,
+                        department,
+                        ot_date,
+                        start_time,
+                        end_time,
+                        period,
+                        isHoliday
+                            ? 'holiday'
+                            : 'weekdays',
+                        cleanOtPayment,
+                        otRateCode,
+                        nightRequested ? 1 : 0,
+                        mealRequested &&
+                            totalHours >= 3
+                            ? 1
+                            : 0,
+                        reason,
+                        cleanTotalClaim
+                    ],
+
+                    roles
+                });
+
+            return res.json({
+                success: true,
+                message:
+                    'Overtime claim submitted successfully!',
+                id: result.insertId
+            });
+
+        } catch (err) {
+            console.error(
+                'Overtime workflow error:',
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Failed to submit overtime claim.'
+            });
+        }
+    }
+);
+
+router.post(
+    '/api/submit-loan',
+    requireLogin,
+    upload.single('attachment'),
+    async (req, res) => {
+        const {
+            loan_type,
+            repayment_period,
+            amount_requested,
+            disbursement_method,
+            account_holder,
+            account_number,
+            bank_details
+        } = req.body;
+
+        const employee_id = req.session.user.user_id;
+        const employee_name = req.session.user.name;
+        const department = req.session.user.department;
+
+        const periodMatch =
+            String(repayment_period || '').match(/\d+/);
+
+        const cleanRepaymentPeriod =
+            periodMatch
+                ? parseInt(periodMatch[0], 10)
+                : null;
+
+        if (!cleanRepaymentPeriod) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid repayment period.'
+            });
+        }
+
+        const cleanAmount =
+            parseFloat(
+                String(amount_requested || '')
+                    .replace(/[^0-9.]/g, '')
+            );
+
+        if (
+            Number.isNaN(cleanAmount) ||
+            cleanAmount <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid loan amount.'
+            });
+        }
+
+        const attachment_path =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        try {
+            const salaryQuery = `
+                SELECT basic_salary
+                FROM users
+                WHERE LOWER(user_id) = LOWER(?)
+                LIMIT 1
+            `;
+
+            const salaryResults = await new Promise(
+                (resolve, reject) => {
+                    db.query(
+                        salaryQuery,
+                        [employee_id],
+                        (err, rows) => {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            resolve(rows);
+                        }
+                    );
+                }
+            );
+
+            if (
+                !salaryResults ||
+                salaryResults.length === 0
+            ) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Employee record not found.'
+                });
+            }
+
+            const monthly_salary =
+                parseFloat(
+                    salaryResults[0].basic_salary
+                ) || 0;
+
+            const query = `
+                INSERT INTO loans
+                (
+                    employee_id,
+                    employee_name,
+                    department,
+                    loan_type,
+                    repayment_period,
+                    monthly_salary,
+                    amount_requested,
+                    disbursement_method,
+                    account_holder,
+                    account_number,
+                    bank_details,
+                    supporting_document,
+                    status,
+                    created_at
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    'Pending',
+                    NOW()
+                )
+            `;
+
+            const roles = [
+                'Project Manager',
+                'Head of Department',
+                'VGM'
+            ];
+
+            if (cleanAmount > 3000) {
+                roles.push(
+                    'CEO',
+                    'Chairman'
+                );
+            }
+
+            const result =
+                await saveWithApprovalSteps({
+                    type: 'loan',
+
+                    insertQuery: query,
+
+                    values: [
+                        employee_id,
+                        employee_name,
+                        department,
+                        loan_type,
+                        cleanRepaymentPeriod,
+                        monthly_salary,
+                        cleanAmount,
+                        disbursement_method,
+                        account_holder,
+                        account_number,
+                        bank_details,
+                        attachment_path
+                    ],
+
+                    roles
+                });
+
+            return res.json({
+                success: true,
+                id: result.insertId,
+                message:
+                    'Loan application submitted successfully!'
+            });
+
+        } catch (err) {
+            console.error(
+                'Loan workflow error:',
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Failed to submit loan application.'
+            });
+        }
+    }
+);
+
+router.post(
+    '/api/submit-salary-adjustment',
+    requireLogin,
+    upload.single('attachment'),
+    (req, res) => {
+
+        const {
+            employee_id,
+            adjustment_type,
+            proposed_basic_salary,
+            effective_date,
+            justification
+        } = req.body;
+
+        const requester = req.session.user;
+
+        const requesterPosition =
+            String(requester.position || '')
+                .trim()
+                .toLowerCase();
+
+        const isHOD = [
+            'manager',
+            'head of department',
+            'hod'
+        ].includes(requesterPosition);
+
+        if (!isHOD) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    'Access Denied: Only HOD or Manager can submit salary adjustment requests.'
+            });
+        }
+
+        if (
+            !employee_id ||
+            !adjustment_type ||
+            !proposed_basic_salary ||
+            !effective_date
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee ID, Adjustment Type, Proposed Basic Salary, and Effective Date are required.'
+            });
+        }
+
+        const proposedSalaryNum =
+            parseFloat(proposed_basic_salary);
+
+        if (
+            Number.isNaN(proposedSalaryNum) ||
+            proposedSalaryNum <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid proposed basic salary.'
+            });
+        }
+
+        const employeeQuery = `
+            SELECT
+                user_id,
+                name,
+                department,
+                position,
+                employment_type,
+                join_date,
+                basic_salary
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            employeeQuery,
+            [employee_id],
+            (employeeErr, employeeResults) => {
+
+                if (employeeErr) {
+                    console.error(
+                        'Salary Adjustment Employee Lookup Error:',
+                        employeeErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to retrieve employee information.'
+                    });
+                }
+
+                if (
+                    !employeeResults ||
+                    employeeResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee not found.'
+                    });
+                }
+
+                const employee = employeeResults[0];
+
+                const requesterDepartment =
+                    String(requester.department || '')
+                        .trim()
+                        .toLowerCase();
+
+                const employeeDepartment =
+                    String(employee.department || '')
+                        .trim()
+                        .toLowerCase();
+
+                if (
+                    !requesterDepartment ||
+                    requesterDepartment !== employeeDepartment
+                ) {
+                    return res.status(403).json({
+                        success: false,
+                        message:
+                            'Access Denied: You can only submit salary adjustments for employees in your own department.'
+                    });
+                }
+
+                const currentSalaryNum =
+                    parseFloat(employee.basic_salary) || 0;
+
+                const adjustmentAmount =
+                    proposedSalaryNum - currentSalaryNum;
+
+                const adjustmentPercentage =
+                    currentSalaryNum > 0
+                        ? (
+                            adjustmentAmount /
+                            currentSalaryNum
+                        ) * 100
+                        : 0;
+
+                const attachment_path =
+                    req.file
+                        ? `uploads/${req.file.filename}`
+                        : null;
+
+                const requestDate =
+                    new Date()
+                        .toISOString()
+                        .split('T')[0];
+
+                const query = `
+                    INSERT INTO salary_adjustments
+                    (
+                        requested_by,
+                        requested_by_name,
+                        request_date,
+                        department,
+                        employee_id,
+                        employee_name,
+                        employee_department,
+                        position,
+                        employment_type,
+                        employment_date,
+                        current_basic_salary,
+                        adjustment_type,
+                        proposed_basic_salary,
+                        adjustment_amount,
+                        adjustment_percentage,
+                        effective_date,
+                        justification,
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?,
+                        'Pending',
+                        NOW()
+                    )
+                `;
+
+                saveSalaryAdjustmentWithWorkflow(
+                    query,
+                    [
+                        requester.user_id,
+                        requester.name,
+                        requestDate,
+                        requester.department,
+
+                        employee.user_id,
+                        employee.name,
+                        employee.department,
+                        employee.position,
+                        employee.employment_type,
+                        employee.join_date,
+
+                        currentSalaryNum,
+                        adjustment_type,
+                        proposedSalaryNum,
+                        adjustmentAmount,
+                        adjustmentPercentage,
+                        effective_date,
+                        justification || '',
+                        attachment_path
+                    ]
+                )
+                    .then((result) => {
+                        return res.json({
+                            success: true,
+                            message:
+                                'Salary adjustment request submitted successfully!',
+                            id: result.insertId
+                        });
+                    })
+                    .catch((err) => {
+                        console.error(
+                            'Salary Adjustment SQL Error:',
+                            err
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message:
+                                'Database Error: ' +
+                                err.message
+                        });
+                    });
+            }
+        );
+    }
+);
+
+router.post(
+    '/api/submit-probation-confirmation',
+    requireHRAccess,
+    upload.single('attachment'),
+    (req, res) => {
+
+        const {
+            employee_id,
+            probation_period,
+            probation_end_date,
+            overall_performance,
+            work_performance,
+            attendance_punctuality,
+            work_attitude_teamwork,
+            recommendation,
+            justification
+        } = req.body;
+
+        if (
+            !employee_id ||
+            !probation_period ||
+            !probation_end_date
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee ID, Probation Period, and Probation End Date are required.'
+            });
+        }
+
+        if (
+            !overall_performance ||
+            !work_performance ||
+            !attendance_punctuality ||
+            !work_attitude_teamwork ||
+            !recommendation
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Probation Assessment fields.'
+            });
+        }
+
+        const employeeQuery = `
+            SELECT
+                user_id,
+                name,
+                department,
+                position,
+                employment_type,
+                join_date
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            employeeQuery,
+            [employee_id],
+            (employeeErr, employeeResults) => {
+
+                if (employeeErr) {
+                    console.error(
+                        'Probation Employee Lookup Error:',
+                        employeeErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to retrieve employee information.'
+                    });
+                }
+
+                if (
+                    !employeeResults ||
+                    employeeResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee not found.'
+                    });
+                }
+
+                const employee = employeeResults[0];
+
+                const attachment_path =
+                    req.file
+                        ? `uploads/${req.file.filename}`
+                        : null;
+
+                const requestDate =
+                    new Date()
+                        .toISOString()
+                        .split('T')[0];
+
+                const requester =
+                    req.session.user;
+
+                const query = `
+                    INSERT INTO probation_confirmations
+                    (
+                        requested_by,
+                        request_date,
+                        department,
+                        employee_id,
+                        employee_name,
+                        employee_department,
+                        position,
+                        employment_type,
+                        employment_date,
+                        probation_period,
+                        probation_end_date,
+                        overall_performance,
+                        work_performance,
+                        attendance_punctuality,
+                        work_attitude_teamwork,
+                        recommendation,
+                        justification,
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?,
+                        'Pending',
+                        NOW()
+                    )
+                `;
+
+                db.query(
+                    query,
+                    [
+                        requester.user_id,
+                        requestDate,
+                        requester.department,
+
+                        employee.user_id,
+                        employee.name,
+                        employee.department,
+                        employee.position,
+                        employee.employment_type,
+                        employee.join_date,
+
+                        probation_period,
+                        probation_end_date,
+                        overall_performance,
+                        work_performance,
+                        attendance_punctuality,
+                        work_attitude_teamwork,
+                        recommendation,
+                        justification || '',
+                        attachment_path
+                    ],
+                    (err, result) => {
+
+                        if (err) {
+                            console.error(
+                                'Probation Confirmation SQL Error:',
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Database Error: ' +
+                                    err.message
+                            });
+                        }
+
+                        return res.json({
+                            success: true,
+                            message:
+                                'Probation confirmation form submitted successfully!',
+                            id: result.insertId
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
+
+router.post(
+    '/api/submit-contract-renewal',
+    requireHRAccess,
+    upload.single('attachment'),
+    (req, res) => {
+
+        const {
+            employee_id,
+
+            current_start_date,
+            current_end_date,
+            current_duration,
+
+            proposed_start_date,
+            proposed_end_date,
+            proposed_duration,
+            proposed_salary,
+
+            reason_for_renewal,
+
+            performance_summary,
+            attendance_status,
+            employee_remarks,
+            discipline_status,
+            renewal_recommendation,
+            supervisor_recommendation
+        } = req.body;
+
+        if (!employee_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Employee ID is required.'
+            });
+        }
+
+        if (
+            !current_start_date ||
+            !current_end_date ||
+            !current_duration
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Current Contract Details fields.'
+            });
+        }
+
+        if (
+            !proposed_start_date ||
+            !proposed_end_date ||
+            !proposed_duration ||
+            !proposed_salary ||
+            !reason_for_renewal
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Proposed Renewal Details fields.'
+            });
+        }
+
+        if (
+            !performance_summary ||
+            !attendance_status ||
+            !discipline_status ||
+            !renewal_recommendation ||
+            !supervisor_recommendation
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all required Employee Assessment fields.'
+            });
+        }
+
+        const proposedSalaryNum =
+            parseFloat(proposed_salary);
+
+        if (
+            Number.isNaN(proposedSalaryNum) ||
+            proposedSalaryNum <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid proposed salary.'
+            });
+        }
+
+        const employeeQuery = `
+            SELECT
+                user_id,
+                name,
+                department,
+                position,
+                basic_salary
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            employeeQuery,
+            [employee_id],
+            (employeeErr, employeeResults) => {
+
+                if (employeeErr) {
+                    console.error(
+                        'Contract Renewal Employee Lookup Error:',
+                        employeeErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to retrieve employee information.'
+                    });
+                }
+
+                if (
+                    !employeeResults ||
+                    employeeResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee not found.'
+                    });
+                }
+
+                const employee =
+                    employeeResults[0];
+
+                const requester =
+                    req.session.user;
+
+                const currentSalary =
+                    parseFloat(employee.basic_salary) || 0;
+
+                const requestDate =
+                    new Date()
+                        .toISOString()
+                        .split('T')[0];
+
+                const attachment_path =
+                    req.file
+                        ? `uploads/${req.file.filename}`
+                        : null;
+
+                const query = `
+                    INSERT INTO contract_renewals
+                    (
+                        requested_by,
+                        requester_position,
+                        department,
+                        request_date,
+
+                        employee_id,
+                        employee_name,
+                        employee_department,
+                        position,
+
+                        current_start_date,
+                        current_end_date,
+                        current_duration,
+                        current_salary,
+
+                        proposed_start_date,
+                        proposed_end_date,
+                        proposed_duration,
+                        proposed_salary,
+
+                        reason_for_renewal,
+
+                        performance_summary,
+                        attendance_status,
+                        employee_remarks,
+                        discipline_status,
+                        renewal_recommendation,
+                        supervisor_recommendation,
+
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES (
+                        ?, ?, ?, ?,
+                        ?, ?, ?, ?,
+                        ?, ?, ?, ?,
+                        ?, ?, ?, ?,
+                        ?,
+                        ?, ?, ?, ?, ?, ?,
+                        ?,
+                        'Pending',
+                        NOW()
+                    )
+                `;
+
+                db.query(
+                    query,
+                    [
+                        requester.user_id,
+                        requester.position,
+                        requester.department,
+                        requestDate,
+
+                        employee.user_id,
+                        employee.name,
+                        employee.department,
+                        employee.position,
+
+                        current_start_date,
+                        current_end_date,
+                        current_duration,
+                        currentSalary,
+
+                        proposed_start_date,
+                        proposed_end_date,
+                        proposed_duration,
+                        proposedSalaryNum,
+
+                        reason_for_renewal,
+
+                        performance_summary,
+                        attendance_status,
+                        employee_remarks || '',
+                        discipline_status,
+                        renewal_recommendation,
+                        supervisor_recommendation,
+
+                        attachment_path
+                    ],
+                    (err, result) => {
+
+                        if (err) {
+                            console.error(
+                                'Contract Renewal SQL Error:',
+                                err
+                            );
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    'Database Error: ' +
+                                    err.message
+                            });
+                        }
+
+                        return res.json({
+                            success: true,
+                            message:
+                                'Contract renewal form submitted successfully!',
+                            id: result.insertId
+                        });
+                    }
+                );
+            }
+        );
+    }
+);
+
+router.post(
+    '/api/submit-resignation',
+    requireHRAccess,
+    upload.single('attachment'),
+    (req, res) => {
+
+        const requesterId = req.session.user.user_id;
+        const requesterName = req.session.user.name;
+        const requesterPosition = req.session.user.position;
+        const requesterDepartment = req.session.user.department;
+
+        const employeeId = safeVal(req.body.employee_id, 20);
+
+        const lastWorkingDate =
+            safeVal(req.body.last_working_date, 20);
+
+        const noticeDate =
+            safeVal(req.body.notice_date, 20);
+
+        const noticePeriod =
+            safeVal(req.body.notice_period, 100);
+
+        const reason =
+            safeVal(req.body.reason, 0);
+
+        const hrRemarks =
+            safeVal(req.body.hr_remarks, 0);
+
+        const supportingDocument =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        if (
+            !employeeId ||
+            !lastWorkingDate ||
+            !noticeDate ||
+            !noticePeriod ||
+            !reason
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee ID, resignation date, last working date, notice period and reason are required.'
+            });
+        }
+
+        const noticeDateObj = new Date(noticeDate);
+        const lastWorkingDateObj = new Date(lastWorkingDate);
+
+        if (
+            Number.isNaN(noticeDateObj.getTime()) ||
+            Number.isNaN(lastWorkingDateObj.getTime())
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid resignation date.'
+            });
+        }
+
+        if (lastWorkingDateObj < noticeDateObj) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Last working date cannot be earlier than resignation date.'
+            });
+        }
+
+        const employeeQuery = `
+            SELECT
+                user_id,
+                name,
+                department,
+                position,
+                employment_type,
+                join_date
+            FROM users
+            WHERE LOWER(user_id) = LOWER(?)
+            LIMIT 1
+        `;
+
+        db.query(
+            employeeQuery,
+            [employeeId],
+            (employeeErr, employeeResults) => {
+
+                if (employeeErr) {
+                    console.error(
+                        'Resignation Employee Lookup Error:',
+                        employeeErr
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to retrieve employee information.'
+                    });
+                }
+
+                if (
+                    !employeeResults ||
+                    employeeResults.length === 0
+                ) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Employee not found.'
+                    });
+                }
+
+                const employee = employeeResults[0];
+
+                const insertQuery = `
+                    INSERT INTO resignations
+                    (
+                        requested_by,
+                        requested_by_name,
+                        requester_position,
+                        request_department,
+                        request_date,
+
+                        employee_id,
+                        employee_name,
+                        department,
+                        position,
+                        employment_type,
+                        employment_date,
+
+                        last_working_date,
+                        notice_date,
+                        notice_period,
+                        reason,
+                        hr_remarks,
+
+                        supporting_document,
+                        status,
+                        created_at
+                    )
+                    VALUES
+                    (
+                        ?, ?, ?, ?, CURDATE(),
+                        ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?,
+                        ?, 'Pending', NOW()
+                    )
+                `;
+
+                const values = [
+                    requesterId,
+                    requesterName,
+                    requesterPosition,
+                    requesterDepartment,
+
+                    employee.user_id,
+                    employee.name,
+                    employee.department,
+                    employee.position,
+                    employee.employment_type,
+                    employee.join_date,
+
+                    lastWorkingDate,
+                    noticeDate,
+                    noticePeriod,
+                    reason,
+                    hrRemarks,
+
+                    supportingDocument
+                ];
+
+                saveResignationWithWorkflow(insertQuery, values)
+                    .then(result => {
+                        return res.json({
+                            success: true,
+                            message: 'Resignation form submitted successfully!',
+                            id: result.insertId
+                        });
+                    })
+                    .catch(error => {
+                        console.error(
+                            'Resignation Submission Error:',
+                            error
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Failed to save resignation and approval workflow.'
+                        });
+                    });
+            }
+        );
+    }
+);
+
+router.get('/api/request-details', requireLogin, (req, res) => {
+    const { id, type } = req.query;
+
+    if (!id || !type) {
+        return res.status(400).json({ success: false, message: 'Both Request ID and Type parameters are required.' });
+    }
+
+    let query = '';
+    const reqType = type.toLowerCase();
+
+    // 1. Join form tables with users table to fetch email & phone number
+    if (reqType.includes('leave')) {
+        query = `SELECT l.*, u.phone_no, u.email FROM \`leave\` l LEFT JOIN users u ON LOWER(l.\`Employee ID\`) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE l.ID = ? OR l.\`Employee ID\` = ?`;
+    } else if (reqType.includes('disbursement')) {
+        query = `SELECT d.*, u.phone_no, u.email FROM \`disbursements\` d LEFT JOIN users u ON LOWER(d.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE d.id = ?`;
+    } else if (reqType.includes('travel')) {
+        query = `SELECT t.*, u.phone_no, u.email FROM \`travel\` t LEFT JOIN users u ON LOWER(t.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE t.id = ?`;
+    } else if (reqType.includes('overtime')) {
+        query = `SELECT o.*, u.phone_no, u.email FROM \`overtime\` o LEFT JOIN users u ON LOWER(o.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE o.id = ?`;
+    } else if (
+        reqType.includes('salary adjustment') ||
+        reqType.includes('salary-adjustment') ||
+        reqType.includes('salary_adjustment')
+    ) {
+        query = `
+        SELECT
+            sa.*, u.phone_no, u.email
+        FROM salary_adjustments sa
+        LEFT JOIN users u
+            ON LOWER(sa.employee_id) =
+               LOWER(u.user_id COLLATE utf8mb4_general_ci)
+        WHERE sa.id = ?
+    `;
+    } else if (reqType === 'resignation') {
+        query = `
+        SELECT r.*, u.phone_no, u.email
+        FROM resignations r
+        LEFT JOIN users u
+            ON LOWER(r.employee_id) =
+               LOWER(u.user_id COLLATE utf8mb4_general_ci)
+        WHERE r.id = ?
+    `;
+    } else if (reqType.includes('loan')) {
+        query = `SELECT ln.*, u.phone_no, u.email FROM \`loans\` ln LEFT JOIN users u ON LOWER(ln.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE ln.id = ?`;
+    } else {
+        return res.status(400).json({ success: false, message: 'Invalid or unsupported request type.' });
+    }
+
+    db.query(query, [id, id], (err, results) => {
+        if (err || results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Record not found in database.' });
+        }
+
+        const record = { ...results[0] };
+        const sessionUser = req.session.user;
+
+        const sessionUserId =
+            String(sessionUser.user_id || '')
+                .trim()
+                .toLowerCase();
+
+        const sessionDepartment =
+            String(sessionUser.department || '')
+                .trim()
+                .toLowerCase();
+
+        const sessionPosition =
+            String(sessionUser.position || '')
+                .trim()
+                .toLowerCase();
+
+        const recordEmployeeId =
+            String(
+                record.employee_id ||
+                record['Employee ID'] ||
+                ''
+            )
+                .trim()
+                .toLowerCase();
+
+        const recordDepartment =
+            String(
+                record.department ||
+                record['Department'] ||
+                ''
+            )
+                .trim()
+                .toLowerCase();
+
+        const isOwner =
+            recordEmployeeId === sessionUserId;
+
+        const isHR =
+            sessionDepartment === 'hr' ||
+            sessionDepartment.includes('human resources') ||
+            sessionPosition === 'hr' ||
+            sessionPosition.includes('human resources');
+
+        const isGlobalApprover =
+            sessionPosition.includes('ceo') ||
+            sessionDepartment === 'management';
+
+        const isDepartmentApprover =
+            (
+                sessionPosition.includes('manager') ||
+                sessionPosition.includes('supervisor')
+            ) &&
+            sessionDepartment === recordDepartment;
+
+        if (
+            !isOwner &&
+            !isHR &&
+            !isGlobalApprover &&
+            !isDepartmentApprover
+        ) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    'Access Denied: You cannot view this request.'
+            });
+        }
+
+        // 2. Normalize attachment file path
+        const rawDoc = record.supporting_document || record['Supporting Documen'] || record.attachment_path;
+        record.supporting_document = normalizeFilePath(rawDoc);
+
+        // 3. Fetch itemized expense rows for Disbursements
+        if (reqType.includes('disbursement')) {
+            const childQuery = `SELECT * FROM \`disbursement_items\` WHERE disbursement_id = ?`;
+            db.query(childQuery, [record.id], (childErr, itemResults) => {
+                record.items = itemResults || [];
+                return res.json({ success: true, data: record });
+            });
+        }
+        // 4. Parse assigned employees for Travel requests
+        else if (reqType.includes('travel')) {
+            let employeeList = [];
+            try {
+                employeeList = typeof record.assigned_employees === 'string'
+                    ? JSON.parse(record.assigned_employees)
+                    : (record.assigned_employees || []);
+            } catch (e) {
+                employeeList = [];
+            }
+
+            record.employees = employeeList.length > 0 ? employeeList : [{
+                employee_id: record.employee_id,
+                name: record.employee_name,
+                phone_no: record.phone_no || 'ΓÇö',
+                email: record.email || 'ΓÇö',
+                purpose_of_travel: 'Business trip'
+            }];
+
+            return res.json({ success: true, data: record });
+        }
+        // 5. Standard return for Leave, Overtime, and Loans
+        else {
+            return res.json({ success: true, data: record });
+        }
+    });
+});
+
+router.get('/api/my-requests', requireLogin, (req, res) => {
+    const req_user_id = req.session.user.user_id;
+
+    const roleQuery = 'SELECT position FROM users WHERE LOWER(user_id) = LOWER(?)';
+
+    db.query(roleQuery, [req_user_id], (roleErr, roleResults) => {
+        let isManagement = false;
+
+        if (!roleErr && roleResults.length > 0) {
+            const pos = roleResults[0].position.toLowerCase();
+            if (pos === 'ceo' || pos === 'manager' || pos === 'supervisor' || pos === 'management') {
+                isManagement = true;
+            }
+        }
+
+        let leaveQuery = `SELECT * FROM \`leave\``;
+        let disQuery = `SELECT * FROM \`disbursements\``;
+        let travelQuery = `SELECT * FROM \`travel\``;
+        let otQuery = `SELECT * FROM \`overtime\``;
+        let loanQuery = `SELECT * FROM \`loans\``;
+        let resignationQuery = `SELECT * FROM \`resignations\``;
+        let salaryAdjustmentQuery = `SELECT * FROM \`salary_adjustments\``;
+        let queryParams = [];
+
+        if (!isManagement) {
+            leaveQuery = `SELECT * FROM \`leave\` WHERE LOWER(\`Employee ID\`) = LOWER(?)`;
+            disQuery = `SELECT * FROM \`disbursements\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            travelQuery = `SELECT * FROM \`travel\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            otQuery = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            loanQuery = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            resignationQuery = `SELECT * FROM \`resignations\`WHERE LOWER(\`requested_by\`) = LOWER(?)`;
+            salaryAdjustmentQuery = `SELECT * FROM \`salary_adjustments\` WHERE LOWER(\`requested_by\`) = LOWER(?)`;
+            queryParams = [req_user_id];
+        }
+
+        db.query(leaveQuery, queryParams, (err, leaveResults) => {
+            db.query(disQuery, queryParams, (err, disResults) => {
+                db.query(travelQuery, queryParams, (err, travelResults) => {
+                    db.query(otQuery, queryParams, (err, otResults) => {
+                        db.query(loanQuery, queryParams, (err, loanResults) => {
+                            db.query(resignationQuery, queryParams, (err, resignationResults) => {
+                                db.query(
+                                    salaryAdjustmentQuery,
+                                    queryParams,
+                                    (err, salaryAdjustmentResults) => {
+
+                                        const combinedData = [];
+
+                                        (leaveResults || []).forEach(row => {
+                                            const rawDate = row['Created At'] || row['Start Date'] || 'ΓÇö';
+                                            let formattedDate = 'ΓÇö';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || row.ID || 0,
+                                                employee_id: row['Employee ID'] || 'ΓÇö',
+                                                employee_name: row['Employee Name'] || 'ΓÇö',
+                                                request_type: 'Leave',
+                                                details: row['Leave Type'] || 'Leave',
+                                                start_date: row['Start Date'] || null,
+                                                end_date: row['End Date'] || null,
+                                                date_submitted: formattedDate,
+                                                created_at: row['Created At'] || row['Start Date'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: 'ΓÇö',
+                                                status: (row['Status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (disResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || 'ΓÇö';
+                                            let formattedDate = 'ΓÇö';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || 'ΓÇö',
+                                                employee_name: row['employee_name'] || 'ΓÇö',
+                                                request_type: 'Disbursement',
+                                                details: 'Expense Claim',
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (travelResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || 'ΓÇö';
+                                            let formattedDate = 'ΓÇö';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || 'ΓÇö',
+                                                employee_name: row['employee_name'] || 'ΓÇö',
+                                                request_type: 'Travel',
+                                                details: row['allowance_type'] || 'Travel Claim',
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['total_amount'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (otResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || 'ΓÇö';
+                                            let formattedDate = 'ΓÇö';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || 'ΓÇö',
+                                                employee_name: row['employee_name'] || 'ΓÇö',
+                                                request_type: 'Overtime',
+                                                details: `OT Claim (${row['period'] || '0 hrs'})`,
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['total_claim'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (loanResults || []).forEach(row => {
+                                            const rawDate = row['created_at'] || 'ΓÇö';
+                                            let formattedDate = 'ΓÇö';
+                                            try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row['employee_id'] || 'ΓÇö',
+                                                employee_name: row['employee_name'] || 'ΓÇö',
+                                                request_type: 'Loan',
+                                                details: `${row['loan_type']} Loan (${row['repayment_period']} mos)`,
+                                                date_submitted: formattedDate,
+                                                created_at: row['created_at'] || null,
+                                                last_reminder_sent: row.last_reminder_sent || null,
+                                                amount: `RM ${parseFloat(row['amount_requested'] || 0).toFixed(2)}`,
+                                                status: (row['status'] || 'Pending').trim()
+                                            });
+                                        });
+
+                                        (resignationResults || []).forEach(row => {
+                                            const rawDate =
+                                                row.created_at ||
+                                                row.request_date ||
+                                                'ΓÇö';
+
+                                            let formattedDate = 'ΓÇö';
+
+                                            try {
+                                                formattedDate =
+                                                    new Date(rawDate)
+                                                        .toISOString()
+                                                        .split('T')[0];
+                                            } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row.employee_id || 'ΓÇö',
+                                                employee_name: row.employee_name || 'ΓÇö',
+                                                request_type: 'Resignation',
+                                                details:
+                                                    `${row.employee_name || 'Employee'} Resignation`,
+                                                date_submitted: formattedDate,
+                                                created_at: row.created_at || null,
+                                                last_reminder_sent:
+                                                    row.last_reminder_sent || null,
+                                                amount: 'ΓÇö',
+                                                status:
+                                                    (row.status || 'Pending').trim()
+                                            });
+                                        }); // <-- RESIGNATION HABIS DEKAT SINI
+
+
+                                        (salaryAdjustmentResults || []).forEach(row => {
+                                            const rawDate =
+                                                row.created_at ||
+                                                row.request_date ||
+                                                'ΓÇö';
+
+                                            let formattedDate = 'ΓÇö';
+
+                                            try {
+                                                formattedDate =
+                                                    new Date(rawDate)
+                                                        .toISOString()
+                                                        .split('T')[0];
+                                            } catch (e) { }
+
+                                            combinedData.push({
+                                                id: row.id || 0,
+                                                employee_id: row.employee_id || 'ΓÇö',
+                                                employee_name: row.employee_name || 'ΓÇö',
+                                                requested_by: row.requested_by || 'ΓÇö',
+                                                requested_by_name: row.requested_by_name || 'ΓÇö',
+                                                request_type: 'Salary Adjustment',
+                                                details:
+                                                    row.adjustment_type ||
+                                                    'Salary Adjustment',
+                                                date_submitted: formattedDate,
+                                                created_at: row.created_at || null,
+                                                last_reminder_sent:
+                                                    row.last_reminder_sent || null,
+                                                amount:
+                                                    row.adjustment_amount != null
+                                                        ? `RM ${parseFloat(row.adjustment_amount).toFixed(2)}`
+                                                        : 'ΓÇö',
+                                                status:
+                                                    (row.status || 'Pending').trim()
+                                            });
+                                        }); // <-- SALARY HABIS
+
+
+                                        combinedData.sort((a, b) => {
+                                            if (a.date_submitted === 'ΓÇö') return 1;
+                                            if (b.date_submitted === 'ΓÇö') return -1;
+                                            return b.date_submitted.localeCompare(a.date_submitted);
+                                        });
+
+                                        return res.json({ success: true, data: combinedData });
+                                    });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    router.post(
+        '/api/submit-hiring-approval',
+        requireHRAccess,
+        upload.single('attachment'),
+        (req, res) => {
+
+            const {
+                employee_name,
+                employee_id,
+                hiring_type,
+                employee_replaced_id,
+                number_of_vacancy,
+                employment_type,
+                employment_period,
+                work_location,
+                required_start_date,
+                reason_for_hiring,
+                job_description,
+                key_responsibilities,
+                minimum_qualification,
+                required_skills,
+                required_experience,
+                salary_range,
+                budget_cost_center,
+                hiring_priority
+            } = req.body;
+
+            if (!employee_name || !employee_id || !hiring_type) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Employee Name, Employee ID, and Hiring type are required.'
+                });
+            }
+
+            if (
+                hiring_type === 'Replacement' &&
+                !employee_replaced_id
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Employee being replaced is required for Replacement hiring type.'
+                });
+            }
+
+            const vacancyCount =
+                parseInt(number_of_vacancy, 10);
+
+            if (
+                Number.isNaN(vacancyCount) ||
+                vacancyCount < 1
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Number of Vacancy must be at least 1.'
+                });
+            }
+
+            if (
+                !employment_type ||
+                !work_location ||
+                !required_start_date ||
+                !reason_for_hiring
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Please complete all Employment Information fields.'
+                });
+            }
+
+            const PERIOD_REQUIRED_TYPES = [
+                'Contract',
+                'Intern',
+                'Probation'
+            ];
+
+            if (
+                PERIOD_REQUIRED_TYPES.includes(
+                    employment_type
+                ) &&
+                !employment_period
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Period is required for Contract, Intern, or Probation employment types.'
+                });
+            }
+
+            if (
+                !job_description ||
+                !key_responsibilities ||
+                !minimum_qualification ||
+                !required_skills ||
+                !required_experience
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Please complete all Job Requirement fields.'
+                });
+            }
+
+            if (
+                !salary_range ||
+                !budget_cost_center ||
+                !hiring_priority
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Please complete all Compensation & Budget fields.'
+                });
+            }
+
+            const requester =
+                req.session.user;
+
+            const requestDate =
+                new Date()
+                    .toISOString()
+                    .split('T')[0];
+
+            const attachment_path =
+                req.file
+                    ? `uploads/${req.file.filename}`
+                    : null;
+
+            const query = `
+            INSERT INTO hiring_approvals
+            (
+                requested_by,
+                request_date,
+                department,
+
+                employee_name,
+                employee_id,
+                hiring_type,
+                employee_replaced_id,
+
+                number_of_vacancy,
+                employment_type,
+                employment_period,
+                work_location,
+                required_start_date,
+
+                reason_for_hiring,
+                job_description,
+                key_responsibilities,
+
+                minimum_qualification,
+                required_skills,
+                required_experience,
+
+                salary_range,
+                budget_cost_center,
+                hiring_priority,
+
+                supporting_document,
+                status,
+                created_at
+            )
+            VALUES (
+                ?, ?, ?,
+                ?, ?, ?, ?,
+                ?, ?, ?, ?, ?,
+                ?, ?, ?,
+                ?, ?, ?,
+                ?, ?, ?,
+                ?,
+                'Pending',
+                NOW()
+            )
+        `;
+
+            db.query(
+                query,
+                [
+                    requester.user_id,
+                    requestDate,
+                    requester.department,
+
+                    safeVal(employee_name, 100),
+                    safeVal(employee_id, 50),
+                    safeVal(hiring_type, 50),
+                    safeVal(employee_replaced_id, 50),
+
+                    vacancyCount,
+                    safeVal(employment_type, 50),
+                    safeVal(employment_period, 50),
+                    safeVal(work_location, 150),
+                    safeVal(required_start_date, 20),
+
+                    safeVal(reason_for_hiring, 0),
+                    safeVal(job_description, 0),
+                    safeVal(key_responsibilities, 0),
+
+                    safeVal(minimum_qualification, 255),
+                    safeVal(required_skills, 0),
+                    safeVal(required_experience, 0),
+
+                    safeVal(salary_range, 100),
+                    safeVal(budget_cost_center, 100),
+                    safeVal(hiring_priority, 20),
+
+                    attachment_path
+                ],
+                (err, result) => {
+
+                    if (err) {
+                        console.error(
+                            'Hiring Approval SQL Error:',
+                            err
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message:
+                                'Database Error: ' +
+                                err.message
+                        });
+                    }
+
+                    return res.json({
+                        success: true,
+                        message:
+                            'Hiring approval form submitted successfully!',
+                        id: result.insertId
+                    });
+                }
+            );
+        }
+    );
+})
+module.exports = router;

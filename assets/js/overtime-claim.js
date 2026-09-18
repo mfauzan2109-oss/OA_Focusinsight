@@ -54,7 +54,7 @@ const notiBellBtn = document.getElementById('notiBellBtn');
         const highlightId = urlParams.get('highlight_id');
 
         try {
-            const response = await fetch(`http://localhost:3000/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
+            const response = await fetch(`/api/notifications?employee_id=${encodeURIComponent(formattedUserId)}&department=${encodeURIComponent(department)}&position=${encodeURIComponent(position)}`);
             const data = await response.json();
 
             if (data.success && data.notifications && data.notifications.length > 0) {
@@ -244,7 +244,7 @@ const notiBellBtn = document.getElementById('notiBellBtn');
                 searchDropdown.classList.add('active');
 
                 try {
-                    const response = await fetch(`http://localhost:3000/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
+                    const response = await fetch(`/api/my-requests?employee_id=${encodeURIComponent(userId)}`);
                     const result = await response.json();
 
                     if (result.success && Array.isArray(result.data)) {
@@ -445,7 +445,7 @@ const notiBellBtn = document.getElementById('notiBellBtn');
 
         if (userId) {
             try {
-                const response = await fetch(`http://localhost:3000/api/profile/${userId}`);
+                const response = await fetch(`/api/profile/${userId}`);
                 const resData = await response.json();
                 
                 if (resData.success && resData.data) {
@@ -487,7 +487,7 @@ const notiBellBtn = document.getElementById('notiBellBtn');
                 return;
             }
             try {
-                const res = await fetch(`http://localhost:3000/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
+                const res = await fetch(`/api/approval-queue?user_id=${encodeURIComponent(userIdParam)}&department=${encodeURIComponent(departmentParam)}&position=${encodeURIComponent(positionParam)}`);
                 const data = await res.json();
                 if (data.success && data.data) {
                     const pendingApprovalCount = data.data.filter(i => (i.status || '').toLowerCase().includes('pending')).length;
@@ -572,7 +572,7 @@ const notiBellBtn = document.getElementById('notiBellBtn');
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/submit-overtime', {
+                const response = await fetch('/api/submit-overtime', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
