@@ -604,7 +604,8 @@
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
                         <label for="amount-requested">Amount Requested (RM)<span class="required">*</span></label>
-                        <input type="number" id="amount-requested" min="0" step="0.01" placeholder="0.00" required>
+                        <input type="number" id="amount-requested" min="0" max="4500" step="0.01" placeholder="0.00" required>
+                        <small style="color: #64748b; font-size: 11px;">Maximum amount: RM 4,500.00</small>
                     </div>
                     <div class="input-group">
                         <label for="disbursement-method">Disbursement Method<span class="required">*</span></label>
@@ -1418,6 +1419,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     loanForm.addEventListener('submit', async function (e) {
         e.preventDefault();
         if (errorBanner) errorBanner.style.display = 'none';
+
+        const MAX_LOAN_AMOUNT = 4500;
+        const amountRequestedInput = document.getElementById('amount-requested');
+        const amountRequested = parseFloat(amountRequestedInput.value) || 0;
+
+        if (amountRequested > MAX_LOAN_AMOUNT) {
+            showError(`Amount Requested cannot exceed RM ${MAX_LOAN_AMOUNT.toLocaleString('en-MY', { minimumFractionDigits: 2 })}.`);
+            amountRequestedInput.focus();
+            return;
+        }
 
         const formData = new FormData();
         formData.append('employee_id', formattedUserId);
