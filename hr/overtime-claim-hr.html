@@ -631,45 +631,6 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div class="summary-card">
-                            <div>
-                                <div class="summary-title"><i class="fa-solid fa-calculator"></i> Overtime Summary</div>
-                                
-                                <div class="summary-grid-3">
-                                    <div>
-                                        <div class="summary-item-label">Total Hours</div>
-                                        <div class="summary-item-val" id="sumTotalHours">0.0h</div>
-                                    </div>
-                                    <div>
-                                        <div class="summary-item-label">Hourly Rate</div>
-                                        <div class="summary-item-val" id="sumHourlyRate">RM 15.00</div>
-                                    </div>
-                                    <div>
-                                        <div class="summary-item-label">Multiplier</div>
-                                        <div class="summary-item-val" id="sumMultiplier">x 1.5</div>
-                                    </div>
-                                </div>
-
-                                <div class="summary-row">
-                                    <span>OT Payment</span>
-                                    <span id="sumOtPayment" style="font-weight:700;">RM 0.00</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>Meal Allowance (Weekday, Min 3h)</span>
-                                    <span id="sumMealAllowance" style="font-weight:700;">RM 0.00</span>
-                                </div>
-                                <div class="summary-row">
-                                    <span>Night Allowance (Night Shift ≥12h)</span>
-                                    <span id="sumNightAllowance" style="font-weight:700;">RM 0.00</span>
-                                </div>
-                            </div>
-
-                            <div class="summary-row total-row">
-                                <span>Total Claim</span>
-                                <span id="sumTotalClaim">RM 0.00</span>
-                            </div>
-                        </div>
-
                         <div class="form-group" style="margin-bottom:0;">
                             <label>Reason / Description <span class="required">*</span></label>
                             <textarea id="reason" name="reason" rows="4" required class="form-control" placeholder="Provide a brief description of your overtime reason..."></textarea>
@@ -895,15 +856,10 @@
         const nightWarning = document.getElementById('nightWarning');
         const mealWarning = document.getElementById('mealWarning');
 
-        const sumTotalHours = document.getElementById('sumTotalHours');
-        const sumHourlyRate = document.getElementById('sumHourlyRate');
-        const sumMultiplier = document.getElementById('sumMultiplier');
-        const sumOtPayment = document.getElementById('sumOtPayment');
-        const sumMealAllowance = document.getElementById('sumMealAllowance');
-        const sumNightAllowance = document.getElementById('sumNightAllowance');
-        const sumTotalClaim = document.getElementById('sumTotalClaim');
         const otAllowanceInput = document.getElementById('otAllowanceInput');
         const otRateInput = document.getElementById('otRateInput');
+
+        let currentTotalClaim = 0;
 
         function calculateOT() {
             const startVal = startTimeInput.value;
@@ -925,7 +881,6 @@
             }
 
             periodInput.value = `${hours.toFixed(1)} hrs`;
-            sumTotalHours.textContent = `${hours.toFixed(1)}h`;
 
             const isPublicHol = dayTypeSelect.value.includes('Sunday');
 
@@ -936,15 +891,11 @@
                 effectiveRate = isPublicHol ? 20.00 : 15.00;
                 multiplier = 1;
                 otPayment = hours * effectiveRate;
-                sumHourlyRate.textContent = `RM ${effectiveRate.toFixed(2)} (Fixed)`;
-                sumMultiplier.textContent = `Fixed Rate`;
             } else {
                 // Salary RM3999.99 and below: ORP-based, x1.5 weekday/Sat, x2.0 Sunday/PH
                 effectiveRate = baseHourlyRate;
                 multiplier = isPublicHol ? 2.0 : 1.5;
                 otPayment = hours * effectiveRate * multiplier;
-                sumHourlyRate.textContent = `RM ${effectiveRate.toFixed(2)}`;
-                sumMultiplier.textContent = `x ${multiplier.toFixed(1)}`;
             }
 
             otRateInput.value = isFixedRateTier
@@ -980,10 +931,7 @@
 
             const totalClaim = otPayment + mealAllow + nightAllow;
 
-            sumOtPayment.textContent = `RM ${otPayment.toFixed(2)}`;
-            sumMealAllowance.textContent = `RM ${mealAllow.toFixed(2)}`;
-            sumNightAllowance.textContent = `RM ${nightAllow.toFixed(2)}`;
-            sumTotalClaim.textContent = `RM ${totalClaim.toFixed(2)}`;
+            currentTotalClaim = totalClaim;
 
             otAllowanceInput.value = otPayment.toFixed(2);
         }
@@ -1039,7 +987,7 @@
                 ot_rate: otRateInput.value,
                 night_allowance_check: nightCheck.checked ? 1 : 0,
                 meal_allowance_check: mealCheck.checked ? 1 : 0,
-                total_claim: sumTotalClaim.textContent.replace('RM ', ''),
+                total_claim: currentTotalClaim.toFixed(2),
                 reason: document.getElementById('reason').value
             };
 
