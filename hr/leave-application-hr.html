@@ -540,7 +540,7 @@
                             <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
                         </div>
                         <div class="noti-footer">
-                            <a href="my-request.html" class="view-all-link">View All Requests</a>
+                            <a href="my-request-hr.html" class="view-all-link">View All Requests</a>
                         </div>
                     </div>
                 </div>
@@ -613,16 +613,11 @@
                         <option value="maternity">Maternity</option>
                         <option value="paternity">Paternity</option>
                         <option value="compassionate">Compassionate</option>
-                        <option value="others">Others</option>
+                        <option value="emergency">Emergency</option>
                     </select>
                     <div id="annual-leave-note" class="rule-note" style="display: none;">
                         ℹ️ <strong>Note:</strong> Maximum 6 days can be carried forward for Annual Leave only, valid until June next year.
                     </div>
-                </div>
-
-                <div class="input-group" id="others-group" style="display: none;">
-                    <label for="leave-type-others">Please Specify<span class="required">*</span></label>
-                    <input type="text" id="leave-type-others" name="leave_type_others" placeholder="Enter leave type">
                 </div>
 
                 <div class="input-group" id="relationship-group" style="display: none;">
@@ -642,7 +637,7 @@
                     <div class="input-group">
                         <label for="start-date">Start Date<span class="required">*</span></label>
                         <input type="date" id="start-date" name="start_date" required>
-                        <div class="field-hint">📌 Leave must be submitted at least 3 days in advance.</div>
+                        <div class="field-hint" id="startDateHint">📌 Leave must be submitted at least 3 days in advance.</div>
                     </div>
                     <div class="input-group">
                         <label for="end-date">End Date<span class="required">*</span></label>
@@ -658,6 +653,8 @@
                             <option value="full">Full Day</option>
                             <option value="half-am">1st Half (8:00 AM – 12:00 PM)</option>
                             <option value="half-pm">2nd Half (1:00 PM – 5:00 PM)</option>
+                            <option value="24hr" disabled>24 Hours (Sick Leave/MC only)</option>
+                            <option value="48hr" disabled>48 Hours (Sick Leave/MC only)</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -1037,25 +1034,42 @@
         });
 
         const leaveTypeSelect = document.getElementById('leave-type');
-        const othersGroup = document.getElementById('others-group');
-        const othersInput = document.getElementById('leave-type-others');
         const annualNote = document.getElementById('annual-leave-note');
         const relationshipGroup = document.getElementById('relationship-group');
         const relationshipSelect = document.getElementById('relationship');
+        const day24hrOption = document.querySelector('#day-type option[value="24hr"]');
+        const day48hrOption = document.querySelector('#day-type option[value="48hr"]');
+        const startDateHint = document.getElementById('startDateHint');
+
+        function pad2(n) { return String(n).padStart(2, '0'); }
+        function dateStr(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+
+        function setSickLeaveMode(isSick) {
+            if (day24hrOption) day24hrOption.disabled = !isSick;
+            if (day48hrOption) day48hrOption.disabled = !isSick;
+
+            if (isSick) {
+                startDateInput.min = dateStr(new Date());
+                if (startDateHint) startDateHint.textContent = '📌 Sick Leave/MC can be requested immediately (same day), including 24/48 hour MC.';
+            } else {
+                const minDate = new Date();
+                minDate.setDate(minDate.getDate() + 3);
+                startDateInput.min = dateStr(minDate);
+                if (startDateHint) startDateHint.textContent = '📌 Leave must be submitted at least 3 days in advance.';
+
+                const dayTypeSelect = document.getElementById('day-type');
+                if (dayTypeSelect.value === '24hr' || dayTypeSelect.value === '48hr') {
+                    dayTypeSelect.value = '';
+                    numDaysInput.value = '';
+                }
+            }
+        }
 
         function medicalAttachmentRequired(leaveTypeVal) {
             return leaveTypeVal === 'sick' || leaveTypeVal === 'hospitalization';
         }
 
         leaveTypeSelect.addEventListener('change', () => {
-            if (leaveTypeSelect.value === 'others') {
-                othersGroup.style.display = 'block';
-                othersInput.required = true;
-            } else {
-                othersGroup.style.display = 'none';
-                othersInput.required = false;
-            }
-
             if (leaveTypeSelect.value === 'annual') {
                 annualNote.style.display = 'block';
             } else {
@@ -1069,6 +1083,8 @@
                 relationshipGroup.style.display = 'none';
                 relationshipSelect.required = false;
             }
+
+            setSickLeaveMode(leaveTypeSelect.value === 'sick');
 
             highlightBalanceRow(leaveTypeSelect.value);
         });
@@ -1209,7 +1225,19 @@
                 }
             }
             endDateInput.min = startDateInput.value;
-            calculateDays();
+
+            const dayTypeVal = document.getElementById('day-type').value;
+            if (dayTypeVal === '24hr' && startDateInput.value) {
+                endDateInput.value = startDateInput.value;
+                numDaysInput.value = 1;
+            } else if (dayTypeVal === '48hr' && startDateInput.value) {
+                const end = new Date(startDateInput.value);
+                end.setDate(end.getDate() + 1);
+                endDateInput.value = dateStr(end);
+                numDaysInput.value = 2;
+            } else {
+                calculateDays();
+            }
         });
 
         endDateInput.addEventListener('change', () => {
@@ -1243,8 +1271,25 @@
             return dt === 'half-am' || dt === 'half-pm';
         }
 
-        document.getElementById('day-type').addEventListener('change', () => {
-            if (day_type_is_half() && startDateInput.value && startDateInput.value === endDateInput.value) {
+        function day_type_is_hourly() {
+            const dt = document.getElementById('day-type').value;
+            return dt === '24hr' || dt === '48hr';
+        }
+
+        document.getElementById('day-type').addEventListener('change', function() {
+            if (this.value === '24hr') {
+                if (startDateInput.value) {
+                    endDateInput.value = startDateInput.value;
+                }
+                numDaysInput.value = 1;
+            } else if (this.value === '48hr') {
+                if (startDateInput.value) {
+                    const end = new Date(startDateInput.value);
+                    end.setDate(end.getDate() + 1);
+                    endDateInput.value = dateStr(end);
+                }
+                numDaysInput.value = 2;
+            } else if (day_type_is_half() && startDateInput.value && startDateInput.value === endDateInput.value) {
                 numDaysInput.value = 0.5;
             } else {
                 calculateDays();
@@ -1291,7 +1336,7 @@
         document.getElementById('leaveForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            if (!isAtLeast3DaysAdvance(startDateInput.value)) {
+            if (leaveTypeSelect.value !== 'sick' && !isAtLeast3DaysAdvance(startDateInput.value)) {
                 alert('Leave must be submitted at least 3 days in advance. Sila pilih Start Date yang sekurang-kurangnya 3 hari dari hari ini.');
                 return;
             }
@@ -1337,7 +1382,7 @@
                 if (result.success) {
                     localStorage.removeItem(`draft_${formattedUserId}_leaveForm`);
                     alert(result.message || "Leave application submitted successfully!");
-                    window.location.href = "my-request.html";
+                    window.location.href = "my-request-hr.html";
                 } else {
                     alert("Submission error: " + result.message);
                 }
