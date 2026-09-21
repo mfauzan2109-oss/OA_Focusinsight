@@ -513,6 +513,14 @@
             <p>You have <strong id="bannerPendingCount" style="color: #38bdf8;">0 pending requests</strong> awaiting action across the company.</p>
         </section>
 
+        <section class="announcements-section" id="announcementsSection" style="display: none;">
+            <div class="announcements-header">
+                <span class="announcements-icon">📢</span>
+                <h3>Announcements</h3>
+            </div>
+            <ul class="announcement-list" id="announcementList"></ul>
+        </section>
+
         <!-- METRIC SUMMARY CARDS -->
         <section class="metrics-grid">
             <div class="metric-card">
@@ -866,8 +874,54 @@
             renderPage();
         }
 
+        // Announcements
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
+        function formatAnnouncementDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
+        async function loadAnnouncements() {
+            const section = document.getElementById('announcementsSection');
+            const list = document.getElementById('announcementList');
+            if (!section || !list) return;
+
+            try {
+                const res = await fetch(`/api/announcements?audience=HR`);
+                const result = await res.json();
+
+                if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+                    list.innerHTML = result.data.map(a => `
+                        <li class="announcement-item">
+                            <span class="announcement-dot"></span>
+                            <div class="announcement-item-body">
+                                <strong>${escapeHtml(a.title)}</strong>
+                                <p>${escapeHtml(a.message)}</p>
+                                <span class="announcement-meta">Published by HR • ${formatAnnouncementDate(a.publish_date)}</span>
+                            </div>
+                        </li>
+                    `).join('');
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Failed to load announcements:', err);
+                section.style.display = 'none';
+            }
+        }
+
         fetchDashboardMetrics();
         fetchRecentActivities();
+        loadAnnouncements();
 
         // 4. Header Live Search Box
         const searchInput = document.getElementById('headerSearchInput');

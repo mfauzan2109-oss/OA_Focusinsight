@@ -42,6 +42,11 @@
     --color-bg: #bcdbe5;
     --color-bg-admin: #aedce2;
 
+    /* Announcements callout */
+    --color-announcement-bg: #e3f7f5;
+    --color-announcement-border: #eccb7e;
+    --color-announcement-dot: #ef4444;
+
     /* Accent indigo family (HR admin forms) */
     --color-accent-indigo-light: #c7d2fe;
     --color-accent-indigo-mid: #a5b4fc;
@@ -896,6 +901,82 @@ body:has(.sidebar) {
 
 .view-all:hover, .view-action-link:hover {
     text-decoration: underline;
+}
+
+/* ================= ANNOUNCEMENTS ================= */
+.announcements-section {
+    background-color: var(--color-announcement-bg);
+    border: 1px solid var(--color-announcement-border);
+    padding: 16px 24px;
+    border-radius: var(--radius-14);
+    margin-bottom: 24px;
+}
+
+.announcements-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.announcements-header .announcements-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.announcements-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-slate-900);
+    margin: 0;
+}
+
+.announcement-list {
+    list-style: none;
+    margin: 10px 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.announcement-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.announcement-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background-color: var(--color-announcement-dot);
+}
+
+.announcement-item-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.announcement-item-body strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-slate-900);
+}
+
+.announcement-item-body p {
+    font-size: 13px;
+    color: var(--color-slate-700);
+    margin: 2px 0 4px 0;
+    line-height: 1.5;
+}
+
+.announcement-meta {
+    font-size: 11px;
+    color: var(--color-slate-500);
+    font-style: italic;
 }
 
 .table-container {
