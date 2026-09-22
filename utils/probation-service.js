@@ -1,7 +1,14 @@
 'use strict';
+
+const { sendEmail } = require('./email-service');
+const {
+    resolveApproverRecipients,
+    resolveOutcomeRecipients
+} = require('./p1-email');
 const { ROLES, norm, problem, requestId, freshUser, canAct, canRead, validatePending, canOpenQueue } = require('./resignation-approval');
 const isHR = u => ['hr', 'human resources'].includes(norm(u.department)) || ['hr', 'human resources', 'hr specialist'].includes(norm(u.position));
 const ratings = ['Excellent', 'Good', 'Satisfactory', 'Needs Improvement'];
+
 function validate(body) {
     if (!body || typeof body !== 'object') throw problem(400, 'Request body required.');
     const out = {};
@@ -44,6 +51,41 @@ async function submit(c, sessionId, body, attachment) {
         const rows = ROLES.map((role, i) => [insert.insertId, i + 1, role + ' Approval', role, i === 0 ? 'Pending' : 'Waiting']);
         await c.query('INSERT INTO probation_approval_steps (probation_id,step_order,step_label,approver_role,status) VALUES ?', [rows]);
         await c.commit(); started = false;
+        try {
+            const firstRole = ROLES[0];
+
+            const recipients = await resolveApproverRecipients(
+                c,
+                firstRole,
+                e.department
+            );
+
+            if (!recipients.length) {
+                console.warn(
+                    `[EMAIL] No recipient found for first approver ${firstRole} ` +
+                    `on REQ-PROBATION-${insert.insertId}`
+                );
+            }
+
+            for (const recipient of recipients) {
+                await sendEmail({
+                    to: recipient.email,
+                    subject:
+                        `Approval Required: REQ-PROBATION-${insert.insertId}`,
+                    text:
+                        `Hi ${recipient.name || recipient.user_id},\n\n` +
+                        `A Probation Confirmation request requires your approval.\n` +
+                        `Request: REQ-PROBATION-${insert.insertId}\n` +
+                        `Role: ${firstRole}\n\n` +
+                        `Please log in to the FocusInsight OA System to review the request.`
+                });
+            }
+        } catch (emailError) {
+            console.error(
+                '[EMAIL] Probation first approver notification failed:',
+                emailError.message
+            );
+        }
         return { success: true, id: insert.insertId, status: 'Pending', message: 'Probation confirmation submitted.', current_step: { step_order: 1, approver_role: ROLES[0] } };
     } catch (error) { if (started) await c.rollback().catch(() => { }); throw error; }
 }
@@ -279,15 +321,98 @@ async function decide(connection, sessionUserId, idValue, body) {
         }
 
         await connection.commit(); started = false;
-    return {
-        success: true, id, status: overall,
-        completed_step: Number(current.step_order), decision: body.status,
-        next_step: next ? { step_order: Number(next.step_order), approver_role: next.approver_role } : null
-    };
-} catch (error) {
-    if (started) await connection.rollback().catch(() => { });
-    throw error;
-}
+
+        // Email only AFTER database commit.
+        // Email failure must not undo a successful approval.
+        if (next) {
+            try {
+                const recipients = await resolveApproverRecipients(
+                    connection,
+                    next.approver_role,
+                    record.department
+                );
+
+                if (!recipients.length) {
+                    console.warn(
+                        `[EMAIL] No recipient found for ${next.approver_role} ` +
+                        `on REQ-PROBATION-${id}`
+                    );
+                }
+
+                for (const recipient of recipients) {
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `Approval Required: REQ-PROBATION-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `A Probation Confirmation request requires your approval.\n` +
+                            `Request: REQ-PROBATION-${id}\n` +
+                            `Role: ${next.approver_role}\n\n` +
+                            `Please log in to the FocusInsight OA System to review the request.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Probation next approver notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
+        if (
+            !next &&
+            ['Approved', 'Rejected'].includes(overall)
+        ) {
+            try {
+                const recipients = await resolveOutcomeRecipients(
+                    connection,
+                    record.requested_by,
+                    'probation_cc_recipients',
+                    overall === 'Approved'
+                );
+
+                if (!recipients.length) {
+                    console.warn(
+                        `[EMAIL] No final outcome recipient for REQ-PROBATION-${id}`
+                    );
+                }
+
+                for (const recipient of recipients) {
+                    const isCc = recipient.kind === 'cc';
+
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `${overall}: REQ-PROBATION-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `Probation Confirmation REQ-PROBATION-${id} ` +
+                            `has been ${overall.toLowerCase()}.\n` +
+                            `${isCc
+                                ? '\nYou are receiving this email as a CC recipient.\n'
+                                : ''
+                            }` +
+                            `\nPlease log in to the FocusInsight OA System for details.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Probation final outcome notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
+        return {
+            success: true, id, status: overall,
+            completed_step: Number(current.step_order), decision: body.status,
+            next_step: next ? { step_order: Number(next.step_order), approver_role: next.approver_role } : null
+        };
+    } catch (error) {
+        if (started) await connection.rollback().catch(() => { });
+        throw error;
+    }
 }
 
 module.exports = { validate, submit, details, queue, mine, notifications, decide };

@@ -187,7 +187,8 @@ router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req
                 reason,
                 attachment_path
             ],
-            roles
+            roles,
+            department
         })
             .then(result => {
                 return res.json({

@@ -1,3 +1,5 @@
+const { sendEmail } = require('./email-service');
+const { resolveApproverRecipients } = require('./p1-email');
 const mysql = require('mysql2/promise');
 const db = require('../config/database');
 
@@ -69,12 +71,48 @@ async function saveSalaryAdjustmentWithWorkflow(insertQuery, values) {
 
         await connection.commit();
 
+        try {
+            const firstRole = expectedRoles[0];
+
+            const recipients = await resolveApproverRecipients(
+                connection,
+                firstRole,
+                null
+            );
+
+            if (!recipients.length) {
+                console.warn(
+                    `[EMAIL] No recipient found for first approver ${firstRole} ` +
+                    `on REQ-SALARY-ADJUSTMENT-${result.insertId}`
+                );
+            }
+
+            for (const recipient of recipients) {
+                await sendEmail({
+                    to: recipient.email,
+                    subject:
+                        `Approval Required: REQ-SALARY-ADJUSTMENT-${result.insertId}`,
+                    text:
+                        `Hi ${recipient.name || recipient.user_id},\n\n` +
+                        `A Salary Adjustment request requires your approval.\n` +
+                        `Request: REQ-SALARY-ADJUSTMENT-${result.insertId}\n` +
+                        `Role: ${firstRole}\n\n` +
+                        `Please log in to the FocusInsight OA System to review the request.`
+                });
+            }
+        } catch (emailError) {
+            console.error(
+                '[EMAIL] Salary Adjustment first approver notification failed:',
+                emailError.message
+            );
+        }
+
         return result;
     } catch (error) {
-        await connection.rollback().catch(() => {});
+        await connection.rollback().catch(() => { });
         throw error;
     } finally {
-        await connection.end().catch(() => {});
+        await connection.end().catch(() => { });
     }
 }
 

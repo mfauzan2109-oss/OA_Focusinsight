@@ -2,6 +2,8 @@
 
 const mysql = require('mysql2/promise');
 const db = require('../config/database');
+const { sendEmail } = require('./email-service');
+const { resolveApproverRecipients } = require('./p1-email');
 
 const TARGETS = {
     leave: {
@@ -35,6 +37,7 @@ async function saveWithApprovalSteps({
     insertQuery,
     values,
     roles,
+    department,
     afterInsert = null
 }) {
     const config = TARGETS[type];
@@ -108,6 +111,41 @@ async function saveWithApprovalSteps({
         );
 
         await connection.commit();
+        try {
+            const firstRole = roles[0];
+
+            const recipients = await resolveApproverRecipients(
+                connection,
+                firstRole,
+                department
+            );
+
+            if (!recipients.length) {
+                console.warn(
+                    `[EMAIL] No recipient found for first approver ${firstRole} ` +
+                    `on REQ-${type.toUpperCase()}-${result.insertId}`
+                );
+            }
+
+            for (const recipient of recipients) {
+                await sendEmail({
+                    to: recipient.email,
+                    subject:
+                        `Approval Required: REQ-${type.toUpperCase()}-${result.insertId}`,
+                    text:
+                        `Hi ${recipient.name || recipient.user_id},\n\n` +
+                        `A ${type.toUpperCase()} request requires your approval.\n` +
+                        `Request: REQ-${type.toUpperCase()}-${result.insertId}\n` +
+                        `Role: ${firstRole}\n\n` +
+                        `Please log in to the FocusInsight OA System to review the request.`
+                });
+            }
+        } catch (emailError) {
+            console.error(
+                '[EMAIL] First approver notification failed:',
+                emailError.message
+            );
+        }
 
         return result;
 

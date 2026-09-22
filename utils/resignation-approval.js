@@ -1,6 +1,11 @@
 'use strict';
 
 const { enqueueOutcome } = require('./resignation-notifications');
+const { sendEmail } = require('./email-service');
+const {
+    resolveApproverRecipients,
+    resolveOutcomeRecipients
+} = require('./p1-email');
 
 const ROLES = ['Head of Department', 'VGM', 'CEO', 'Chairman', 'HR Specialist'];
 const norm = value => String(value || '').trim().toLowerCase();
@@ -155,6 +160,82 @@ async function decide(connection, sessionUserId, idValue, body) {
         }
         if (overall !== 'Pending') await enqueueOutcome(connection, record, overall);
         await connection.commit(); started = false;
+
+        // Email only AFTER database commit.
+        if (next) {
+            try {
+                const recipients = await resolveApproverRecipients(
+                    connection,
+                    next.approver_role,
+                    record.department
+                );
+
+                if (!recipients.length) {
+                    console.warn(
+                        `[EMAIL] No recipient found for ${next.approver_role} ` +
+                        `on REQ-RESIGNATION-${id}`
+                    );
+                }
+
+                for (const recipient of recipients) {
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `Approval Required: REQ-RESIGNATION-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `A Resignation request requires your approval.\n` +
+                            `Request: REQ-RESIGNATION-${id}\n` +
+                            `Role: ${next.approver_role}\n\n` +
+                            `Please log in to the FocusInsight OA System to review the request.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Resignation next approver notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
+        if (
+            !next &&
+            ['Approved', 'Rejected'].includes(overall)
+        ) {
+            try {
+                const recipients = await resolveOutcomeRecipients(
+                    connection,
+                    record.requested_by,
+                    'resignation_cc_recipients',
+                    overall === 'Approved'
+                );
+
+                for (const recipient of recipients) {
+                    const isCc = recipient.kind === 'cc';
+
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `${overall}: REQ-RESIGNATION-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `Resignation REQ-RESIGNATION-${id} ` +
+                            `has been ${overall.toLowerCase()}.\n` +
+                            `${isCc
+                                ? '\nYou are receiving this email as a CC recipient.\n'
+                                : ''
+                            }` +
+                            `\nPlease log in to the FocusInsight OA System for details.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Resignation final outcome notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
         return {
             success: true, id, status: overall,
             completed_step: Number(current.step_order), decision: body.status,

@@ -1,5 +1,10 @@
 'use strict';
 
+const { sendEmail } = require('./email-service');
+const {
+    resolveApproverRecipients,
+    resolveOutcomeRecipients
+} = require('./p1-email');
 const norm = value => String(value || '').trim().toLowerCase();
 
 function problem(status, message) {
@@ -470,7 +475,88 @@ async function decide(
         await connection.commit();
         started = false;
 
+        // Email next approver only AFTER database commit.
+        // Email failure must never undo a successful approval.
+        if (next) {
+            try {
+                const recipients = await resolveApproverRecipients(
+                    connection,
+                    next.approver_role,
+                    record.department
+                );
+
+                if (!recipients.length) {
+                    console.warn(
+                        `[EMAIL] No recipient found for ${next.approver_role} ` +
+                        `on REQ-${config.notificationPrefix}-${id}`
+                    );
+                }
+
+                for (const recipient of recipients) {
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `Approval Required: REQ-${config.notificationPrefix}-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `A ${config.notificationPrefix} request requires your approval.\n` +
+                            `Request: REQ-${config.notificationPrefix}-${id}\n` +
+                            `Role: ${next.approver_role}\n\n` +
+                            `Please log in to the FocusInsight OA System to review the request.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Next approver notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
+        if (
+            !next &&
+            ['Approved', 'Rejected'].includes(overall)
+        ) {
+            try {
+                const recipients = await resolveOutcomeRecipients(
+                    connection,
+                    record.employee_id,
+                    config.ccTable,
+                    overall === 'Approved'
+                );
+
+                if (!recipients.length) {
+                    console.warn(
+                        `[EMAIL] No final outcome recipient for ` +
+                        `REQ-${config.notificationPrefix}-${id}`
+                    );
+                }
+
+                for (const recipient of recipients) {
+                    const isCc = recipient.kind === 'cc';
+
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `${overall}: REQ-${config.notificationPrefix}-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `Request REQ-${config.notificationPrefix}-${id} ` +
+                            `has been ${overall.toLowerCase()}.\n` +
+                            `${isCc ? '\nYou are receiving this email as a CC recipient.\n' : ''}` +
+                            `\nPlease log in to the FocusInsight OA System for details.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Final outcome notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
         return {
+
             success: true,
             id,
             decision,

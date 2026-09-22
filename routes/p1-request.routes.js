@@ -91,7 +91,8 @@ const handleTravelSubmission = (req, res) => {
         type: 'travel',
         insertQuery: query,
         values,
-        roles
+        roles,
+        department
     })
         .then(result => {
             console.log(
@@ -200,6 +201,7 @@ router.post(
 
                 roles,
 
+                department,
                 afterInsert: async (
                     connection,
                     masterResult
@@ -569,7 +571,9 @@ router.post(
                         cleanTotalClaim
                     ],
 
-                    roles
+                    roles,
+
+                    department
                 });
 
             return res.json({
@@ -747,7 +751,9 @@ router.post(
                         attachment_path
                     ],
 
-                    roles
+                    roles,
+
+                    department
                 });
 
             return res.json({

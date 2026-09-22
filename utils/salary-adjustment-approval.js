@@ -1,5 +1,10 @@
 'use strict';
 
+const { sendEmail } = require('./email-service');
+const {
+    resolveApproverRecipients,
+    resolveOutcomeRecipients
+} = require('./p1-email');
 const {
     enqueueOutcome
 } = require('./salary-adjustment-notifications');
@@ -440,6 +445,82 @@ async function decide(
         }
 
         await connection.commit();
+
+        // Email only AFTER database commit.
+        if (next) {
+            try {
+                const recipients = await resolveApproverRecipients(
+                    connection,
+                    next.approver_role,
+                    record.department
+                );
+
+                if (!recipients.length) {
+                    console.warn(
+                        `[EMAIL] No recipient found for ${next.approver_role} ` +
+                        `on REQ-SALARY-ADJUSTMENT-${id}`
+                    );
+                }
+
+                for (const recipient of recipients) {
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `Approval Required: REQ-SALARY-ADJUSTMENT-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `A Salary Adjustment request requires your approval.\n` +
+                            `Request: REQ-SALARY-ADJUSTMENT-${id}\n` +
+                            `Role: ${next.approver_role}\n\n` +
+                            `Please log in to the FocusInsight OA System to review the request.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Salary Adjustment next approver notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
+        if (
+            !next &&
+            ['Approved', 'Rejected'].includes(overall)
+        ) {
+            try {
+                const recipients = await resolveOutcomeRecipients(
+                    connection,
+                    record.requested_by,
+                    'salary_adjustment_cc_recipients',
+                    overall === 'Approved'
+                );
+
+                for (const recipient of recipients) {
+                    const isCc = recipient.kind === 'cc';
+
+                    await sendEmail({
+                        to: recipient.email,
+                        subject:
+                            `${overall}: REQ-SALARY-ADJUSTMENT-${id}`,
+                        text:
+                            `Hi ${recipient.name || recipient.user_id},\n\n` +
+                            `Salary Adjustment REQ-SALARY-ADJUSTMENT-${id} ` +
+                            `has been ${overall.toLowerCase()}.\n` +
+                            `${isCc
+                                ? '\nYou are receiving this email as a CC recipient.\n'
+                                : ''
+                            }` +
+                            `\nPlease log in to the FocusInsight OA System for details.`
+                    });
+                }
+            } catch (emailError) {
+                console.error(
+                    '[EMAIL] Salary Adjustment final outcome notification failed:',
+                    emailError.message
+                );
+            }
+        }
+
         started = false;
 
         return {
