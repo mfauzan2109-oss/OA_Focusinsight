@@ -906,7 +906,9 @@
             list.classList.add('is-scrollable');
         }
 
-        async function deleteAnnouncement(id, btn) {
+        // Attached to window because this is called from an inline onclick="" in
+        // the markup below, which runs in global scope, not this DOMContentLoaded closure.
+        window.deleteAnnouncement = async function deleteAnnouncement(id, btn) {
             if (!confirm('Delete this announcement? This cannot be undone.')) return;
 
             const hrUserId = (sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '').toUpperCase();
@@ -929,7 +931,7 @@
                 alert('Server connection error. Please try again.');
                 if (btn) btn.disabled = false;
             }
-        }
+        };
 
         async function loadAnnouncements() {
             const section = document.getElementById('announcementsSection');
