@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,10 +35,11 @@
         }
     </style>
 </head>
+
 <body class="login-body">
 
     <div class="login-container">
-        
+
         <div class="login-header">
             <div class="logo-placeholder">
                 <img src="images/company-logo.jpg" class="clean-logo" alt="Focusinsight Logo">
@@ -70,7 +72,8 @@
 
                 <button type="submit" class="btn-sign-in">Sign In</button>
             </form>
-            <div id="errorMsg" style="color: red; text-align: center; margin-top: 15px; font-weight: 500; display: none;"></div>
+            <div id="errorMsg"
+                style="color: red; text-align: center; margin-top: 15px; font-weight: 500; display: none;"></div>
         </div>
 
         <div class="login-footer">
@@ -83,14 +86,14 @@
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
 
-        togglePassword.addEventListener('click', function() {
+        togglePassword.addEventListener('click', function () {
             const isHidden = passwordInput.type === 'password';
             passwordInput.type = isHidden ? 'text' : 'password';
             togglePassword.classList.toggle('bx-hide', !isHidden);
             togglePassword.classList.toggle('bx-show', isHidden);
         });
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault(); // Stop standard form submission refresh
 
             const user_id = document.getElementById('employee-id').value.trim();
@@ -115,26 +118,26 @@
                     sessionStorage.setItem('username', data.name);
                     sessionStorage.setItem('position', data.position);
                     sessionStorage.setItem('department', data.department);
-                    
+
                     const dept = (data.department || '').toLowerCase();
                     const pos = (data.position || '').toLowerCase();
 
                     // Check if user belongs to HR
-                    const isHR = dept.includes('hr') || 
-                                 dept.includes('human resources') || 
-                                 pos.includes('hr');
+                    const isHR = dept.includes('hr') ||
+                        dept.includes('human resources') ||
+                        pos.includes('hr');
 
                     // Route user to appropriate module
                     if (isHR) {
-                        window.location.href = 'hr/hr-dashboard.html'; // Main landing page for HR
-                    } else if (data.position === 'CEO') {
-                        window.location.href = 'dashboard-ceo.html';
-                    } else if (data.position === 'Manager') {
+                        window.location.href = 'hr/hr-dashboard.html';
+                    } else if (pos === 'ceo' || pos === 'chairman') {
+                        window.location.href = 'dashboard-approver.html';
+                    } else if (pos === 'manager') {
                         window.location.href = 'dashboard-manager.html';
-                    } else if (data.position === 'Supervisor') {
+                    } else if (pos === 'supervisor') {
                         window.location.href = 'dashboard-supervisor.html';
                     } else {
-                        window.location.href = 'dashboard.html'; // Default Employee dashboard
+                        window.location.href = 'dashboard.html';
                     }
                 } else {
                     // Show validation denial reasons from your database records
@@ -149,4 +152,5 @@
         });
     </script>
 </body>
+
 </html>

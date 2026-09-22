@@ -7,12 +7,12 @@
         .profile-avatar, .avatar-circle {
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
-        
-        body { 
-            display: flex; 
-            background-color: var(--color-bg); 
-            min-height: 100vh; 
-            color: var(--color-gray-legacy); 
+
+        body {
+            display: flex;
+            background-color: var(--color-bg);
+            min-height: 100vh;
+            color: var(--color-gray-legacy);
         }
 
         .top-header {
@@ -52,7 +52,7 @@
         .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 20px; }
         .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
         .form-full { grid-column: 1 / -1; }
-        
+
         .input-group { display: flex; flex-direction: column; }
         .input-group label {
             font-size: 12.5px; font-weight: 600; color: var(--color-slate-600); margin-bottom: 6px;

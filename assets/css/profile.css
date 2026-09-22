@@ -73,23 +73,23 @@
 }
 
 .main-content { padding: 24px 32px 60px 32px; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #5bc0be; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #5bc0be;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
         }
-        
-        .profile-container { 
-            width: 100%; 
-            max-width: 800px; 
-            background: #5bc0be; 
-            border-radius: var(--radius-15); 
-            padding: 25px; 
-            box-shadow: none; 
-            border: none; 
+
+        .profile-container {
+            width: 100%;
+            max-width: 800px;
+            background: #5bc0be;
+            border-radius: var(--radius-15);
+            padding: 25px;
+            box-shadow: none;
+            border: none;
         }
         .profile-card-header { background: white; border-radius: var(--radius-12); padding: 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .user-meta { display: flex; align-items: center; gap: 15px; }
@@ -103,14 +103,14 @@
 
         .meta-details p { margin: 4px 0; color: var(--color-gray-legacy); font-size: 14px; }
         .meta-details p span { color: #004ffe; font-weight: 600; }
-        
+
         /* Dynamic Status Badge Colors */
-        .status-badge { 
-            padding: 8px 20px; 
-            border-radius: var(--radius-20); 
-            font-weight: 600; 
-            font-size: 14px; 
-            color: white; 
+        .status-badge {
+            padding: 8px 20px;
+            border-radius: var(--radius-20);
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
             display: inline-block;
         }
         .status-active { background-color: #28a745; }                     /* Green */
@@ -126,7 +126,7 @@
         label { font-size: 13px; font-weight: 500; color: #444; margin-bottom: 5px; }
         input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: var(--radius-6); font-size: 14px; background: var(--color-white); width: 100%; box-sizing: border-box; }
         input:disabled, textarea:disabled { background: #f0f0f0; color: #666; cursor: not-allowed; border: 1px solid #ddd; }
-        
+
         /* Error highlighting */
         input:invalid:not(:disabled), textarea:invalid:not(:disabled) {
             border-color: #dc3545;

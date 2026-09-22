@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
             const CONFIG = {
-                apiBaseUrl: window.APP_CONFIG?.apiBaseUrl || (window.location.origin.includes('localhost') 
-                    ? '/api' 
+                apiBaseUrl: window.APP_CONFIG?.apiBaseUrl || (window.location.origin.includes('localhost')
+                    ? '/api'
                     : '/api'),
                 loginPage: window.APP_CONFIG?.loginPage || 'login.html',
                 dashboardPage: window.APP_CONFIG?.dashboardPage || 'dashboard.html',
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const currentEmployeeId = sessionStorage.getItem('userId') || localStorage.getItem('userId') || userSession.user_id || userSession.employee_id || '';
             const currentEmployeeName = sessionStorage.getItem('username') || localStorage.getItem('username') || userSession.name || userSession.username || 'Pengguna';
             const currentDepartment = sessionStorage.getItem('department') || localStorage.getItem('department') || userSession.department || 'General Department';
-            
+
             const currentPosition = sessionStorage.getItem('position') || localStorage.getItem('position') || userSession.position || '';
             const userRole = (sessionStorage.getItem('role') || localStorage.getItem('role') || userSession.role || '').toLowerCase();
 
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!currentEmployeeId) return;
 
                 const storedCompany = sessionStorage.getItem('company_name') || localStorage.getItem('company_name') || userSession.company_name;
-                
+
                 if (storedCompany) {
                     companyInput.value = storedCompany;
                     return;
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         companyInput.value = resData.data.company_name;
                         sessionStorage.setItem('company_name', resData.data.company_name);
                     } else {
-                        companyInput.value = 'FocusInsight'; 
+                        companyInput.value = 'FocusInsight';
                     }
                 } catch (err) {
                     console.error('Failed to fetch user company from DB:', err);
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (sidebarNameEl) sidebarNameEl.textContent = currentEmployeeName;
             if (sidebarMetaEl) sidebarMetaEl.textContent = `${formattedEmployeeId} • ${currentDepartment}`;
-            
+
             const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
 
             if (topAvatarEl) {
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             let currentGrandTotalAllowance = 0;
-            let rates = {}; 
+            let rates = {};
             let allFetchedRequests = [];
 
             async function fetchAllowanceRates() {
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             acc[key] = parseFloat(data[key]) || 0;
                             return acc;
                         }, {});
-                        
+
                         if(rates.travel !== undefined) document.getElementById('rate-travel').textContent = `RM${rates.travel}`;
 
                         calculateAllowance();
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!travelForm) return;
                 const formDataObj = {};
                 const formData = new FormData(travelForm);
-                
+
                 formData.forEach((value, key) => {
                     if (typeof value !== 'string') return;
                     formDataObj[key] = value;
@@ -311,10 +311,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 travelModeSelect.addEventListener('change', () => {
                     const mode = travelModeSelect.value.toLowerCase();
                     const isOthers = mode === 'others';
-                    
+
                     travelModeOthersInput.disabled = !isOthers;
                     travelModeOthersInput.required = isOthers;
-                    
+
                     if (!isOthers) {
                         travelModeOthersInput.value = '';
                     } else {
@@ -668,7 +668,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                                     let badgeBg = '#fef3c7';
                                     let badgeColor = '#d97706';
-                                    
+
                                     if (rawStatus.includes('approve') || rawStatus === 'completed' || rawStatus === 'processed') {
                                         badgeBg = '#dcfce7';
                                         badgeColor = '#15803d';

@@ -7,12 +7,12 @@
         .profile-avatar, .avatar-circle {
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
-        
-body { 
-            display: flex; 
-            background-color: var(--color-bg); 
-            min-height: 100vh; 
-            color: var(--color-gray-legacy); 
+
+body {
+            display: flex;
+            background-color: var(--color-bg);
+            min-height: 100vh;
+            color: var(--color-gray-legacy);
         }
 
         .top-header {

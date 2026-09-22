@@ -35,11 +35,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                     // Route user to appropriate module
                     if (isHR) {
                         window.location.href = 'hr/hr-dashboard.html'; // Main landing page for HR
-                    } else if (data.position === 'CEO') {
+                    } else if (pos === 'ceo') {
                         window.location.href = 'dashboard-ceo.html';
-                    } else if (data.position === 'Manager') {
+                    } else if (pos === 'manager') {
                         window.location.href = 'dashboard-manager.html';
-                    } else if (data.position === 'Supervisor') {
+                    } else if (pos === 'supervisor') {
                         window.location.href = 'dashboard-supervisor.html';
                     } else {
                         window.location.href = 'dashboard.html'; // Default Employee dashboard
