@@ -958,6 +958,35 @@
         }
       }
 
+      const approvalOnlyRole =
+        ['ceo', 'chairman'].includes(
+          (position || '').trim().toLowerCase()
+        );
+
+      if (approvalOnlyRole) {
+        const dashboardLink =
+          document.querySelector('.nav-menu a[href="dashboard.html"]');
+
+        if (dashboardLink) {
+          dashboardLink.href = 'dashboard-approver.html';
+        }
+
+        document.querySelectorAll(
+          '.nav-menu a[href="my-request.html"], ' +
+          '.nav-menu a[href="application-center.html"]'
+        ).forEach(link => {
+          link.style.display = 'none';
+        });
+
+        const viewAllLink =
+          document.querySelector('.view-all-link');
+
+        if (viewAllLink) {
+          viewAllLink.href = 'approval-queue.html';
+          viewAllLink.textContent = 'View Approval Queue';
+        }
+      }
+
       checkApprovalQueueAccess(userId, department, position);
       setInterval(() => checkApprovalQueueAccess(userId, department, position), 5000);
 
