@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approver Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 230px;
+            background: #0f172a;
+            color: white;
+            padding: 25px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+        .nav-item,
+        .sign-out {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #1e293b;
+            color: white;
+        }
+
+        .sign-out {
+            margin-top: auto;
+            cursor: pointer;
+        }
+
+        .main {
+            flex: 1;
+            padding: 32px;
+        }
+
+        .header {
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .user-info {
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .label {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .count {
+            font-size: 36px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .request-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .request-item:last-child {
+            border-bottom: none;
+        }
+
+        .request-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .request-meta {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .status {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 5px 9px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .empty {
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            OA Portal
+        </div>
+
+        <a href="dashboard-approver.html" class="nav-item active">
+            <i class='bx bx-grid-alt'></i>
+            Dashboard
+        </a>
+
+        <a href="approval-queue.html" class="nav-item">
+            <i class='bx bx-check-shield'></i>
+            Approval Queue
+        </a>
+
+        <div class="sign-out" id="logoutBtn">
+            <i class='bx bx-log-out'></i>
+            Sign Out
+        </div>
+
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+            <h1>Approver Dashboard</h1>
+            <div class="user-info" id="userInfo">
+                Loading...
+            </div>
+        </div>
+
+        <div class="card summary">
+
+            <div>
+                <div class="label">
+                    Pending Approvals
+                </div>
+
+                <div class="count" id="pendingCount">
+                    0
+                </div>
+            </div>
+
+            <a href="approval-queue.html" class="btn">
+                <i class='bx bx-check-shield'></i>
+                Open Approval Queue
+            </a>
+
+        </div>
+
+        <div class="card">
+
+            <div class="section-title">
+                Requests Awaiting Your Approval
+            </div>
+
+            <div id="requestList">
+                <div class="empty">
+                    Loading requests...
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+
+    const userId = sessionStorage.getItem('userId') || '';
+    const username = sessionStorage.getItem('username') || '';
+    const position = sessionStorage.getItem('position') || '';
+    const department = sessionStorage.getItem('department') || '';
+
+    const normalizedPosition =
+        position.trim().toLowerCase();
+
+
+    // Only CEO and Chairman should use this dashboard.
+    if (!userId || !username || !position) {
+
+        window.location.replace('index.html');
+
+    } else if (
+        normalizedPosition !== 'ceo' &&
+        normalizedPosition !== 'chairman'
+    ) {
+
+        window.location.replace('dashboard.html');
+
+    }
+
+
+    document.getElementById('userInfo').textContent =
+        `${username} · ${position}`;
+
+
+    document
+        .getElementById('logoutBtn')
+        .addEventListener('click', () => {
+
+            sessionStorage.clear();
+
+            window.location.href =
+                'index.html';
+
+        });
+
+
+    async function loadApprovals() {
+
+        const requestList =
+            document.getElementById('requestList');
+
+        const pendingCount =
+            document.getElementById('pendingCount');
+
+
+        try {
+
+            const params = new URLSearchParams({
+
+                user_id: userId,
+
+                department: department,
+
+                position: position
+
+            });
+
+
+            const response = await fetch(
+                `/api/approval-queue?${params.toString()}`
+            );
+
+
+            const result =
+                await response.json();
+
+
+            if (
+                !result.success ||
+                !Array.isArray(result.data)
+            ) {
+
+                pendingCount.textContent = '0';
+
+                requestList.innerHTML =
+                    '<div class="empty">Unable to load approval queue.</div>';
+
+                return;
+
+            }
+
+
+            const pending =
+                result.data.filter(item => {
+
+                    const status =
+                        String(item.status || '')
+                            .trim()
+                            .toLowerCase();
+
+                    return (
+                        status === 'pending' ||
+                        status === 'in review' ||
+                        status === 'submitted'
+                    );
+
+                });
+
+
+            pendingCount.textContent =
+                pending.length;
+
+
+            if (pending.length === 0) {
+
+                requestList.innerHTML =
+                    '<div class="empty">No requests awaiting approval.</div>';
+
+                return;
+
+            }
+
+
+            requestList.innerHTML =
+                pending
+                    .slice(0, 5)
+                    .map(item => {
+
+                        const employee =
+                            item.employee_name ||
+                            item.requester_name ||
+                            'Employee';
+
+                        const type =
+                            item.request_type ||
+                            item.type ||
+                            'Request';
+
+                        return `
+                            <div class="request-item">
+
+                                <div>
+
+                                    <div class="request-name">
+                                        ${employee}
+                                    </div>
+
+                                    <div class="request-meta">
+                                        ${type} · Request #${item.id}
+                                    </div>
+
+                                </div>
+
+                                <span class="status">
+                                    Pending
+                                </span>
+
+                            </div>
+                        `;
+
+                    })
+                    .join('');
+
+        } catch (error) {
+
+            console.error(
+                'Approver dashboard error:',
+                error
+            );
+
+            pendingCount.textContent = '0';
+
+            requestList.innerHTML =
+                '<div class="empty">Unable to reach server.</div>';
+
+        }
+
+    }
+
+
+    loadApprovals();
+
+    setInterval(
+        loadApprovals,
+        10000
+    );
+
+</script>
+
+</body>
+</html>
