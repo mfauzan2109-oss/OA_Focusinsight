@@ -277,58 +277,11 @@ router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, 
     });
 });
 
-// The form only collects Request Info + Employee Info + Reason/Remarks at
-// submission time (see hr/probation-confirmation-form.html) - the Probation
-// Assessment / Confirmation Recommendation / Performance Summary columns are
-// filled in later by the Manager, so they are intentionally left NULL here.
-router.post('/api/submit-probation-confirmation', upload.single('supporting_document'), (req, res) => {
-    const {
-        requested_by, request_date, department,
-        employee_id, employee_name, employee_department, position,
-        employment_type, employment_date,
-        probation_period, probation_end_date,
-        reason_remarks
-    } = req.body;
-
-    if (!employee_id || !employee_name || !employee_department || !probation_period || !probation_end_date) {
-        return res.status(400).json({ success: false, message: 'Employee ID, Employee Department, Probation Period, and Probation End Date are required.' });
-    }
-
-    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
-
-    const query = `
-        INSERT INTO \`probation_confirmations\`
-        (\`requested_by\`, \`request_date\`, \`department\`,
-         \`employee_id\`, \`employee_name\`, \`employee_department\`, \`position\`,
-         \`employment_type\`, \`employment_date\`,
-         \`probation_period\`, \`probation_end_date\`,
-         \`reason_remarks\`, \`supporting_document\`,
-         \`status\`, \`created_at\`)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
-
-    db.query(query, [
-        safeVal(requested_by, 20),
-        safeVal(request_date, 20) || new Date().toISOString().split('T')[0],
-        safeVal(department, 100),
-        safeVal(employee_id, 20),
-        safeVal(employee_name, 100),
-        safeVal(employee_department, 100),
-        safeVal(position, 100),
-        safeVal(employment_type, 50),
-        safeVal(employment_date, 50),
-        safeVal(probation_period, 50),
-        safeVal(probation_end_date, 20),
-        safeVal(reason_remarks, 0),
-        attachment_path
-    ], (err, result) => {
-        if (err) {
-            console.error('Probation Confirmation SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
-        }
-        return res.json({ success: true, message: 'Probation confirmation form submitted successfully!', id: result.insertId });
-    });
-});
+// NOTE: probation confirmations are now fully handled by routes/probation.routes.js
+// (mounted before this router, so it always wins this path) - that route enforces
+// HR-only access, snapshots the employee record, and starts the approval-step
+// workflow, none of which this old handler did. Removed 2026-09-22 to avoid
+// two competing implementations of the same endpoint sitting in the codebase.
 
 router.post('/api/submit-contract-renewal', upload.single('attachment'), (req, res) => {
     const {
