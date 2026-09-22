@@ -25,7 +25,7 @@ function endpoint(action) {
     };
 }
 const id=req=>req.session.user.user_id;
-router.post('/api/submit-probation-confirmation',requireHRAccess,upload.single('attachment'),
+router.post('/api/submit-probation-confirmation',requireHRAccess,upload.single('supporting_document'),
     endpoint((c,req)=>service.submit(c,id(req),req.body,req.file?'uploads/'+req.file.filename:null)));
 router.get('/api/probation-confirmations/my-requests',requireLogin,endpoint((c,req)=>service.mine(c,id(req))));
 router.get('/api/probation-confirmations/approval-queue',requireLogin,endpoint((c,req)=>service.queue(c,id(req))));

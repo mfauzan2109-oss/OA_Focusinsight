@@ -7,25 +7,27 @@ const {
 } = require('./p1-email');
 const { ROLES, norm, problem, requestId, freshUser, canAct, canRead, validatePending, canOpenQueue } = require('./resignation-approval');
 const isHR = u => ['hr', 'human resources'].includes(norm(u.department)) || ['hr', 'human resources', 'hr specialist'].includes(norm(u.position));
-const ratings = ['Excellent', 'Good', 'Satisfactory', 'Needs Improvement'];
 
+// HR only fills Request Information, Employee Information, and
+// Reason/Remarks at submission time (see hr/probation-confirmation-form.html
+// - the Probation Assessment / Confirmation Recommendation / Performance
+// Summary sections are locked out for HR there and are meant to be completed
+// later by the Manager/HOD from the Approval Queue). Submission therefore
+// only requires the fields below; the assessment fields are intentionally
+// left for a later step and are not yet wired up (no endpoint captures them
+// on decision yet - flagged separately, out of scope of this validation).
 function validate(body) {
     if (!body || typeof body !== 'object') throw problem(400, 'Request body required.');
     const out = {};
-    for (const [key, max] of [['employee_id', 20], ['probation_period', 50], ['probation_end_date', 10],
-    ['overall_performance', 50], ['work_performance', 50], ['attendance_punctuality', 50],
-    ['work_attitude_teamwork', 50], ['recommendation', 50]]) {
+    for (const [key, max] of [['employee_id', 20], ['probation_period', 50], ['probation_end_date', 10]]) {
         if (typeof body[key] !== 'string' || !body[key].trim() || body[key].trim().length > max) throw problem(400, 'Invalid ' + key + '.');
         out[key] = body[key].trim();
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(out.probation_end_date)) throw problem(400, 'Use YYYY-MM-DD for probation_end_date.');
     const d = new Date(out.probation_end_date + 'T00:00:00Z');
     if (!Number.isFinite(d.getTime()) || d.toISOString().slice(0, 10) !== out.probation_end_date || Number(out.probation_end_date.slice(0, 4)) < 1000) throw problem(400, 'Invalid probation end date.');
-    for (const key of ['overall_performance', 'attendance_punctuality', 'work_attitude_teamwork']) if (!ratings.includes(out[key])) throw problem(400, 'Invalid ' + key + '.');
-    if (!['Meet Expectations', 'Partially Meet Expectations', 'Does Not Meet Expectations'].includes(out.work_performance)) throw problem(400, 'Invalid work_performance.');
-    if (!['Confirm Employment', 'Extend Probation', 'Do Not Confirm'].includes(out.recommendation)) throw problem(400, 'Invalid recommendation.');
-    if (body.justification != null && (typeof body.justification !== 'string' || body.justification.length > 10000)) throw problem(400, 'Justification must be text up to 10000 characters.');
-    out.justification = body.justification?.trim() || '';
+    if (body.reason_remarks != null && (typeof body.reason_remarks !== 'string' || body.reason_remarks.length > 10000)) throw problem(400, 'Reason/Remarks must be text up to 10000 characters.');
+    out.reason_remarks = body.reason_remarks?.trim() || '';
     return out;
 }
 async function submit(c, sessionId, body, attachment) {
@@ -42,12 +44,10 @@ async function submit(c, sessionId, body, attachment) {
         const [insert] = await c.query(`INSERT INTO probation_confirmations
             (requested_by,request_date,department,employee_id,employee_name,employee_department,
             position,employment_type,employment_date,probation_period,probation_end_date,
-            overall_performance,work_performance,attendance_punctuality,work_attitude_teamwork,
-            recommendation,justification,supporting_document,status,created_at)
-            VALUES (?,CURDATE(),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'Pending',NOW())`,
+            reason_remarks,supporting_document,status,created_at)
+            VALUES (?,CURDATE(),?,?,?,?,?,?,?,?,?,?,?,'Pending',NOW())`,
             [requester.user_id, requester.department, e.user_id, e.name, e.department, e.position, e.employment_type, e.join_date,
-            b.probation_period, b.probation_end_date, b.overall_performance, b.work_performance, b.attendance_punctuality,
-            b.work_attitude_teamwork, b.recommendation, b.justification, attachment || null]);
+            b.probation_period, b.probation_end_date, b.reason_remarks, attachment || null]);
         const rows = ROLES.map((role, i) => [insert.insertId, i + 1, role + ' Approval', role, i === 0 ? 'Pending' : 'Waiting']);
         await c.query('INSERT INTO probation_approval_steps (probation_id,step_order,step_label,approver_role,status) VALUES ?', [rows]);
         await c.commit(); started = false;
