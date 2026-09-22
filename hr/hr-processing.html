@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Processing - FocusInsight HR</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
-    
+
     <!-- Client-side HR Access Guard -->
     <script src="../js/auth_check.js"></script>
-    
+
     <style>
         * {
             box-sizing: border-box;
@@ -176,7 +178,7 @@
             border-radius: 12px;
             padding: 20px;
             border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
 
         .list-card h3 {
@@ -206,7 +208,8 @@
             transition: background 0.2s;
         }
 
-        .request-item:hover, .request-item.selected {
+        .request-item:hover,
+        .request-item.selected {
             background-color: #f1f5f9;
         }
 
@@ -228,11 +231,27 @@
         }
 
         @keyframes bellShake {
-            0%, 100% { transform: rotate(0deg); }
-            20%      { transform: rotate(-12deg); }
-            40%      { transform: rotate(10deg); }
-            60%      { transform: rotate(-8deg); }
-            80%      { transform: rotate(6deg); }
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            20% {
+                transform: rotate(-12deg);
+            }
+
+            40% {
+                transform: rotate(10deg);
+            }
+
+            60% {
+                transform: rotate(-8deg);
+            }
+
+            80% {
+                transform: rotate(6deg);
+            }
         }
 
         /* Detailed Card Form View */
@@ -244,7 +263,7 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
         }
 
         .section-header-title {
@@ -280,7 +299,9 @@
             border-right: 1px solid #cbd5e1;
         }
 
-        .emp-table th:last-child { border-right: none; }
+        .emp-table th:last-child {
+            border-right: none;
+        }
 
         .emp-table td {
             padding: 8px;
@@ -291,7 +312,9 @@
             color: #334155;
         }
 
-        .emp-table td:last-child { border-right: none; }
+        .emp-table td:last-child {
+            border-right: none;
+        }
 
         .table-footer {
             display: flex;
@@ -325,7 +348,9 @@
             min-width: 240px;
         }
 
-        .field-label span { color: #ef4444; }
+        .field-label span {
+            color: #ef4444;
+        }
 
         .form-input-pill {
             flex-grow: 1;
@@ -445,12 +470,34 @@
             margin-top: 2px;
         }
 
-        .step-icon-circle.done { background-color: #22c55e; color: #ffffff; }
-        .step-icon-circle.pending { background-color: #f97316; color: #ffffff; }
+        .step-icon-circle.done {
+            background-color: #22c55e;
+            color: #ffffff;
+        }
 
-        .step-info h5 { font-size: 11px; font-weight: 800; color: #1e293b; }
-        .step-info p { font-size: 10px; color: #64748b; }
-        .step-time { margin-left: auto; font-size: 9px; color: #94a3b8; font-weight: 600; text-align: right; }
+        .step-icon-circle.pending {
+            background-color: #f97316;
+            color: #ffffff;
+        }
+
+        .step-info h5 {
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .step-info p {
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        .step-time {
+            margin-left: auto;
+            font-size: 9px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-align: right;
+        }
 
         /* --- COST SUMMARY CARD --- */
         .cost-summary-card {
@@ -484,9 +531,23 @@
             gap: 6px;
         }
 
-        .total-cost-blue-box h4 { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.9; }
-        .total-cost-blue-box h2 { font-size: 24px; font-weight: 900; }
-        .total-cost-blue-box p { font-size: 10px; opacity: 0.95; font-weight: 600; }
+        .total-cost-blue-box h4 {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 800;
+            opacity: 0.9;
+        }
+
+        .total-cost-blue-box h2 {
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .total-cost-blue-box p {
+            font-size: 10px;
+            opacity: 0.95;
+            font-weight: 600;
+        }
 
         /* --- ACTION BUTTONS BAR --- */
         .bottom-action-buttons {
@@ -506,10 +567,24 @@
             transition: opacity 0.2s;
         }
 
-        .btn-pill:hover { opacity: 0.9; }
-        .btn-back { background-color: #93c5fd; color: #1e3a8a; }
-        .btn-save-draft { background-color: #16a34a; color: #ffffff; }
-        .btn-submit-ceo { background-color: #1d4ed8; color: #ffffff; }
+        .btn-pill:hover {
+            opacity: 0.9;
+        }
+
+        .btn-back {
+            background-color: #93c5fd;
+            color: #1e3a8a;
+        }
+
+        .btn-save-draft {
+            background-color: #16a34a;
+            color: #ffffff;
+        }
+
+        .btn-submit-ceo {
+            background-color: #1d4ed8;
+            color: #ffffff;
+        }
 
         .table-custom {
             width: 100%;
@@ -529,6 +604,7 @@
             padding: 10px;
             border: 1px solid #cbd5e1;
         }
+
         /* --- NOTIFICATION BELL & DROPDOWN (matches hr-dashboard.html) --- */
         .notification-container {
             position: relative;
@@ -549,6 +625,7 @@
             justify-content: center;
             transition: background 0.15s ease;
         }
+
         .noti-bell-btn:hover {
             background: #f1f5f9;
         }
@@ -572,21 +649,50 @@
         }
 
         @keyframes notiBadgePop {
-            0%   { transform: scale(0); opacity: 0; }
-            60%  { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
+
         .noti-badge.noti-badge-pop {
             animation: notiBadgePop 0.4s ease-out;
         }
 
         @keyframes notiBellShake {
-            0%, 100% { transform: rotate(0deg); }
-            20%      { transform: rotate(-12deg); }
-            40%      { transform: rotate(10deg); }
-            60%      { transform: rotate(-8deg); }
-            80%      { transform: rotate(6deg); }
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            20% {
+                transform: rotate(-12deg);
+            }
+
+            40% {
+                transform: rotate(10deg);
+            }
+
+            60% {
+                transform: rotate(-8deg);
+            }
+
+            80% {
+                transform: rotate(6deg);
+            }
         }
+
         .noti-bell-btn.noti-bell-shake {
             animation: notiBellShake 0.5s ease-in-out;
         }
@@ -601,10 +707,11 @@
             overflow-y: auto;
             background: #ffffff;
             border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
             border: 1px solid #e2e8f0;
             z-index: 1000;
         }
+
         .notification-dropdown.active {
             display: block;
         }
@@ -619,12 +726,14 @@
             color: #0f172a;
             border-bottom: 1px solid #e2e8f0;
         }
+
         .noti-header h3 {
             font-size: 13px;
             font-weight: 800;
             color: #0f172a;
             margin: 0;
         }
+
         .btn-mark-read {
             background: none;
             border: none;
@@ -654,15 +763,36 @@
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             cursor: pointer;
         }
+
         .noti-card:hover {
             transform: translateX(2px);
             box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
         }
-        .noti-card.status-approved { background: #f0fdf4; border-left-color: #22c55e; }
-        .noti-card.status-pending  { background: #fffbeb; border-left-color: #f59e0b; }
-        .noti-card.status-rejected { background: #fef2f2; border-left-color: #ef4444; }
-        .noti-card.status-review   { background: #eff6ff; border-left-color: #3b82f6; }
-        .noti-card.status-reminder { background: #fff1f2; border-left-color: #ef4444; }
+
+        .noti-card.status-approved {
+            background: #f0fdf4;
+            border-left-color: #22c55e;
+        }
+
+        .noti-card.status-pending {
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+
+        .noti-card.status-rejected {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .noti-card.status-review {
+            background: #eff6ff;
+            border-left-color: #3b82f6;
+        }
+
+        .noti-card.status-reminder {
+            background: #fff1f2;
+            border-left-color: #ef4444;
+        }
 
         .noti-card-title {
             font-size: 12.5px;
@@ -670,17 +800,20 @@
             color: #0f172a;
             margin: 0 0 2px 0;
         }
+
         .noti-card-formno {
             font-size: 11px;
             font-weight: 600;
             color: #475569;
             margin: 0;
         }
+
         .noti-card-date {
             font-size: 10.5px;
             color: #94a3b8;
             margin: 2px 0 0 0;
         }
+
         .noti-status-pill {
             font-size: 9px;
             font-weight: 800;
@@ -690,28 +823,46 @@
             white-space: nowrap;
             color: #ffffff;
         }
-        .noti-status-pill.pending  { background: #f59e0b; }
-        .noti-status-pill.approved { background: #22c55e; }
-        .noti-status-pill.rejected { background: #ef4444; }
-        .noti-status-pill.review   { background: #3b82f6; }
-        .noti-status-pill.reminder { background: #ef4444; }
+
+        .noti-status-pill.pending {
+            background: #f59e0b;
+        }
+
+        .noti-status-pill.approved {
+            background: #22c55e;
+        }
+
+        .noti-status-pill.rejected {
+            background: #ef4444;
+        }
+
+        .noti-status-pill.review {
+            background: #3b82f6;
+        }
+
+        .noti-status-pill.reminder {
+            background: #ef4444;
+        }
 
         .noti-footer {
             padding: 10px 16px;
             border-top: 1px solid #e2e8f0;
             text-align: center;
         }
+
         .view-all-link {
             font-size: 12px;
             font-weight: 700;
             color: #2563eb;
             text-decoration: none;
         }
+
         .view-all-link:hover {
             text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
 
     <!-- SIDEBAR NAVIGATION -->
@@ -743,7 +894,8 @@
         </nav>
 
         <div class="sidebar-footer">
-            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
+            <a href="../index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Sign Out</span></a>
         </div>
     </aside>
 
@@ -772,7 +924,8 @@
                             <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
                         </div>
                         <div class="noti-body" id="notiList">
-                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading
+                                notifications...</div>
                         </div>
                         <div class="noti-footer">
                             <a href="my-request-hr.html" class="view-all-link">View All Requests</a>
@@ -795,13 +948,15 @@
             <div class="lists-row">
                 <div class="list-card">
                     <h3>Pending Approval</h3>
-                    <p id="approvalCount" style="font-size: 12px; color: #64748b; margin-bottom: 12px;">0 Requests awaiting action</p>
+                    <p id="approvalCount" style="font-size: 12px; color: #64748b; margin-bottom: 12px;">0 Requests
+                        awaiting action</p>
                     <div class="request-item-list" id="approvalListContainer"></div>
                 </div>
 
                 <div class="list-card">
                     <h3>Pending Booking (HR Processing)</h3>
-                    <p id="bookingCount" style="font-size: 12px; color: #64748b; margin-bottom: 12px;">0 Requests awaiting action</p>
+                    <p id="bookingCount" style="font-size: 12px; color: #64748b; margin-bottom: 12px;">0 Requests
+                        awaiting action</p>
                     <div class="request-item-list" id="bookingListContainer"></div>
                 </div>
             </div>
@@ -825,18 +980,20 @@
                         </thead>
                         <tbody id="itemsTableBody"></tbody>
                     </table>
-                    <div style="text-align: right; margin-top: 12px; font-weight: 800; font-size: 13px;" id="totalClaimAmount">TOTAL: RM 0.00</div>
-                    
+                    <div style="text-align: right; margin-top: 12px; font-weight: 800; font-size: 13px;"
+                        id="totalClaimAmount">TOTAL: RM 0.00</div>
+
                     <div class="bottom-action-buttons" style="margin-top: 20px;">
                         <button class="btn-pill btn-save-draft" onclick="submitDecision('Approved')">Approve</button>
                         <button class="btn-pill btn-back" onclick="submitDecision('Revision')">Revision</button>
-                        <button class="btn-pill" style="background: #ef4444; color: white;" onclick="submitDecision('Rejected')">Reject</button>
+                        <button class="btn-pill" style="background: #ef4444; color: white;"
+                            onclick="submitDecision('Rejected')">Reject</button>
                     </div>
                 </div>
 
                 <!-- 2. DYNAMIC TRAVEL APPLICATION VIEW -->
                 <div id="travelDetailsSection" style="display: none; flex-direction: column; gap: 24px;">
-                    
+
                     <!-- EMPLOYEE LISTS TABLE (POPULATED FROM REQUEST JSON / DATABASE) -->
                     <div>
                         <h3 class="section-header-title">EMPLOYEE LISTS</h3>
@@ -858,7 +1015,8 @@
                             <div class="table-footer">
                                 <span id="empTableCount">showing 0 records</span>
                                 <div style="display:flex; gap:4px;" id="empPagination">
-                                    <span style="padding:2px 8px; background:#2563eb; color:white; border-radius:4px; font-weight:bold;">1</span>
+                                    <span
+                                        style="padding:2px 8px; background:#2563eb; color:white; border-radius:4px; font-weight:bold;">1</span>
                                 </div>
                             </div>
                         </div>
@@ -869,7 +1027,9 @@
                         <h3 class="section-header-title">TRIP DETAILS</h3>
                         <div class="form-grid-row">
                             <div class="field-group">
-                                <label class="field-label">Travel Destination* <br><small style="color: #64748b; font-weight: normal;">(Please specify the company name)</small></label>
+                                <label class="field-label">Travel Destination* <br><small
+                                        style="color: #64748b; font-weight: normal;">(Please specify the company
+                                        name)</small></label>
                                 <input type="text" class="form-input-pill" id="trvDestination" readonly>
                             </div>
                             <div class="field-group">
@@ -886,18 +1046,23 @@
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Expected Date Departure*</label>
-                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="trvDepDate" readonly></div>
+                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text"
+                                        class="form-input-pill" id="trvDepDate" readonly></div>
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Expected Date Arrival*</label>
-                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="trvArrDate" readonly></div>
+                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text"
+                                        class="form-input-pill" id="trvArrDate" readonly></div>
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Estimated Return Date*</label>
-                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="trvRetDate" readonly></div>
+                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text"
+                                        class="form-input-pill" id="trvRetDate" readonly></div>
                             </div>
                             <div class="field-group">
-                                <label class="field-label">Mileage <br><small style="color: #64748b; font-weight: normal;">(For Domestic Travel Only)</small></label>
+                                <label class="field-label">Mileage <br><small
+                                        style="color: #64748b; font-weight: normal;">(For Domestic Travel
+                                        Only)</small></label>
                                 <input type="text" class="form-input-pill" id="trvMileage" readonly>
                             </div>
                             <div class="field-group">
@@ -945,15 +1110,19 @@
                             <div class="field-group">
                                 <label class="field-label">Departure Date & Time*</label>
                                 <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltDepDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltDepTime" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
+                                            type="text" class="form-input-pill" id="fltDepDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
+                                            class="form-input-pill" id="fltDepTime" readonly></div>
                                 </div>
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Arrival Date & Time*</label>
                                 <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltArrDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltArrTime" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
+                                            type="text" class="form-input-pill" id="fltArrDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
+                                            class="form-input-pill" id="fltArrTime" readonly></div>
                                 </div>
                             </div>
                             <div class="field-group">
@@ -993,15 +1162,19 @@
                             <div class="field-group">
                                 <label class="field-label">Departure Date & Time*</label>
                                 <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltRetDepDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltRetDepTime" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
+                                            type="text" class="form-input-pill" id="fltRetDepDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
+                                            class="form-input-pill" id="fltRetDepTime" readonly></div>
                                 </div>
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Arrival Date & Time*</label>
                                 <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text" class="form-input-pill" id="fltRetArrDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text" class="form-input-pill" id="fltRetArrTime" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
+                                            type="text" class="form-input-pill" id="fltRetArrDate" readonly></div>
+                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
+                                            class="form-input-pill" id="fltRetArrTime" readonly></div>
                                 </div>
                             </div>
                             <div class="field-group">
@@ -1053,19 +1226,24 @@
                     <div class="middle-cards-grid">
                         <div style="display:flex; flex-direction:column; gap:12px;">
                             <div class="card-box">
-                                <div class="card-title"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments (by employee)</div>
+                                <div class="card-title"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments (by
+                                    employee)</div>
                                 <div class="attachment-item" id="empAttachmentBox">
                                     <span class="pdf-icon-badge">DOC</span>
-                                    <div style="font-size: 10px; font-weight:700;" id="empAttachmentName">No Attachment</div>
+                                    <div style="font-size: 10px; font-weight:700;" id="empAttachmentName">No Attachment
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="card-box">
                                 <div class="card-title"><i class="fa-solid fa-paperclip"></i> Upload Attachment</div>
                                 <div class="dropzone-box" onclick="document.getElementById('fileUpload').click()">
-                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 16px; margin-bottom: 4px;"></i>
-                                    <div>Drag & Drop or <span style="color:#2563eb; text-decoration:underline;">Browse Files</span></div>
-                                    <div style="font-size: 8px; color:#94a3b8; margin-top:2px;">PDF, PNG, JPG up to 10MB</div>
+                                    <i class="fa-solid fa-cloud-arrow-up"
+                                        style="font-size: 16px; margin-bottom: 4px;"></i>
+                                    <div>Drag & Drop or <span style="color:#2563eb; text-decoration:underline;">Browse
+                                            Files</span></div>
+                                    <div style="font-size: 8px; color:#94a3b8; margin-top:2px;">PDF, PNG, JPG up to 10MB
+                                    </div>
                                     <input type="file" id="fileUpload" style="display:none;">
                                 </div>
                             </div>
@@ -1106,9 +1284,11 @@
 
                     <!-- BOTTOM BUTTONS -->
                     <div class="bottom-action-buttons">
-                        <button type="button" class="btn-pill btn-back" onclick="document.getElementById('detailViewContainer').style.display='none'">Back</button>
+                        <button type="button" class="btn-pill btn-back"
+                            onclick="document.getElementById('detailViewContainer').style.display='none'">Back</button>
                         <button type="button" class="btn-pill btn-save-draft">Save draft</button>
-                        <button type="button" class="btn-pill btn-submit-ceo" onclick="submitToCEO()">Submit to CEO</button>
+                        <button type="button" class="btn-pill btn-submit-ceo" onclick="submitToCEO()">Submit to
+                            CEO</button>
                     </div>
 
                 </div>
@@ -1120,7 +1300,7 @@
         const API_BASE_URL = '/api';
         let selectedItem = { id: null, table: null, type: null, isTravelBooking: false };
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             loadLists();
 
             const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '';
@@ -1269,16 +1449,75 @@
             const userId = sessionStorage.getItem('userId') || 'HR4001';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/hr/processing-lists?user_id=${userId}`);
-                const data = await response.json();
+                const [legacyResponse, p1Response] = await Promise.all([
+                    fetch(`${API_BASE_URL}/hr/processing-lists?user_id=${userId}`),
+                    fetch(`${API_BASE_URL}/approval-queue`)
+                ]);
 
-                if (data.success) {
-                    renderItems('approvalListContainer', data.pending_approvals, 'approvalCount', false);
-                    renderItems('bookingListContainer', data.pending_bookings, 'bookingCount', true);
-                } else {
-                    alert(data.message || 'Access Denied');
+                const legacyData = await legacyResponse.json();
+                const p1Data = await p1Response.json();
+
+                if (!legacyData.success) {
+                    alert(legacyData.message || 'Access Denied');
                     window.location.href = '../index.html';
+                    return;
                 }
+
+                const p1Items =
+                    p1Data.success && Array.isArray(p1Data.data)
+                        ? p1Data.data
+                            .filter(item => {
+                                const role = String(item.approver_role || '')
+                                    .trim()
+                                    .toLowerCase();
+
+                                return role === 'hr' || role === 'hr specialist';
+                            })
+                            .map(item => {
+                                const type = String(item.request_type || '');
+
+                                const prefixMap = {
+                                    'Leave': 'LEAVE',
+                                    'Resignation': 'RESIGNATION',
+                                    'Salary Adjustment': 'SALARY-ADJUSTMENT',
+                                    'Probation Confirmation': 'PROBATION'
+                                };
+
+                                const prefix =
+                                    prefixMap[type] ||
+                                    type.toUpperCase().replace(/\s+/g, '-');
+
+                                return {
+                                    ...item,
+                                    source_table: item.table_source,
+                                    formatted_id:
+                                        `REQ-${prefix}-${String(item.id).padStart(3, '0')}`,
+                                    has_reminder: !!item.last_reminder_sent,
+                                    reminder_text: null,
+                                    is_p1: true
+                                };
+                            })
+                        : [];
+
+                const approvals = [
+                    ...(legacyData.pending_approvals || []),
+                    ...p1Items
+                ];
+
+                renderItems(
+                    'approvalListContainer',
+                    approvals,
+                    'approvalCount',
+                    false
+                );
+
+                renderItems(
+                    'bookingListContainer',
+                    legacyData.pending_bookings || [],
+                    'bookingCount',
+                    true
+                );
+
             } catch (err) {
                 console.error("Error fetching HR lists:", err);
             }
@@ -1306,7 +1545,7 @@
                 ` : '';
 
                 return `
-                    <div class="request-item" onclick="selectRequest('${item.source_table}', '${item.request_type}', ${item.id}, this, ${isBookingList})">
+                    <div class="request-item" onclick="selectRequest('${item.source_table}', '${item.request_type}', ${item.id}, this, ${isBookingList}, ${!!item.is_p1})">
                         <div>
                             <h4 style="font-size: 13px; font-weight: 700; color: #1e293b;">${item.employee_name}</h4>
                             <p style="font-size: 11px; color:#64748b;">${item.request_type} | ${item.formatted_id}</p>
@@ -1322,10 +1561,16 @@
         }
 
         // 2. Select Request & Dynamically Bind Database Payload
-        async function selectRequest(table, type, id, el, isBookingList = false) {
-            selectedItem = { id, table, type, isTravelBooking: isBookingList || type.toLowerCase().includes('travel') };
+        async function selectRequest(table, type, id, el, isBookingList = false, isP1 = false) {
+            selectedItem = {
+                id,
+                table,
+                type,
+                isP1,
+                isTravelBooking: isBookingList || type.toLowerCase().includes('travel')
+            };
             document.querySelectorAll('.request-item').forEach(e => e.classList.remove('selected'));
-            if(el) el.classList.add('selected');
+            if (el) el.classList.add('selected');
 
             try {
                 const res = await fetch(`${API_BASE_URL}/request-details?id=${id}&type=${encodeURIComponent(type)}`);
@@ -1454,7 +1699,7 @@
                         document.getElementById('summaryFlightCost').innerText = `RM ${fltVal.toFixed(2)}`;
                         document.getElementById('summaryHotelCost').innerText = `RM ${htlVal.toFixed(2)}`;
                         document.getElementById('summaryAllowance').innerText = `RM ${allowanceVal.toFixed(2)}`;
-                        document.getElementById('totalEstimatedCost').innerText = `RM ${totalVal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                        document.getElementById('totalEstimatedCost').innerText = `RM ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
                         document.getElementById('summaryDurationText').innerText = `${req.hotel_duration || '14 travel days'} . ${req.travel_mode || 'International'}`;
 
                     } else {
@@ -1478,7 +1723,7 @@
                         }
 
                         const amountVal = req.total_amount || req.amount_requested || 0;
-                        document.getElementById('totalClaimAmount').innerText = `TOTAL: RM ${parseFloat(amountVal).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                        document.getElementById('totalClaimAmount').innerText = `TOTAL: RM ${parseFloat(amountVal).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
                     }
 
                     document.getElementById('detailViewContainer').scrollIntoView({ behavior: 'smooth' });
@@ -1494,25 +1739,58 @@
             const userId = sessionStorage.getItem('userId') || 'HR4001';
 
             try {
-                const res = await fetch(`${API_BASE_URL}/hr/process-action`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                let url;
+                let body;
+
+                if (selectedItem.isP1) {
+                    // P1 workflow only supports Approved / Rejected
+                    if (action === 'Revision') {
+                        alert('Revision is not available for this P1 request.');
+                        return;
+                    }
+
+                    url =
+                        `${API_BASE_URL}/approval-queue/` +
+                        `${encodeURIComponent(selectedItem.type)}/` +
+                        `${selectedItem.id}`;
+
+                    body = {
+                        status: action
+                    };
+                } else {
+                    // Existing legacy HR Processing flow
+                    url = `${API_BASE_URL}/hr/process-action`;
+
+                    body = {
                         user_id: userId,
                         id: selectedItem.id,
                         table: selectedItem.table,
                         action: action
-                    })
+                    };
+                }
+
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
                 });
 
                 const data = await res.json();
+
                 if (data.success) {
-                    alert(data.message);
-                    document.getElementById('detailViewContainer').style.display = 'none';
+                    alert(data.message || `Status updated to ${action}`);
+
+                    document.getElementById(
+                        'detailViewContainer'
+                    ).style.display = 'none';
+
                     loadLists();
                 } else {
                     alert("Error: " + data.message);
                 }
+
             } catch (err) {
                 console.error("Error submitting action:", err);
             }
@@ -1552,6 +1830,7 @@
             }
         }
     </script>
-<script src="/assets/js/session-guard.js"></script>
+    <script src="/assets/js/session-guard.js"></script>
 </body>
+
 </html>
