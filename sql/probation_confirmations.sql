@@ -40,6 +40,8 @@ CREATE TABLE `probation_confirmations` (
   `employment_date` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `probation_period` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `probation_end_date` date DEFAULT NULL,
+  `reason_remarks` text COLLATE utf8mb4_general_ci,
+  `supporting_document` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `assessment_job_knowledge` tinyint DEFAULT NULL,
   `assessment_quality_of_work` tinyint DEFAULT NULL,
   `assessment_work_productivity` tinyint DEFAULT NULL,

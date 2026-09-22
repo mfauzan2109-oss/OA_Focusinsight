@@ -277,22 +277,21 @@ router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, 
     });
 });
 
-router.post('/api/submit-probation-confirmation', upload.single('attachment'), (req, res) => {
+// The form only collects Request Info + Employee Info + Reason/Remarks at
+// submission time (see hr/probation-confirmation-form.html) - the Probation
+// Assessment / Confirmation Recommendation / Performance Summary columns are
+// filled in later by the Manager, so they are intentionally left NULL here.
+router.post('/api/submit-probation-confirmation', upload.single('supporting_document'), (req, res) => {
     const {
         requested_by, request_date, department,
         employee_id, employee_name, employee_department, position,
         employment_type, employment_date,
         probation_period, probation_end_date,
-        overall_performance, work_performance,
-        attendance_punctuality, work_attitude_teamwork,
-        recommendation, justification
+        reason_remarks
     } = req.body;
 
-    if (!employee_id || !employee_name || !probation_period || !probation_end_date) {
-        return res.status(400).json({ success: false, message: 'Employee ID, Probation Period, and Probation End Date are required.' });
-    }
-    if (!overall_performance || !work_performance || !attendance_punctuality || !work_attitude_teamwork || !recommendation) {
-        return res.status(400).json({ success: false, message: 'Please complete all Probation Assessment fields.' });
+    if (!employee_id || !employee_name || !employee_department || !probation_period || !probation_end_date) {
+        return res.status(400).json({ success: false, message: 'Employee ID, Employee Department, Probation Period, and Probation End Date are required.' });
     }
 
     const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
@@ -303,11 +302,9 @@ router.post('/api/submit-probation-confirmation', upload.single('attachment'), (
          \`employee_id\`, \`employee_name\`, \`employee_department\`, \`position\`,
          \`employment_type\`, \`employment_date\`,
          \`probation_period\`, \`probation_end_date\`,
-         \`overall_performance\`, \`work_performance\`,
-         \`attendance_punctuality\`, \`work_attitude_teamwork\`,
-         \`recommendation\`, \`justification\`, \`supporting_document\`,
+         \`reason_remarks\`, \`supporting_document\`,
          \`status\`, \`created_at\`)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
     `;
 
     db.query(query, [
@@ -322,12 +319,7 @@ router.post('/api/submit-probation-confirmation', upload.single('attachment'), (
         safeVal(employment_date, 50),
         safeVal(probation_period, 50),
         safeVal(probation_end_date, 20),
-        safeVal(overall_performance, 50),
-        safeVal(work_performance, 50),
-        safeVal(attendance_punctuality, 50),
-        safeVal(work_attitude_teamwork, 50),
-        safeVal(recommendation, 50),
-        safeVal(justification, 0),
+        safeVal(reason_remarks, 0),
         attachment_path
     ], (err, result) => {
         if (err) {
