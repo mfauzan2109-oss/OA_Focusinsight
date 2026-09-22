@@ -27,39 +27,38 @@ SET time_zone = "+00:00";
 -- Table structure for table `probation_confirmations`
 --
 
+-- This file's original CREATE TABLE (assessment_job_knowledge,
+-- overall_recommendation, performance_summary, etc.) did not match the
+-- live table - it looks like it was written for a planned redesign that
+-- was never actually migrated in. Rewritten below to match the real,
+-- currently-running schema (confirmed via DESCRIBE on the live DB,
+-- 2026-09-22), with the 5 old assessment columns made nullable per
+-- sql/probation_confirmations_migration.sql, since the current form design
+-- has the Manager fill those in later via probation-confirmation-detail.html
+-- rather than HR filling them in at submission time.
+
 CREATE TABLE `probation_confirmations` (
   `id` int NOT NULL,
-  `requested_by` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `requested_by` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `request_date` date DEFAULT NULL,
   `department` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `employee_id` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `employee_name` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `employee_id` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `employee_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
   `employee_department` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `position` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `position` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `employment_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `employment_date` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `probation_period` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `probation_end_date` date DEFAULT NULL,
+  `probation_period` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `probation_end_date` date NOT NULL,
   `reason_remarks` text COLLATE utf8mb4_general_ci,
+  `overall_performance` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `work_performance` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `attendance_punctuality` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `work_attitude_teamwork` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `recommendation` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `justification` text COLLATE utf8mb4_general_ci,
   `supporting_document` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `assessment_job_knowledge` tinyint DEFAULT NULL,
-  `assessment_quality_of_work` tinyint DEFAULT NULL,
-  `assessment_work_productivity` tinyint DEFAULT NULL,
-  `assessment_communication_skills` tinyint DEFAULT NULL,
-  `assessment_teamwork_collaboration` tinyint DEFAULT NULL,
-  `assessment_problem_solving_initiative` tinyint DEFAULT NULL,
-  `assessment_attendance_punctuality` tinyint DEFAULT NULL,
-  `assessment_adaptability_learning` tinyint DEFAULT NULL,
-  `assessment_responsibility_attitude` tinyint DEFAULT NULL,
-  `assessment_compliance_policies` tinyint DEFAULT NULL,
-  `total_points` tinyint DEFAULT NULL,
-  `passing_points` tinyint DEFAULT '40',
-  `overall_recommendation` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `proposed_confirmation_date` date DEFAULT NULL,
-  `extended_probation_period` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `performance_summary` text COLLATE utf8mb4_general_ci,
-  `status` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Pending',
-  `last_reminder_sent` datetime DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Pending',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
