@@ -467,6 +467,18 @@
                         <label for="basicSalary">Basic Salary (Auto)</label>
                         <input type="text" id="basicSalary" name="basic_salary" readonly placeholder="Fetching..." class="form-control">
                     </div>
+                    <div class="form-group">
+                        <label for="otProjName">Project Name</label>
+                        <input type="text" id="otProjName" name="proj_name" class="form-control" placeholder="e.g. System Upgrade Phase 2">
+                    </div>
+                    <div class="form-group">
+                        <label for="otModelNo">Model Number</label>
+                        <input type="text" id="otModelNo" name="model_no" class="form-control" placeholder="e.g. MX-2200">
+                    </div>
+                    <div class="form-group">
+                        <label for="otPic">Person in Charge</label>
+                        <input type="text" id="otPic" name="person_in_charge" class="form-control" placeholder="e.g. John Tan">
+                    </div>
                 </div>
 
                 <div class="section-title">OVERTIME DETAILS</div>
@@ -496,7 +508,6 @@
                             <label for="otRate">OT Rate Formula / Base:</label>
                             <input type="text" id="otRate" name="ot_rate" readonly value="-" class="form-control">
                         </div>
-
                     </div>
 
                     <div>
@@ -510,13 +521,16 @@
                         </div>
                         
                         <div class="checkbox-group">
-                            <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (RM 50/day)</label>
+                            <div>
+                                <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (RM 50/day)</label>
+                                <div class="rule-warning" id="nightWarning" style="display: none;">Only for full night shift (≥ 12 hrs)</div>
+                            </div>
                             <input type="checkbox" id="nightAllowanceCheck" name="night_allowance_check">
                         </div>
                         <div class="checkbox-group">
                             <div>
                                 <label for="mealAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Meal Allowance (RM 5/day)</label>
-                                <div class="rule-warning" id="mealWarning" style="display: none;">Requires ≥ 3 hrs of OT</div>
+                                <div class="rule-warning" id="mealWarning" style="display: none;">Requires ≥ 3 hrs of OT on a weekday</div>
                             </div>
                             <input type="checkbox" id="mealAllowanceCheck" name="meal_allowance_check">
                         </div>
@@ -864,6 +878,7 @@
         const nightCheck = document.getElementById('nightAllowanceCheck');
         const mealCheck = document.getElementById('mealAllowanceCheck');
         const mealWarning = document.getElementById('mealWarning');
+        const nightWarning = document.getElementById('nightWarning');
 
         const periodInput = document.getElementById('period');
         const otRateInput = document.getElementById('otRate');
@@ -946,19 +961,37 @@
 
             const otPayment = totalHours * hourlyRate;
 
+            const isWeekday = dayTypeSelect.value === 'weekdays';
+
+            // Meal allowance: weekday OT only, and at least 3 hours
             let mealAllowance = 0.00;
             if (mealCheck.checked) {
-                if (totalHours >= 3.0) {
+                if (totalHours >= 3.0 && isWeekday) {
                     mealAllowance = 5.00;
                     mealWarning.style.display = 'none';
                 } else {
+                    mealWarning.textContent = !isWeekday
+                        ? 'Meal allowance is for weekdays only'
+                        : 'Requires ≥ 3 hrs of OT';
                     mealWarning.style.display = 'block';
                 }
             } else {
                 mealWarning.style.display = 'none';
             }
 
-            const nightAllowance = nightCheck.checked ? 50.00 : 0.00;
+            // Night allowance: only valid for a full night shift (≥ 12 hrs of OT)
+            let nightAllowance = 0.00;
+            if (nightCheck.checked) {
+                if (totalHours >= 12.0) {
+                    nightAllowance = 50.00;
+                    nightWarning.style.display = 'none';
+                } else {
+                    nightWarning.style.display = 'block';
+                }
+            } else {
+                nightWarning.style.display = 'none';
+            }
+
             const totalClaim = otPayment + mealAllowance + nightAllowance;
 
             periodInput.value = `${totalHours.toFixed(1)} hrs`;
@@ -1084,10 +1117,24 @@
 
             const cleanOtRate = shortOtRateCode.substring(0, 10);
 
+            const isWeekdaySubmit = dayTypeSelect.value === 'weekdays';
+            const nightEligible = nightCheck.checked && calc.totalHours >= 12.0;
+            const mealEligible = mealCheck.checked && calc.totalHours >= 3.0 && isWeekdaySubmit;
+
+            if (nightCheck.checked && !nightEligible) {
+                alert('Night Allowance can only be claimed for a full night shift (≥ 12 hrs). It will not be included in this claim.');
+            }
+            if (mealCheck.checked && !mealEligible) {
+                alert('Meal Allowance can only be claimed on weekdays with at least 3 hrs of OT. It will not be included in this claim.');
+            }
+
             const payload = {
                 employee_id: currentEmpId,
                 employee_name: currentEmpName,
                 department: document.getElementById('empDept').value || 'Engineering',
+                proj_name: document.getElementById('otProjName')?.value?.trim() || '',
+                model_no: document.getElementById('otModelNo')?.value?.trim() || '',
+                person_in_charge: document.getElementById('otPic')?.value?.trim() || '',
                 ot_date: otDateInput.value,
                 start_time: startTimeInput.value,
                 end_time: endTimeInput.value,
@@ -1095,8 +1142,8 @@
                 day_type: dayTypeSelect.value,
                 ot_allowance: calc.otPayment.toFixed(2),
                 ot_rate: cleanOtRate,
-                night_allowance_check: nightCheck.checked ? 1 : 0,
-                meal_allowance_check: mealCheck.checked ? 1 : 0,
+                night_allowance_check: nightEligible ? 1 : 0,
+                meal_allowance_check: mealEligible ? 1 : 0,
                 total_claim: calc.totalClaim.toFixed(2),
                 reason: document.getElementById('reason').value
             };
@@ -1141,6 +1188,5 @@
         });
     });
     </script>
-<script src="/assets/js/session-guard.js"></script>
 </body>
 </html>

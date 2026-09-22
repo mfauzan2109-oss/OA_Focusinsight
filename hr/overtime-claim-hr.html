@@ -818,6 +818,8 @@
         let employeeSalary = 3500;
         let isFixedRateTier = false;
         let isExempt = false;
+        let currentOtMultiplier = 1; // the real numeric value sent to the backend as ot_rate
+        let currentTotalClaim = 0; // the real numeric value sent to the backend as total_claim
 
         try {
             const res = await fetch(`/api/profile/${userId}`);
@@ -859,8 +861,6 @@
         const otAllowanceInput = document.getElementById('otAllowanceInput');
         const otRateInput = document.getElementById('otRateInput');
 
-        let currentTotalClaim = 0;
-
         function calculateOT() {
             const startVal = startTimeInput.value;
             const endVal = endTimeInput.value;
@@ -898,6 +898,8 @@
                 otPayment = hours * effectiveRate * multiplier;
             }
 
+            currentOtMultiplier = multiplier; // real numeric value — this is what gets submitted
+
             otRateInput.value = isFixedRateTier
                 ? `RM ${effectiveRate.toFixed(2)}/hr (Fixed)`
                 : `RM ${effectiveRate.toFixed(2)}/hr`;
@@ -930,7 +932,6 @@
             const nightAllow = nightCheck.checked ? 50.00 : 0.00;
 
             const totalClaim = otPayment + mealAllow + nightAllow;
-
             currentTotalClaim = totalClaim;
 
             otAllowanceInput.value = otPayment.toFixed(2);
@@ -984,7 +985,7 @@
                 period: periodInput.value,
                 day_type: dayTypeSelect.value,
                 ot_allowance: otAllowanceInput.value,
-                ot_rate: otRateInput.value,
+                ot_rate: currentOtMultiplier,
                 night_allowance_check: nightCheck.checked ? 1 : 0,
                 meal_allowance_check: mealCheck.checked ? 1 : 0,
                 total_claim: currentTotalClaim.toFixed(2),
@@ -1018,6 +1019,5 @@
         });
     });
     </script>
-<script src="/assets/js/session-guard.js"></script>
 </body>
 </html>
