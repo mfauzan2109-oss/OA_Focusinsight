@@ -889,6 +889,48 @@
             return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
         }
 
+        // Shows at most 2 announcements at a time; if there are more, the list
+        // becomes vertically scrollable instead of growing the page.
+        function capAnnouncementListHeight(list) {
+            list.classList.remove('is-scrollable');
+            list.style.maxHeight = '';
+
+            const items = list.querySelectorAll('.announcement-item');
+            if (items.length <= 2) return;
+
+            const style = getComputedStyle(list);
+            const gap = parseFloat(style.rowGap || style.gap || '0') || 0;
+            const visibleHeight = items[0].offsetHeight + items[1].offsetHeight + gap;
+
+            list.style.maxHeight = `${visibleHeight}px`;
+            list.classList.add('is-scrollable');
+        }
+
+        async function deleteAnnouncement(id, btn) {
+            if (!confirm('Delete this announcement? This cannot be undone.')) return;
+
+            const hrUserId = (sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '').toUpperCase();
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/announcements/${id}?user_id=${encodeURIComponent(hrUserId)}`, {
+                    method: 'DELETE'
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    loadAnnouncements();
+                } else {
+                    alert('Error: ' + result.message);
+                    if (btn) btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('Failed to delete announcement:', err);
+                alert('Server connection error. Please try again.');
+                if (btn) btn.disabled = false;
+            }
+        }
+
         async function loadAnnouncements() {
             const section = document.getElementById('announcementsSection');
             const list = document.getElementById('announcementList');
@@ -907,9 +949,11 @@
                                 <p>${escapeHtml(a.message)}</p>
                                 <span class="announcement-meta">Published by HR • ${formatAnnouncementDate(a.publish_date)}</span>
                             </div>
+                            <button type="button" class="announcement-delete-btn" title="Delete announcement" onclick="deleteAnnouncement(${a.id}, this)"><i class='bx bx-trash'></i></button>
                         </li>
                     `).join('');
                     section.style.display = 'block';
+                    capAnnouncementListHeight(list);
                 } else {
                     section.style.display = 'none';
                 }

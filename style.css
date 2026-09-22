@@ -939,10 +939,44 @@ body:has(.sidebar) {
     gap: 14px;
 }
 
+/* Applied via JS once there are more than 2 announcements: caps the
+   visible area to roughly 2 items and makes the rest reachable by scroll. */
+.announcement-list.is-scrollable {
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.announcement-list.is-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.announcement-list.is-scrollable::-webkit-scrollbar-thumb {
+    background-color: var(--color-announcement-border);
+    border-radius: var(--radius-14);
+}
+
 .announcement-item {
     display: flex;
     gap: 10px;
     align-items: flex-start;
+    position: relative;
+}
+
+.announcement-delete-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-slate-500);
+    font-size: 15px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: var(--radius-14);
+}
+
+.announcement-delete-btn:hover {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
 }
 
 .announcement-dot {

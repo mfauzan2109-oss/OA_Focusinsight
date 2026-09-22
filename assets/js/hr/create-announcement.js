@@ -36,11 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Default Publish Date to today, and keep Expiry Date from being set before it
+    // Default Publish Date to today. Publish Date can't be backdated, so the date
+    // picker itself refuses anything before today; Expiry Date can't be set before
+    // whatever Publish Date is currently selected.
     const todayStr = new Date().toISOString().split('T')[0];
     const publishDateEl = document.getElementById('annPublishDate');
     const expiryDateEl = document.getElementById('annExpiryDate');
     publishDateEl.value = todayStr;
+    publishDateEl.min = todayStr;
     expiryDateEl.min = todayStr;
 
     publishDateEl.addEventListener('change', function() {
@@ -65,6 +68,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!payload.title || !payload.message || !payload.targetAudience || !payload.publishDate || !payload.expiryDate) {
             alert('Please fill in all required fields.');
+            return;
+        }
+
+        if (payload.publishDate < todayStr) {
+            alert('Publish Date cannot be earlier than today.');
+            publishDateEl.value = todayStr;
+            payload.publishDate = todayStr;
             return;
         }
 
