@@ -93,15 +93,6 @@ let isEditMode = false;
                 setSafeValue('empType', data.employment_type || 'Full Time');
                 setSafeValue('empManager', data.manager || '—');
                 setSafeValue('joinDate', data.join_date || '—');
-                
-                // Salary — uses 'salary' from API (COALESCE of salary / basic_salary columns)
-                const salaryVal = data.salary || data.basic_salary;
-                if (salaryVal !== null && salaryVal !== undefined && salaryVal !== '' && parseFloat(salaryVal) > 0) {
-                    const formatted = parseFloat(salaryVal).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    setSafeValue('salary', `RM ${formatted}`);
-                } else {
-                    setSafeValue('salary', '—');
-                }
 
                 const baseStatus = (data.employment_type === 'Probation') ? 'Probation' : 'Active';
                 await checkCurrentEmployeeStatus(userId, baseStatus);
@@ -204,7 +195,7 @@ let isEditMode = false;
         if (!isEditMode) {
             isEditMode = true;
             formInputs.forEach(input => {
-                if (!['empDept', 'empPosition', 'empType', 'empManager', 'joinDate', 'salary'].includes(input.id)) {
+                if (!['empDept', 'empPosition', 'empType', 'empManager', 'joinDate'].includes(input.id)) {
                     input.disabled = false;
                 }
             });

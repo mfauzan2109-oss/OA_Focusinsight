@@ -574,11 +574,11 @@
         <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
       </a>
       <a href="dashboard.html" class="nav-item">
-        <i class='bx bx-grid-alt'></i>
+        <i class='bx bx-grid-alt'></i> 
         <span>Dashboard</span>
       </a>
       <a href="my-request.html" class="nav-item">
-        <i class='bx bx-file'></i>
+        <i class='bx bx-file'></i> 
         <span>My Request</span>
       </a>
       <a href="application-center.html" class="nav-item">
@@ -589,7 +589,7 @@
 
     <div class="sidebar-footer">
       <a href="index.html" class="sign-out" id="logoutBtn">
-        <i class='bx bx-log-out'></i>
+        <i class='bx bx-log-out'></i> 
         <span>Sign Out</span>
       </a>
     </div>
@@ -600,7 +600,7 @@
     <header class="top-header">
       <h1>Approval Queue</h1>
       <div class="header-actions">
-
+        
         <!-- Search Container -->
         <div class="search-container">
           <div class="search-box">
@@ -826,7 +826,7 @@
       let allRequestsData = [];
 
       // ==========================================
-      // 2. NOTIFICATION SYSTEM
+      // 2. NOTIFICATION SYSTEM 
       // ==========================================
       const notiBellBtn = document.getElementById('notiBellBtn');
       const notiDropdown = document.getElementById('notiDropdown');
@@ -1047,7 +1047,7 @@
           }
 
           const data = result.data;
-
+          
           document.getElementById('detailEmployeeId').textContent = data.employee_id || data['Employee ID'] || '—';
           document.getElementById('detailEmployee').textContent = data.employee_name || data['Employee Name'] || '—';
           document.getElementById('detailDepartment').textContent = data.department || data['Department'] || '—';
@@ -1062,8 +1062,8 @@
           document.getElementById('detailSubmitted').textContent = formattedSubmittedDate;
 
           const docPath = data.supporting_document || data['Supporting Documen'];
-          const docHTML = docPath
-            ? `<a href="/${docPath}" target="_blank" class="doc-link-btn"><i class='bx bx-file'></i> View Attachment</a>`
+          const docHTML = docPath 
+            ? `<a href="/${docPath}" target="_blank" class="doc-link-btn"><i class='bx bx-file'></i> View Attachment</a>` 
             : `<span style="color: #94a3b8;">No Attachment</span>`;
 
           const lowerType = reqType.toLowerCase();
@@ -1085,7 +1085,7 @@
                 <div class="field-box">${data['Reason'] || data.reason || 'N/A'}</div>
               </div>
             `;
-          }
+          } 
           // B. DISBURSEMENT FORM DETAILS
           else if (lowerType.includes('disbursement')) {
             let itemsTableHTML = '';
@@ -1133,7 +1133,7 @@
               </div>
               ${itemsTableHTML}
             `;
-          }
+          } 
           // C. TRAVEL REQUEST DETAILS
           else if (lowerType.includes('travel')) {
             let employeesTableHTML = '';
@@ -1190,7 +1190,7 @@
               </div>
               ${employeesTableHTML}
             `;
-          }
+          } 
           // D. OVERTIME CLAIM DETAILS
           else if (lowerType.includes('overtime')) {
             htmlFields = `
@@ -1208,7 +1208,7 @@
                 <div class="field-box">${data.reason || 'N/A'}</div>
               </div>
             `;
-          }
+          } 
           // E. LOAN APPLICATION DETAILS
           else if (lowerType.includes('loan')) {
             htmlFields = `
@@ -1247,7 +1247,7 @@
 
           const queueList = document.getElementById('queueList');
           const completedBody = document.getElementById('completedTableBody');
-
+          
           queueList.innerHTML = '';
           completedBody.innerHTML = '';
 
@@ -1353,7 +1353,24 @@
                 queueList.appendChild(div);
               });
 
-              queueList.querySelector('.request-card')?.click();
+              // Keep whichever card the manager currently has open selected across
+              // a background refresh, instead of always jumping back to card #1 —
+              // that would yank them out of a request they're mid-review on.
+              let cardToReselect = null;
+              if (selectedRawId && selectedType) {
+                cardToReselect = Array.from(queueList.querySelectorAll('.request-card')).find(
+                  el => String(el.dataset.rawId) === String(selectedRawId) && el.dataset.type === selectedType
+                );
+              }
+
+              if (cardToReselect) {
+                document.querySelectorAll('.request-card').forEach(i => i.classList.remove('active'));
+                cardToReselect.classList.add('active');
+              } else {
+                // No prior selection, or it's no longer pending (approved/rejected since
+                // the last refresh) — fall back to selecting the first card, as before.
+                queueList.querySelector('.request-card')?.click();
+              }
             } else {
               queueList.innerHTML = `<div style="padding: 20px; text-align: center; color: #64748b;">No pending requests for ${department || 'this'} department.</div>`;
               resetDetailCard();
@@ -1363,7 +1380,7 @@
               completedItems.forEach(item => {
                 const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
                 const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
-
+                
                 let statusClass = 'approved';
                 const lowerStatus = (item.status || '').toLowerCase();
                 if (lowerStatus.includes('reject')) {
@@ -1427,15 +1444,19 @@
         }
 
         const commentText = document.getElementById('comment').value.trim();
+        if (actionStatus === 'Rejected' && !commentText) {
+          alert('Please state your reason/comment before rejecting.');
+          return;
+        }
+
+        const endpoint = `/api/approval-queue/${encodeURIComponent(selectedType)}/${selectedRawId}`;
+        const body = { status: actionStatus, comment: commentText };
 
         try {
-          const response = await fetch(`/api/approval-queue/${encodeURIComponent(selectedType)}/${selectedRawId}`, {
+          const response = await fetch(endpoint, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              status: actionStatus,
-              comment: commentText
-            })
+            body: JSON.stringify(body)
           });
 
           const result = await response.json();
@@ -1469,8 +1490,8 @@
       });
 
       fetchApprovalQueue();
+      setInterval(fetchApprovalQueue, 5000);
     });
   </script>
-<script src="/assets/js/session-guard.js"></script>
 </body>
 </html>

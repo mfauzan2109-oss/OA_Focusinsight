@@ -889,7 +889,7 @@
             <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
 
             <div class="sidebar-section-title">My Workspace</div>
-            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="application-form-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
             <a href="my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
         </nav>
 
@@ -1561,13 +1561,22 @@
         }
 
         // 2. Select Request & Dynamically Bind Database Payload
-        async function selectRequest(table, type, id, el, isBookingList = false, isP1 = false) {
+        async function selectRequest(
+            table,
+            type,
+            id,
+            el,
+            isBookingList = false,
+            isP1 = false
+        ) {
             selectedItem = {
                 id,
                 table,
                 type,
                 isP1,
-                isTravelBooking: isBookingList || type.toLowerCase().includes('travel')
+                isTravelBooking:
+                    isBookingList ||
+                    type.toLowerCase().includes('travel')
             };
             document.querySelectorAll('.request-item').forEach(e => e.classList.remove('selected'));
             if (el) el.classList.add('selected');
@@ -1734,7 +1743,10 @@
         }
 
         async function submitDecision(action) {
-            if (!selectedItem.id || !selectedItem.table) return;
+            if (!selectedItem.id || !selectedItem.table) {
+                alert('Please select a request from the list first.');
+                return;
+            }
 
             const userId = sessionStorage.getItem('userId') || 'HR4001';
 
@@ -1743,9 +1755,9 @@
                 let body;
 
                 if (selectedItem.isP1) {
-                    // P1 workflow only supports Approved / Rejected
+                    // P1 workflow currently supports Approve / Reject only.
                     if (action === 'Revision') {
-                        alert('Revision is not available for this P1 request.');
+                        alert('Revision is not available for this request.');
                         return;
                     }
 
@@ -1758,8 +1770,10 @@
                         status: action
                     };
                 } else {
-                    // Existing legacy HR Processing flow
-                    url = `${API_BASE_URL}/hr/process-action`;
+                    // Keep existing legacy HR Processing behaviour.
+                    url =
+                        `${API_BASE_URL}/hr/process-action?user_id=` +
+                        `${encodeURIComponent(userId)}`;
 
                     body = {
                         user_id: userId,
@@ -1771,13 +1785,31 @@
 
                 const res = await fetch(url, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
 
-                const data = await res.json();
+                // Preserve latest frontend error handling:
+                // server may sometimes return an HTML error page instead of JSON.
+                const text = await res.text();
+
+                let data;
+
+                try {
+                    data = JSON.parse(text);
+                } catch (parseErr) {
+                    console.error(
+                        'Decision endpoint returned non-JSON:',
+                        res.status,
+                        text.slice(0, 500)
+                    );
+
+                    alert(
+                        `Server error (${res.status}). ` +
+                        'Check the Node server console for the real error.'
+                    );
+                    return;
+                }
 
                 if (data.success) {
                     alert(data.message || `Status updated to ${action}`);
@@ -1793,6 +1825,7 @@
 
             } catch (err) {
                 console.error("Error submitting action:", err);
+                alert('Could not reach the server: ' + err.message);
             }
         }
 
@@ -1830,7 +1863,6 @@
             }
         }
     </script>
-    <script src="/assets/js/session-guard.js"></script>
 </body>
 
 </html>

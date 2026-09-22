@@ -553,6 +553,14 @@
                 </div>
             </section>
 
+            <section class="announcements-section" id="announcementsSection" style="display: none;">
+                <div class="announcements-header">
+                    <span class="announcements-icon">📢</span>
+                    <h3>Announcements</h3>
+                </div>
+                <ul class="announcement-list" id="announcementList"></ul>
+            </section>
+
             <section class="metrics-grid">
                 <div class="metric-card">
                     <div class="metric-icon pending-icon"><i class='bx bx-alarm'></i></div>
@@ -585,7 +593,7 @@
             </section>
 
             <section class="quick-access">
-                <h3>Quick Access</h3>
+                <h3>My Favourites <i class='bx bxs-star' style="color: #f59e0b; font-size: 18px;"></i></h3>
                 <div class="quick-access-grid">
                     <a href="leave.html" class="qa-card">
                         <i class='bx bx-calendar-event qa-icon' style="color: #2563eb;"></i>
@@ -660,11 +668,13 @@
             document.getElementById('sidebarMeta').textContent = `${userId ? userId.toUpperCase() : ''} . ${department}`;
             document.getElementById('bannerName').textContent = username;
 
+            const isManager = (userId && userId.toUpperCase().startsWith('MGR')) ||
+                (position && position.toLowerCase().includes('manager'));
+
             const normalizedPosition = (position || '').trim().toLowerCase();
 
             const isApprover =
-                (userId && userId.toUpperCase().startsWith('MGR')) ||
-                normalizedPosition === 'manager' ||
+                isManager ||
                 normalizedPosition === 'head of department' ||
                 normalizedPosition === 'hod' ||
                 normalizedPosition === 'project manager' ||
@@ -707,6 +717,72 @@
 
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('currentDateDisplay').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+
+            // -------- Announcements --------
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str == null ? '' : String(str);
+                return div.innerHTML;
+            }
+
+            function formatAnnouncementDate(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '';
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+            }
+
+            // Shows at most 2 announcements at a time; if there are more, the list
+            // becomes vertically scrollable instead of growing the page.
+            function capAnnouncementListHeight(list) {
+                list.classList.remove('is-scrollable');
+                list.style.maxHeight = '';
+
+                const items = list.querySelectorAll('.announcement-item');
+                if (items.length <= 2) return;
+
+                const style = getComputedStyle(list);
+                const gap = parseFloat(style.rowGap || style.gap || '0') || 0;
+                const visibleHeight = items[0].offsetHeight + items[1].offsetHeight + gap;
+
+                list.style.maxHeight = `${visibleHeight}px`;
+                list.classList.add('is-scrollable');
+            }
+
+            async function loadAnnouncements() {
+                const audienceValue = isManager ? 'Manager' : 'Employee';
+                const section = document.getElementById('announcementsSection');
+                const list = document.getElementById('announcementList');
+                if (!section || !list) return;
+
+                try {
+                    const res = await fetch(`/api/announcements?audience=${encodeURIComponent(audienceValue)}`);
+                    const result = await res.json();
+
+                    if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+                        list.innerHTML = result.data.map(a => `
+                        <li class="announcement-item">
+                            <span class="announcement-dot"></span>
+                            <div class="announcement-item-body">
+                                <strong>${escapeHtml(a.title)}</strong>
+                                <p>${escapeHtml(a.message)}</p>
+                                <span class="announcement-meta">Published by HR • ${formatAnnouncementDate(a.publish_date)}</span>
+                            </div>
+                        </li>
+                    `).join('');
+                        section.style.display = 'block';
+                        capAnnouncementListHeight(list);
+                    } else {
+                        section.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error('Failed to load announcements:', err);
+                    section.style.display = 'none';
+                }
+            }
+
+            loadAnnouncements();
 
             const searchInput = document.getElementById('searchInput');
             const searchResults = document.getElementById('searchResults');
@@ -1026,7 +1102,6 @@
             }, 5000);
         });
     </script>
-    <script src="/assets/js/session-guard.js"></script>
 </body>
 
 </html>

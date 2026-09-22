@@ -30,6 +30,12 @@ router.post('/api/announcements', requireHRAccess, (req, res) => {
         });
     }
 
+    // Publish Date can't be backdated - earliest allowed value is today (server-side clock).
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (publishDate < todayStr) {
+        return res.status(400).json({ success: false, message: 'Publish Date cannot be earlier than today.' });
+    }
+
     if (new Date(expiryDate) < new Date(publishDate)) {
         return res.status(400).json({ success: false, message: 'Expiry Date cannot be before Publish Date.' });
     }
@@ -70,6 +76,28 @@ router.get('/api/announcements', (req, res) => {
             return res.status(500).json({ success: false, message: 'Database error: ' + err.message });
         }
         return res.json({ success: true, data: results });
+    });
+});
+
+// Delete an announcement (HR only)
+router.delete('/api/announcements/:id', requireHRAccess, (req, res) => {
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ success: false, message: 'A valid announcement id is required.' });
+    }
+
+    db.query('DELETE FROM announcements WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            console.error('Delete Announcement Error:', err);
+            return res.status(500).json({ success: false, message: 'Database error: ' + err.message });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Announcement not found.' });
+        }
+
+        return res.json({ success: true, message: 'Announcement deleted successfully!' });
     });
 });
 

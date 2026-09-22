@@ -497,33 +497,6 @@
                             <input type="text" id="otRate" name="ot_rate" readonly value="-" class="form-control">
                         </div>
 
-                        <div class="summary-card">
-                            <h4>Overtime Summary</h4>
-                            <div class="summary-row">
-                                <span>Total Hours</span>
-                                <span>Effective Hourly Rate</span>
-                            </div>
-                            <div class="summary-row" style="font-weight: 700; margin-bottom: 12px;">
-                                <span id="sumTotalHours">0.0h</span>
-                                <span id="sumHourlyRate">RM 0.00</span>
-                            </div>
-                            <div class="summary-row">
-                                <span>OT Payment</span>
-                                <span id="sumOtPayment">RM 0.00</span>
-                            </div>
-                            <div class="summary-row">
-                                <span>Meal Allowance (Min 3h)</span>
-                                <span id="sumMealAllowance">RM 0.00</span>
-                            </div>
-                            <div class="summary-row">
-                                <span>Night Allowance (RM 50)</span>
-                                <span id="sumNightAllowance">RM 0.00</span>
-                            </div>
-                            <div class="summary-row summary-total">
-                                <span>Total Claim</span>
-                                <span id="sumTotalClaim">RM 0.00</span>
-                            </div>
-                        </div>
                     </div>
 
                     <div>
@@ -896,12 +869,6 @@
         const otRateInput = document.getElementById('otRate');
         const otAllowanceInput = document.getElementById('otAllowance');
 
-        const sumTotalHours = document.getElementById('sumTotalHours');
-        const sumHourlyRate = document.getElementById('sumHourlyRate');
-        const sumOtPayment = document.getElementById('sumOtPayment');
-        const sumMealAllowance = document.getElementById('sumMealAllowance');
-        const sumNightAllowance = document.getElementById('sumNightAllowance');
-        const sumTotalClaim = document.getElementById('sumTotalClaim');
         const form = document.getElementById('overtimeForm');
         const submitBtn = document.getElementById('submitBtn');
         const errorBanner = document.getElementById('errorBanner');
@@ -995,12 +962,6 @@
             const totalClaim = otPayment + mealAllowance + nightAllowance;
 
             periodInput.value = `${totalHours.toFixed(1)} hrs`;
-            sumTotalHours.textContent = `${totalHours.toFixed(1)}h`;
-            sumHourlyRate.textContent = `RM ${hourlyRate.toFixed(2)}/h`;
-            sumOtPayment.textContent = `RM ${otPayment.toFixed(2)}`;
-            sumMealAllowance.textContent = `RM ${mealAllowance.toFixed(2)}`;
-            sumNightAllowance.textContent = `RM ${nightAllowance.toFixed(2)}`;
-            sumTotalClaim.textContent = `RM ${totalClaim.toFixed(2)}`;
             otAllowanceInput.value = `RM ${otPayment.toFixed(2)}`;
 
             return {

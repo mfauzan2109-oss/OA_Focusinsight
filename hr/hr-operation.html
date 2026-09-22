@@ -8,7 +8,162 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="../assets/css/hr/hr-operation.css">
+    <style>
+        .main-content { padding: 0 !important; }
+        .page-body { padding: 24px; }
+
+        .profile-avatar img, .avatar-circle img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+        }
+        .profile-avatar, .avatar-circle {
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        
+        body { 
+            display: flex; 
+            background-color: #bcdbe5; 
+            min-height: 100vh; 
+            color: #333; 
+        }
+
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 0; width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+        .top-bar-divider { width: 1px; height: 24px; background-color: #e2e8f0; margin: 0 4px; }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 14px 6px 14px;
+            margin-top: 4px;
+        }
+
+        /* ================= HR OPERATIONS: HERO + CARDS ================= */
+        .operations-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .ops-hero {
+            background: linear-gradient(135deg, #ffe28a 0%, #ffb84d 100%);
+            border-radius: 16px;
+            padding: 22px 28px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            color: #3d2b08;
+        }
+        .ops-hero-text h2 { font-size: 21px; font-weight: 800; margin: 0 0 6px 0; }
+        .ops-hero-text p { font-size: 13px; margin: 0; color: #5c4415; }
+        .ops-hero-icons {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 34px;
+            color: #a9691b;
+            opacity: 0.85;
+        }
+
+        .ops-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .ops-card {
+            --accent: #6366f1;
+            --bg: #e3e8fd;
+            position: relative;
+            background-color: var(--bg);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 18px 20px;
+            min-height: 96px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .ops-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .ops-icon-badge {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: var(--accent);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .ops-card-title {
+            flex: 1;
+            font-weight: 700;
+            font-size: 15px;
+            line-height: 1.35;
+            color: #1e293b;
+        }
+
+        .ops-arrow {
+            flex-shrink: 0;
+            font-size: 20px;
+            color: var(--accent);
+        }
+
+        .ops-fav-star {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            font-size: 15px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: color 0.15s ease, transform 0.15s ease;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+        .ops-fav-star:hover { color: var(--accent); transform: scale(1.15); }
+        .ops-fav-star.active { color: #f59e0b; }
+
+        .ops-card-indigo { --accent: #6366f1; --bg: #e3e8fd; }
+        .ops-card-pink   { --accent: #ec4899; --bg: #fce4f3; }
+        .ops-card-red    { --accent: #ef4444; --bg: #fde2e2; }
+        .ops-card-olive  { --accent: #84a315; --bg: #eaf2d7; }
+        .ops-card-orange { --accent: #f97316; --bg: #fde9d0; }
+        .ops-card-purple { --accent: #a855f7; --bg: #f1e4fb; }
+        .ops-card-teal   { --accent: #14b8a6; --bg: #dff7f7; }
+
+        @media (max-width: 768px) {
+            .ops-grid {
+                grid-template-columns: 1fr;
+            }
+            .ops-hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -35,8 +190,8 @@
             <a href="hr-operation.html" class="nav-item active"><i class='bx bx-briefcase'></i> HR Operations</a>
             
             <div class="sidebar-section-title">My Workspace</div>
-            <a href="leave-application-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
-            <a href="my-request.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+           <a href="application-form-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
+            <a href="/hr/my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
         </nav>
 
         <div class="sidebar-footer">
@@ -73,34 +228,131 @@
 
         <div class="page-body">
             <div class="operations-container">
+                <div class="ops-hero">
+                    <div class="ops-hero-text">
+                        <h2>Employee Requests</h2>
+                        <p>Submit and manage employee-related applications.</p>
+                    </div>
+                    <div class="ops-hero-icons">
+                        <i class='bx bx-desktop'></i><i class='bx bxs-user-badge'></i>
+                    </div>
+                </div>
+
                 <div class="ops-grid">
-                    <a href="payroll-payment-request.html" class="ops-card">
-                        PAYROLL PAYMENT<br>REQUEST FORM
+                    <a href="probation-confirmation-form.html" class="ops-card ops-card-indigo">
+                        <button class="ops-fav-star" type="button" aria-label="Favorite"><i class='bx bx-star'></i></button>
+                        <div class="ops-icon-badge"><i class='bx bxs-user-check'></i></div>
+                        <div class="ops-card-title">Probation Confirmation Form</div>
+                        <i class='bx bx-right-arrow-alt ops-arrow'></i>
                     </a>
-                    <a href="hiring-approval-form.html" class="ops-card">
-                        HIRING APPROVAL<br>FORM
+                    <a href="hiring-approval-form.html" class="ops-card ops-card-pink">
+                        <button class="ops-fav-star" type="button" aria-label="Favorite"><i class='bx bx-star'></i></button>
+                        <div class="ops-icon-badge"><i class='bx bxs-user-plus'></i></div>
+                        <div class="ops-card-title">Hiring Approval Form</div>
+                        <i class='bx bx-right-arrow-alt ops-arrow'></i>
                     </a>
-                    <a href="probation-confirmation-form.html" class="ops-card">
-                        PROBATION CONFIRMATION<br>FORM
+                    <a href="resignation-form.html" class="ops-card ops-card-red">
+                        <button class="ops-fav-star" type="button" aria-label="Favorite"><i class='bx bx-star'></i></button>
+                        <div class="ops-icon-badge"><i class='bx bxs-user-x'></i></div>
+                        <div class="ops-card-title">Resignation Request Form</div>
+                        <i class='bx bx-right-arrow-alt ops-arrow'></i>
                     </a>
-                    <a href="contract-renewal-form.html" class="ops-card">
-                        CONTRACT RENEWAL<br>FORM
+                    <a href="contract-renewal-form.html" class="ops-card ops-card-olive">
+                        <button class="ops-fav-star" type="button" aria-label="Favorite"><i class='bx bx-star'></i></button>
+                        <div class="ops-icon-badge"><i class='bx bxs-briefcase'></i></div>
+                        <div class="ops-card-title">Contract Renewal Form</div>
+                        <i class='bx bx-right-arrow-alt ops-arrow'></i>
                     </a>
-                    <a href="manpower-outsourcing-request.html" class="ops-card">
-                        MANPOWER OUTSOURCING<br>REQUEST FORM
+                    <a href="payroll-payment-request.html" class="ops-card ops-card-orange">
+                        <button class="ops-fav-star" type="button" aria-label="Favorite"><i class='bx bx-star'></i></button>
+                        <div class="ops-icon-badge"><i class='bx bxs-envelope'></i></div>
+                        <div class="ops-card-title">Payroll Payment Request Form</div>
+                        <i class='bx bx-right-arrow-alt ops-arrow'></i>
                     </a>
-                    <a href="resignation-request-form.html" class="ops-card">
-                        RESIGNATION<br>REQUEST FORM
+                    <a href="manpower-outsourcing-request.html" class="ops-card ops-card-purple">
+                        <button class="ops-fav-star" type="button" aria-label="Favorite"><i class='bx bx-star'></i></button>
+                        <div class="ops-icon-badge"><i class='bx bxs-group'></i></div>
+                        <div class="ops-card-title">Manpower Outsourcing Request Form</div>
+                        <i class='bx bx-right-arrow-alt ops-arrow'></i>
                     </a>
-                    <a href="create-announcement.html" class="ops-card">
-                        CREATE<br>ANNOUNCEMENT
+                    <a href="create-announcement.html" class="ops-card ops-card-teal">
+                        <button class="ops-fav-star" type="button" aria-label="Favorite"><i class='bx bx-star'></i></button>
+                        <div class="ops-icon-badge"><i class='bx bxs-megaphone'></i></div>
+                        <div class="ops-card-title">Create Announcement</div>
+                        <i class='bx bx-right-arrow-alt ops-arrow'></i>
                     </a>
                 </div>
             </div>
         </div>
     </main>
 
-    <script src="../assets/js/hr/hr-operation.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const position = sessionStorage.getItem('position');
+        const department = sessionStorage.getItem('department');
+
+        if (!username || !position) {
+            alert("Access Denied! Please log in first.");
+            window.location.href = "index.html";
+            return;
+        }
+
+        // -------- Sidebar / Top bar initialization --------
+        document.getElementById('sidebarName').textContent = username;
+        document.getElementById('sidebarMeta').textContent = `${userId ? userId.toUpperCase() : ''} . ${department || ''}`;
+
+        const initials = username.split(' ').map(name => name.charAt(0)).join('').substring(0, 2).toUpperCase();
+        const topAvatarEl = document.getElementById('topAvatar');
+        const sidebarAvatarEl = document.getElementById('sidebarAvatarContainer');
+        if (topAvatarEl) topAvatarEl.textContent = initials;
+
+        function updateAvatarDisplay(avatarBase64) {
+            if (avatarBase64) {
+                const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
+                if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
+            }
+        }
+        const formattedUserId = (userId || '').toUpperCase();
+        const savedAvatar = localStorage.getItem(`userAvatar_${formattedUserId}`);
+        updateAvatarDisplay(savedAvatar);
+
+        // -------- Favorite star toggle (visual only, saved per browser) --------
+        const favKey = `opsFavorites_${formattedUserId}`;
+        let favorites = [];
+        try { favorites = JSON.parse(localStorage.getItem(favKey)) || []; } catch (e) { favorites = []; }
+
+        document.querySelectorAll('.ops-card').forEach(card => {
+            const star = card.querySelector('.ops-fav-star');
+            const starIcon = star ? star.querySelector('i') : null;
+            const href = card.getAttribute('href');
+            if (!star || !starIcon) return;
+
+            function setActive(active) {
+                star.classList.toggle('active', active);
+                starIcon.classList.toggle('bx-star', !active);
+                starIcon.classList.toggle('bxs-star', active);
+            }
+
+            setActive(favorites.includes(href));
+
+            star.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const nowActive = !star.classList.contains('active');
+                setActive(nowActive);
+                if (nowActive) {
+                    if (!favorites.includes(href)) favorites.push(href);
+                } else {
+                    favorites = favorites.filter(f => f !== href);
+                }
+                localStorage.setItem(favKey, JSON.stringify(favorites));
+            });
+        });
+    });
+    </script>
 
 <script src="/assets/js/session-guard.js"></script>
 </body>
