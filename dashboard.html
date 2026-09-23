@@ -640,6 +640,16 @@
                       (position && position.toLowerCase().includes('ceo')) ||
                       (position && position.toLowerCase().includes('chief executive'));
 
+        // CEOs get their own Approval Queue page (with the CEO-specific
+        // design and full-company visibility); everyone else with approval
+        // access (Managers) keeps the existing approval-queue.html.
+        if (isManager) {
+            const approvalQueueItem = document.getElementById('approvalQueueItem');
+            if (approvalQueueItem && isCEO) {
+                approvalQueueItem.href = 'ceo-approval.html';
+            }
+        }
+
         if (isCEO) {
             const applicationCenterItem = document.getElementById('applicationCenterItem');
             if (applicationCenterItem) {
@@ -662,24 +672,24 @@
         
         if (topAvatarEl) topAvatarEl.textContent = initials;
 
-        function updateAvatarDisplay(avatarBase64) {
-            if (avatarBase64) {
-                const imgHTML = `<img src="${avatarBase64}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        function updateAvatarDisplay(profilePicturePath) {
+            if (profilePicturePath) {
+                const src = profilePicturePath.startsWith('http') ? profilePicturePath : `/${profilePicturePath}`;
+                const imgHTML = `<img src="${src}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
                 if (sidebarAvatarEl) sidebarAvatarEl.innerHTML = imgHTML;
                 if (topAvatarEl) topAvatarEl.innerHTML = imgHTML;
             }
         }
 
         const formattedUserId = (userId || '').toUpperCase();
-        const specificAvatarKey = `userAvatar_${formattedUserId}`;
-        const savedAvatar = localStorage.getItem(specificAvatarKey);
-        updateAvatarDisplay(savedAvatar);
-
-        window.addEventListener('storage', function(e) {
-            if (e.key === specificAvatarKey) {
-                updateAvatarDisplay(e.newValue);
-            }
-        });
+        // Same backend profile.html uses to save the picture — not localStorage,
+        // so the photo shows correctly here even if it was set on another device.
+        fetch(`/api/profile/${formattedUserId}`)
+            .then(res => res.json())
+            .then(result => {
+                if (result.success && result.data) updateAvatarDisplay(result.data.profile_picture);
+            })
+            .catch(err => console.error('Failed to load profile picture:', err));
 
         const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('currentDateDisplay').textContent = new Date().toLocaleDateString('en-US', dateOptions);
