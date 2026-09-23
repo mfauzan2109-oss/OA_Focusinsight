@@ -88,8 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     selectedReplacement = emp;
                     replacedSearchEl.value = `${emp.name} (${emp.user_id})`;
                     replacedIdEl.value = emp.user_id;
-                    setSafeValue('employeeName', emp.name || '');
-                    setSafeValue('employeeId', emp.user_id || '');
                     replacedDropdown.classList.remove('open');
                 });
                 replacedDropdown.appendChild(item);
@@ -189,9 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
 
         const employeeName = document.getElementById('employeeName').value.trim();
-        const employeeId = document.getElementById('employeeId').value.trim();
         const hiringType = hiringTypeEl.value;
-        const numberOfVacancy = document.getElementById('numberOfVacancy').value;
         const employmentType = document.getElementById('employmentType').value;
         const employmentPeriod = employmentPeriodEl.value.trim();
         const workLocation = document.getElementById('workLocation').value.trim();
@@ -203,13 +199,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const requiredSkills = document.getElementById('requiredSkills').value.trim();
         const requiredExperience = document.getElementById('requiredExperience').value.trim();
         const salaryRange = document.getElementById('salaryRange').value.trim();
-        const budgetCostCenter = document.getElementById('budgetCostCenter').value.trim();
         const hiringPriority = document.getElementById('hiringPriority').value;
 
-        if (!employeeName || !employeeId) { alert('Please fill in Employee Name and Employee ID.'); return; }
+        if (!employeeName) { alert('Please fill in Employee Name.'); return; }
         if (!hiringType) { alert('Please select a Hiring type.'); return; }
         if (hiringType === 'Replacement' && !replacedIdEl.value) { alert('Please search and select the Employee being replaced.'); return; }
-        if (!numberOfVacancy || Number(numberOfVacancy) < 1) { alert('Please enter a valid Number of Vacancy.'); return; }
         if (!employmentType) { alert('Please select an Employment Type.'); return; }
         if (PERIOD_REQUIRED_TYPES.includes(employmentType) && !employmentPeriod) { alert('Please fill in the Period for the selected Employment Type.'); return; }
         if (!workLocation) { alert('Please enter the Work Location.'); return; }
@@ -219,8 +213,8 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please complete all fields in the Job Requirement section.');
             return;
         }
-        if (!salaryRange || !budgetCostCenter || !hiringPriority) {
-            alert('Please complete all fields in the Compensation & Budget section.');
+        if (!salaryRange || !hiringPriority) {
+            alert('Please complete all fields in the Salary Info section.');
             return;
         }
 
@@ -233,10 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('request_date', document.getElementById('requestDate').value);
         formData.append('department', document.getElementById('requesterDept').value);
         formData.append('employee_name', employeeName);
-        formData.append('employee_id', employeeId);
         formData.append('hiring_type', hiringType);
         formData.append('employee_replaced_id', replacedIdEl.value || '');
-        formData.append('number_of_vacancy', numberOfVacancy);
         formData.append('employment_type', employmentType);
         formData.append('employment_period', employmentPeriod);
         formData.append('work_location', workLocation);
@@ -248,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('required_skills', requiredSkills);
         formData.append('required_experience', requiredExperience);
         formData.append('salary_range', salaryRange);
-        formData.append('budget_cost_center', budgetCostCenter);
         formData.append('hiring_priority', hiringPriority);
         if (selectedFile) formData.append('attachment', selectedFile);
 

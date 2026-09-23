@@ -98,13 +98,9 @@
                     <div class="form-section">
                         <h3 class="form-section-title">1. Employment Information</h3>
                         <div class="form-grid-2">
-                            <div class="input-group">
+                            <div class="input-group form-full">
                                 <label for="employeeName">Employee Name<span class="req">*</span></label>
                                 <input type="text" id="employeeName" placeholder="e.g. new position reference" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="employeeId">Employee ID<span class="req">*</span></label>
-                                <input type="text" id="employeeId" placeholder="e.g. requisition / vacancy code" required>
                             </div>
                             <div class="input-group">
                                 <label for="hiringType">Hiring type<span class="req">*</span></label>
@@ -127,10 +123,6 @@
                                 <span class="helper-text" id="replacedHelperText">Only applicable for Replacement hiring type.</span>
                             </div>
                             <div class="input-group">
-                                <label for="numberOfVacancy">Number of Vacancy<span class="req">*</span></label>
-                                <input type="number" id="numberOfVacancy" min="1" step="1" placeholder="e.g. 1" required>
-                            </div>
-                            <div class="input-group">
                                 <label for="employmentType">Employment Type<span class="req">*</span></label>
                                 <select id="employmentType" required>
                                     <option value="" disabled selected>Select employment type</option>
@@ -140,17 +132,17 @@
                                     <option value="Probation">Probation</option>
                                 </select>
                             </div>
-                            <div class="input-group" id="employmentPeriodGroup" style="display: none;">
+                            <div class="input-group">
+                                <label for="requiredStartDate">Required Start Date<span class="req">*</span></label>
+                                <input type="date" id="requiredStartDate" required>
+                            </div>
+                            <div class="input-group form-full" id="employmentPeriodGroup" style="display: none;">
                                 <label for="employmentPeriod">Period<span class="req">*</span></label>
                                 <input type="text" id="employmentPeriod" placeholder="e.g. 6 Months">
                             </div>
                             <div class="input-group">
                                 <label for="workLocation">Work Location<span class="req">*</span></label>
                                 <input type="text" id="workLocation" placeholder="e.g. Bukit Mertajam, Penang" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="requiredStartDate">Required Start Date<span class="req">*</span></label>
-                                <input type="date" id="requiredStartDate" required>
                             </div>
                             <div class="input-group form-full">
                                 <label for="reasonForHiring">Reason for Hiring<span class="req">*</span></label>
@@ -184,19 +176,15 @@
                         </div>
                     </div>
 
-                    <!-- 3. COMPENSATION & BUDGET -->
+                    <!-- 3. SALARY INFO -->
                     <div class="form-section">
-                        <h3 class="form-section-title">3. Compensation &amp; Budget</h3>
+                        <h3 class="form-section-title">3. Salary Info</h3>
                         <div class="form-grid-2">
                             <div class="input-group">
                                 <label for="salaryRange">Salary Range (RM)<span class="req">*</span></label>
                                 <input type="text" id="salaryRange" placeholder="e.g. RM 3,000 - RM 4,500" required>
                             </div>
                             <div class="input-group">
-                                <label for="budgetCostCenter">Budget / Cost Center<span class="req">*</span></label>
-                                <input type="text" id="budgetCostCenter" required>
-                            </div>
-                            <div class="input-group form-full">
                                 <label for="hiringPriority">Hiring Priority<span class="req">*</span></label>
                                 <select id="hiringPriority" required>
                                     <option value="" disabled selected>Select priority</option>

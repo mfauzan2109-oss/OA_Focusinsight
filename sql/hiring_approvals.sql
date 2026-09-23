@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `hiring_approvals` (
   `employee_replaced_id` VARCHAR(50),
   `number_of_vacancy` INT,
   `employment_type` VARCHAR(50),
+  `employment_period` VARCHAR(50),
   `work_location` VARCHAR(150),
   `required_start_date` VARCHAR(20),
   `reason_for_hiring` TEXT,

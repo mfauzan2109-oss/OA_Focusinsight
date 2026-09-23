@@ -2041,6 +2041,8 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
         });
     });
 
+})
+
     router.post(
         '/api/submit-hiring-approval',
         requireHRAccess,
@@ -2049,10 +2051,8 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
 
             const {
                 employee_name,
-                employee_id,
                 hiring_type,
                 employee_replaced_id,
-                number_of_vacancy,
                 employment_type,
                 employment_period,
                 work_location,
@@ -2064,15 +2064,14 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                 required_skills,
                 required_experience,
                 salary_range,
-                budget_cost_center,
                 hiring_priority
             } = req.body;
 
-            if (!employee_name || !employee_id || !hiring_type) {
+            if (!employee_name || !hiring_type) {
                 return res.status(400).json({
                     success: false,
                     message:
-                        'Employee Name, Employee ID, and Hiring type are required.'
+                        'Employee Name and Hiring type are required.'
                 });
             }
 
@@ -2084,20 +2083,6 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                     success: false,
                     message:
                         'Employee being replaced is required for Replacement hiring type.'
-                });
-            }
-
-            const vacancyCount =
-                parseInt(number_of_vacancy, 10);
-
-            if (
-                Number.isNaN(vacancyCount) ||
-                vacancyCount < 1
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        'Number of Vacancy must be at least 1.'
                 });
             }
 
@@ -2149,13 +2134,12 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
 
             if (
                 !salary_range ||
-                !budget_cost_center ||
                 !hiring_priority
             ) {
                 return res.status(400).json({
                     success: false,
                     message:
-                        'Please complete all Compensation & Budget fields.'
+                        'Please complete all Salary Info fields.'
                 });
             }
 
@@ -2180,11 +2164,9 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                 department,
 
                 employee_name,
-                employee_id,
                 hiring_type,
                 employee_replaced_id,
 
-                number_of_vacancy,
                 employment_type,
                 employment_period,
                 work_location,
@@ -2199,7 +2181,6 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                 required_experience,
 
                 salary_range,
-                budget_cost_center,
                 hiring_priority,
 
                 supporting_document,
@@ -2208,11 +2189,11 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
             )
             VALUES (
                 ?, ?, ?,
+                ?, ?, ?,
                 ?, ?, ?, ?,
-                ?, ?, ?, ?, ?,
                 ?, ?, ?,
                 ?, ?, ?,
-                ?, ?, ?,
+                ?, ?,
                 ?,
                 'Pending',
                 NOW()
@@ -2227,11 +2208,9 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                     requester.department,
 
                     safeVal(employee_name, 100),
-                    safeVal(employee_id, 50),
                     safeVal(hiring_type, 50),
                     safeVal(employee_replaced_id, 50),
 
-                    vacancyCount,
                     safeVal(employment_type, 50),
                     safeVal(employment_period, 50),
                     safeVal(work_location, 150),
@@ -2246,7 +2225,6 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                     safeVal(required_experience, 0),
 
                     safeVal(salary_range, 100),
-                    safeVal(budget_cost_center, 100),
                     safeVal(hiring_priority, 20),
 
                     attachment_path
@@ -2277,5 +2255,5 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
             );
         }
     );
-})
+
 module.exports = router;
