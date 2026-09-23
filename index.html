@@ -130,7 +130,9 @@
                     // Route user to appropriate module
                     if (isHR) {
                         window.location.href = 'hr/hr-dashboard.html';
-                    } else if (pos === 'ceo' || pos === 'chairman') {
+                    } else if (pos === 'ceo') {
+                        window.location.href = 'ceo-dashboard.html';
+                    } else if (pos === 'chairman') {
                         window.location.href = 'dashboard-approver.html';
                     } else if (pos === 'manager') {
                         window.location.href = 'dashboard-manager.html';

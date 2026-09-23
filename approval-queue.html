@@ -958,17 +958,22 @@
         }
       }
 
+      const normalizedPosition =
+        (position || '').trim().toLowerCase();
+
       const approvalOnlyRole =
-        ['ceo', 'chairman'].includes(
-          (position || '').trim().toLowerCase()
-        );
+        ['ceo', 'chairman'].includes(normalizedPosition);
 
       if (approvalOnlyRole) {
         const dashboardLink =
           document.querySelector('.nav-menu a[href="dashboard.html"]');
 
         if (dashboardLink) {
-          dashboardLink.href = 'dashboard-approver.html';
+          if (normalizedPosition === 'ceo') {
+            dashboardLink.href = 'dashboard.html';
+          } else if (normalizedPosition === 'chairman') {
+            dashboardLink.href = 'dashboard-approver.html';
+          }
         }
 
         document.querySelectorAll(
