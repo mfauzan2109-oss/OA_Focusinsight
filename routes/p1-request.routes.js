@@ -1679,6 +1679,15 @@ router.get('/api/request-details', requireLogin, (req, res) => {
                LOWER(u.user_id COLLATE utf8mb4_general_ci)
         WHERE sa.id = ?
     `;
+    } else if (['job transfer', 'job-transfer', 'job_transfer'].includes(reqType)) {
+        query = `
+        SELECT jt.*, u.phone_no, u.email, u.department AS department
+        FROM job_transfer_requests jt
+        LEFT JOIN users u
+            ON LOWER(jt.employee_id) =
+               LOWER(u.user_id COLLATE utf8mb4_general_ci)
+        WHERE jt.id = ?
+    `;
     } else if (reqType === 'resignation') {
         query = `
         SELECT r.*, u.phone_no, u.email
@@ -1749,6 +1758,8 @@ router.get('/api/request-details', requireLogin, (req, res) => {
             sessionDepartment === 'management';
 
         const isDepartmentApprover =
+            sessionDepartment !== '' &&
+            recordDepartment !== '' &&
             (
                 sessionPosition.includes('manager') ||
                 sessionPosition.includes('supervisor')
