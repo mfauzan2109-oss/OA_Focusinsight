@@ -32,6 +32,12 @@ router.get('/api/probation-confirmations/approval-queue',requireLogin,endpoint((
 router.get('/api/probation-confirmations/notifications',requireLogin,endpoint((c,req)=>service.notifications(c,id(req))));
 router.get('/api/probation-confirmations/:id',requireLogin,endpoint((c,req)=>service.details(c,id(req),req.params.id)));
 router.put('/api/probation-confirmations/:id/decision',requireLogin,endpoint((c,req)=>service.decide(c,id(req),req.params.id,req.body)));
+// Manager/HOD assessment step (probation-confirmation-list / -detail pages). Saves the
+// assessment only; approval still goes through the Approval Queue. Identity is always the
+// session user; the x-user-id header / user_id query param the pages send are ignored.
+router.get('/api/probation-confirmation/list',requireLogin,endpoint((c,req)=>service.assessmentList(c,id(req))));
+router.get('/api/probation-confirmation/:id',requireLogin,endpoint((c,req)=>service.assessmentDetails(c,id(req),req.params.id)));
+router.post('/api/probation-confirmation/:id/assessment',requireLogin,upload.none(),endpoint((c,req)=>service.assess(c,id(req),req.params.id,req.body)));
 const isProbation=value=>['probation','probation confirmation','probation-confirmation','probation_confirmation'].includes(String(value||'').trim().toLowerCase());
 router.get('/api/request-details',(req,res,next)=>{
     if(!isProbation(req.query.type))return next();
