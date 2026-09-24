@@ -30,6 +30,8 @@ SET time_zone = "+00:00";
 CREATE TABLE `resignations` (
   `id` int NOT NULL,
   `requested_by` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `requested_by_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `requester_position` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `request_date` date DEFAULT NULL,
   `request_department` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `employee_id` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
