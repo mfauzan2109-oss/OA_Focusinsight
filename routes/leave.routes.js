@@ -89,6 +89,118 @@ router.get('/api/user-leave-info', requireLogin, (req, res) => {
     });
 });
 
+// Leave balance table on the leave forms (leave.html, hr/leave-application-hr.html).
+// Entitlement + carry-forward come from the leave_balances table; Annual/Sick fall
+// back to the tenure-based helpers when an employee has no row yet. "Used" counts
+// Pending + Approved requests (Rejected/Cancelled don't count) for the current year.
+const BALANCE_TYPES = [
+    { key: 'annual',          label: 'Annual Leave' },
+    { key: 'sick',            label: 'Sick Leave' },
+    { key: 'hospitalization', label: 'Hospitalization' },
+    { key: 'maternity',       label: 'Maternity' },
+    { key: 'paternity',       label: 'Paternity' }
+];
+const BALANCE_DEFAULTS = { hospitalization: 60, maternity: 98, paternity: 7 };
+
+function balanceKeyFor(rawType) {
+    const t = String(rawType || '').trim().toLowerCase();
+    if (t === 'annual' || t === 'annual leave') return 'annual';
+    if (t === 'sick' || t === 'sick leave') return 'sick';
+    if (t === 'hospitalization' || t === 'medical leave') return 'hospitalization';
+    if (t === 'maternity') return 'maternity';
+    if (t === 'paternity') return 'paternity';
+    return null;
+}
+
+router.get('/api/leave-balance', requireLogin, (req, res) => {
+    // Always the logged-in user; the employee_id query param the forms send is ignored.
+    const userId = req.session.user.user_id;
+    const year = new Date().getFullYear();
+
+    db.query('SELECT join_date FROM users WHERE LOWER(user_id) = LOWER(?)', [userId], (userErr, userRows) => {
+        let years = 1;
+        if (!userErr && userRows && userRows.length > 0 && userRows[0].join_date) {
+            const diff = Math.abs(new Date() - new Date(userRows[0].join_date));
+            years = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)));
+        }
+
+        const balQuery = `
+            SELECT leave_type, entitlement, carried_forward, carried_forward_expires
+            FROM leave_balances
+            WHERE LOWER(employee_id) = LOWER(?) AND year = ?
+        `;
+
+        db.query(balQuery, [userId, year], (balErr, balRows) => {
+            if (balErr) {
+                console.error('Leave Balance (leave_balances) Error:', balErr);
+                return res.status(500).json({ success: false, message: 'Database error.' });
+            }
+
+            const usedQuery = `
+                SELECT \`Leave Type\` AS leave_type, SUM(\`No of Days\`) AS used
+                FROM \`leave\`
+                WHERE LOWER(\`Employee ID\`) = LOWER(?)
+                  AND LOWER(TRIM(Status)) IN ('pending', 'approved')
+                  AND YEAR(\`Start Date\`) = ?
+                GROUP BY \`Leave Type\`
+            `;
+
+            db.query(usedQuery, [userId, year], (usedErr, usedRows) => {
+                if (usedErr) {
+                    console.error('Leave Balance (used days) Error:', usedErr);
+                    return res.status(500).json({ success: false, message: 'Database error.' });
+                }
+
+                const usedMap = {};
+                (usedRows || []).forEach(r => {
+                    const key = balanceKeyFor(r.leave_type);
+                    if (key) usedMap[key] = (usedMap[key] || 0) + (parseFloat(r.used) || 0);
+                });
+
+                const rowMap = {};
+                (balRows || []).forEach(r => {
+                    const key = balanceKeyFor(r.leave_type);
+                    if (key) rowMap[key] = r;
+                });
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const data = BALANCE_TYPES.map(t => {
+                    const row = rowMap[t.key];
+                    let entitlement;
+                    let carried = 0;
+
+                    if (row) {
+                        entitlement = parseFloat(row.entitlement) || 0;
+                        carried = parseFloat(row.carried_forward) || 0;
+                        if (carried > 0 && row.carried_forward_expires && new Date(row.carried_forward_expires) < today) {
+                            carried = 0; // carry-forward expired
+                        }
+                    } else if (t.key === 'annual') {
+                        entitlement = getAnnualEntitlement(years);
+                    } else if (t.key === 'sick') {
+                        entitlement = getSickEntitlement(years);
+                    } else {
+                        entitlement = BALANCE_DEFAULTS[t.key];
+                    }
+
+                    const used = usedMap[t.key] || 0;
+                    return {
+                        leave_type: t.label,
+                        entitlement: entitlement,
+                        carried_forward: carried,
+                        used: used,
+                        remaining: Math.max(0, entitlement + carried - used)
+                    };
+                });
+
+                return res.json({ success: true, data: data });
+            });
+        });
+    });
+});
+
 router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req, res) => {
     const employee_id = req.session.user.user_id;
     const employee_name = req.session.user.name;
