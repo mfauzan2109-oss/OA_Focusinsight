@@ -89,6 +89,141 @@ router.get('/api/user-leave-info', requireLogin, (req, res) => {
     });
 });
 
+router.get('/api/leave-balance', requireLogin, (req, res) => {
+    const employeeId = req.session.user.user_id;
+    const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+
+    const balanceQuery = `
+        SELECT
+            leave_type,
+            entitlement,
+            carried_forward,
+            carried_forward_expires
+        FROM leave_balances
+        WHERE LOWER(employee_id) = LOWER(?)
+          AND year = ?
+        ORDER BY FIELD(
+            leave_type,
+            'Annual Leave',
+            'Sick Leave',
+            'Hospitalization',
+            'Maternity',
+            'Paternity'
+        )
+    `;
+
+    db.query(balanceQuery, [employeeId, year], (balanceErr, balances) => {
+        if (balanceErr) {
+            console.error('Leave balance query error:', balanceErr);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to load leave balance.'
+            });
+        }
+
+        const usedQuery = `
+            SELECT
+                CASE
+                    WHEN LOWER(TRIM(\`Leave Type\`)) IN ('annual', 'annual leave')
+                        THEN 'Annual Leave'
+                    WHEN LOWER(TRIM(\`Leave Type\`)) IN ('sick', 'sick leave')
+                        THEN 'Sick Leave'
+                    WHEN LOWER(TRIM(\`Leave Type\`)) IN ('hospitalization', 'medical leave')
+                        THEN 'Hospitalization'
+                    WHEN LOWER(TRIM(\`Leave Type\`)) = 'maternity'
+                        THEN 'Maternity'
+                    WHEN LOWER(TRIM(\`Leave Type\`)) = 'paternity'
+                        THEN 'Paternity'
+                    ELSE NULL
+                END AS leave_type,
+                SUM(\`No of Days\`) AS used
+            FROM \`leave\`
+            WHERE LOWER(\`Employee ID\`) = LOWER(?)
+              AND YEAR(\`Start Date\`) = ?
+              AND LOWER(TRIM(\`Status\`)) NOT IN ('rejected', 'cancelled')
+            GROUP BY leave_type
+        `;
+
+        db.query(usedQuery, [employeeId, year], (usedErr, usedRows) => {
+            if (usedErr) {
+                console.error('Leave usage query error:', usedErr);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to calculate leave usage.'
+                });
+            }
+
+            const usedMap = {};
+
+            (usedRows || []).forEach(row => {
+                if (row.leave_type) {
+                    usedMap[row.leave_type] = Number(row.used || 0);
+                }
+            });
+
+            const today = new Date();
+
+            const data = (balances || []).map(row => {
+                const entitlement = Number(row.entitlement || 0);
+
+                let carriedForward = Number(row.carried_forward || 0);
+
+                if (
+                    row.carried_forward_expires &&
+                    new Date(row.carried_forward_expires) < today
+                ) {
+                    carriedForward = 0;
+                }
+
+                const used = usedMap[row.leave_type] || 0;
+                const remaining = Math.max(
+                    0,
+                    entitlement + carriedForward - used
+                );
+
+                return {
+                    leave_type: row.leave_type,
+                    entitlement,
+                    carried_forward: carriedForward,
+                    used,
+                    remaining
+                };
+            });
+
+            return res.json({
+                success: true,
+                year,
+                data
+            });
+        });
+    });
+});
+
+router.get('/api/public-holidays', requireLogin, (req, res) => {
+    const query = `
+        SELECT
+            holiday_date,
+            holiday_name
+        FROM public_holidays
+        ORDER BY holiday_date
+    `;
+
+    db.query(query, [], (err, rows) => {
+        if (err) {
+            console.error('Public holidays query error:', err);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to load public holidays.'
+            });
+        }
+
+        return res.json({
+            success: true,
+            data: rows
+        });
+    });
+});
+
 router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req, res) => {
     const employee_id = req.session.user.user_id;
     const employee_name = req.session.user.name;

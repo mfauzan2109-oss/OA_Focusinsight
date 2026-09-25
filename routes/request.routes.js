@@ -3,16 +3,18 @@ const express = require('express');
 const db = require('../config/database');
 const upload = require('../middleware/upload');
 const { normalizeFilePath, safeVal, safeNum } = require('../utils/helpers');
+const { requireLogin } = require('../middleware/auth');
+const { saveJobTransferWithWorkflow } = require('../utils/job-transfer-workflow');
 
 const router = express.Router();
 
 const handleTravelSubmission = (req, res) => {
-    const employee_id   = safeVal(req.body.employee_id || req.body.applicant_id, 50);
+    const employee_id = safeVal(req.body.employee_id || req.body.applicant_id, 50);
     const employee_name = safeVal(req.body.employee_name, 100);
-    const department    = safeVal(req.body.department, 100);
-    
+    const department = safeVal(req.body.department, 100);
+
     let rawCompany = (req.body.company || req.body.company_name || 'focusinsight').toString().toLowerCase().trim();
-    const company_name  = rawCompany.includes('fortun') ? 'fortuntech' : 'focusinsight';
+    const company_name = rawCompany.includes('fortun') ? 'fortuntech' : 'focusinsight';
 
     let travelDestination = safeVal(req.body.travel_destination || req.body.destination, 255) || 'N/A';
     let travelMode = safeVal(req.body.travel_mode, 100) || 'Flight';
@@ -21,7 +23,7 @@ const handleTravelSubmission = (req, res) => {
     }
 
     const allowance_type = safeVal(req.body.allowance_type, 100) || `Travel to ${travelDestination} (${travelMode})`;
-    
+
     const depDateVal = safeVal(req.body.expected_departure || req.body.expected_departure_date, 20);
     const claim_month = safeVal(req.body.claim_month, 20) || (depDateVal ? depDateVal.substring(0, 7) : new Date().toISOString().substring(0, 7));
 
@@ -88,10 +90,10 @@ const handleTravelSubmission = (req, res) => {
 }
 
 router.post('/api/submit-disbursement', upload.single('attachment'), (req, res) => {
-    const employee_id   = req.body.employee_id;
+    const employee_id = req.body.employee_id;
     const employee_name = req.body.employee_name;
-    const department    = req.body.department;
-    
+    const department = req.body.department;
+
     let rawAmount = req.body.total_amount || "0";
     let total_amount = parseFloat(rawAmount.toString().replace(/[^0-9.]/g, '')) || 0.00;
 
@@ -128,12 +130,12 @@ router.post('/api/submit-disbursement', upload.single('attachment'), (req, res) 
         `;
 
         const itemsValues = expenseItems.map(item => [
-            disbursementId, 
-            item.invoice_date, 
-            item.invoice_no, 
-            item.supplier_name, 
-            item.description, 
-            parseFloat(String(item.amount || 0).replace(/[^0-9.]/g, '')) || 0.00, 
+            disbursementId,
+            item.invoice_date,
+            item.invoice_no,
+            item.supplier_name,
+            item.description,
+            parseFloat(String(item.amount || 0).replace(/[^0-9.]/g, '')) || 0.00,
             item.remark || ''
         ]);
 
@@ -440,7 +442,7 @@ router.post('/api/submit-payroll-payment', upload.single('attachment'), (req, re
     });
 });
 
-router.post('/api/submit-job-transfer', upload.single('attachment'), (req, res) => {
+router.post('/api/submit-job-transfer', requireLogin, upload.single('attachment'), async (req, res) => {
     const {
         employee_id, employee_name, transfer_type,
         current_department, new_department,
@@ -501,32 +503,56 @@ router.post('/api/submit-job-transfer', upload.single('attachment'), (req, res) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
     `;
 
-    db.query(query, [
-        safeVal(employee_id, 50),
-        safeVal(employee_name, 100),
-        safeVal(transfer_type, 20),
-        safeVal(current_department, 100),
-        safeVal(new_department, 100),
-        safeVal(current_position, 100),
-        safeVal(new_position, 100),
-        safeVal(current_location, 100),
-        safeVal(new_location, 100),
-        safeVal(current_supervisor, 100),
-        safeVal(new_supervisor, 100),
-        safeVal(proposed_transfer_date, 20),
-        safeVal(reason_for_transfer, 0),
-        curSalary,
-        propSalary || null,
-        safeVal(job_scope_change, 10),
-        safeVal(job_description, 0),
-        attachment_path
-    ], (err, result) => {
-        if (err) {
-            console.error('Job Transfer SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+    try {
+        const result = await saveJobTransferWithWorkflow({
+            sessionUserId: req.session.user.user_id,
+            employeeId: employee_id,
+            transferType: transfer_type,
+            newDepartment: new_department,
+
+            saveRequest: (connection, {
+                employee, currentDepartment, targetDepartment
+            }) => connection.query(query, [
+                employee.user_id,
+                employee.name,
+                transfer_type,
+                currentDepartment,
+                targetDepartment,
+                safeVal(employee.position, 100),
+                safeVal(new_position, 100),
+                safeVal(current_location, 100),
+                safeVal(new_location, 100),
+                safeVal(current_supervisor, 100),
+                safeVal(new_supervisor, 100),
+                safeVal(proposed_transfer_date, 20),
+                safeVal(reason_for_transfer, 0),
+                curSalary,
+                propSalary || null,
+                safeVal(job_scope_change, 10),
+                safeVal(job_description, 0),
+                attachment_path
+            ])
+        });
+
+        return res.json({
+            success: true,
+            message: 'Job transfer request submitted successfully!',
+            id: result.insertId
+        });
+    } catch (error) {
+        const status = error.status || 500;
+
+        if (status === 500) {
+            console.error('Job Transfer workflow error:', error);
         }
-        return res.json({ success: true, message: 'Job transfer request submitted successfully!', id: result.insertId });
-    });
+
+        return res.status(status).json({
+            success: false,
+            message: status === 500
+                ? 'Failed to save Job Transfer. Please check the server log.'
+                : error.message
+        });
+    }
 });
 
 router.get('/api/request-details', (req, res) => {
@@ -560,7 +586,7 @@ router.get('/api/request-details', (req, res) => {
         }
 
         const record = { ...results[0] };
-        
+
         // 2. Normalize attachment file path
         const rawDoc = record.supporting_document || record['Supporting Documen'] || record.attachment_path;
         record.supporting_document = normalizeFilePath(rawDoc);
@@ -572,13 +598,13 @@ router.get('/api/request-details', (req, res) => {
                 record.items = itemResults || [];
                 return res.json({ success: true, data: record });
             });
-        } 
+        }
         // 4. Parse assigned employees for Travel requests
         else if (reqType.includes('travel')) {
             let employeeList = [];
             try {
-                employeeList = typeof record.assigned_employees === 'string' 
-                    ? JSON.parse(record.assigned_employees) 
+                employeeList = typeof record.assigned_employees === 'string'
+                    ? JSON.parse(record.assigned_employees)
                     : (record.assigned_employees || []);
             } catch (e) {
                 employeeList = [];
@@ -593,7 +619,7 @@ router.get('/api/request-details', (req, res) => {
             }];
 
             return res.json({ success: true, data: record });
-        } 
+        }
         // 5. Standard return for Leave, Overtime, and Loans
         else {
             return res.json({ success: true, data: record });
@@ -609,10 +635,10 @@ router.get('/api/my-requests', (req, res) => {
     }
 
     const roleQuery = 'SELECT position FROM users WHERE LOWER(user_id) = LOWER(?)';
-    
+
     db.query(roleQuery, [req_user_id], (roleErr, roleResults) => {
         let isManagement = false;
-        
+
         if (!roleErr && roleResults.length > 0) {
             const pos = roleResults[0].position.toLowerCase();
             if (pos === 'ceo' || pos === 'manager' || pos === 'supervisor' || pos === 'management') {
@@ -620,19 +646,19 @@ router.get('/api/my-requests', (req, res) => {
             }
         }
 
-        let leaveQuery  = `SELECT * FROM \`leave\``;
-        let disQuery    = `SELECT * FROM \`disbursements\``;
+        let leaveQuery = `SELECT * FROM \`leave\``;
+        let disQuery = `SELECT * FROM \`disbursements\``;
         let travelQuery = `SELECT * FROM \`travel\``;
-        let otQuery     = `SELECT * FROM \`overtime\``;
-        let loanQuery   = `SELECT * FROM \`loans\``;
+        let otQuery = `SELECT * FROM \`overtime\``;
+        let loanQuery = `SELECT * FROM \`loans\``;
         let queryParams = [];
 
         if (!isManagement) {
-            leaveQuery  = `SELECT * FROM \`leave\` WHERE LOWER(\`Employee ID\`) = LOWER(?)`;
-            disQuery    = `SELECT * FROM \`disbursements\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            leaveQuery = `SELECT * FROM \`leave\` WHERE LOWER(\`Employee ID\`) = LOWER(?)`;
+            disQuery = `SELECT * FROM \`disbursements\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             travelQuery = `SELECT * FROM \`travel\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
-            otQuery     = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
-            loanQuery   = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            otQuery = `SELECT * FROM \`overtime\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
+            loanQuery = `SELECT * FROM \`loans\` WHERE LOWER(\`employee_id\`) = LOWER(?)`;
             queryParams = [req_user_id];
         }
 
@@ -646,7 +672,7 @@ router.get('/api/my-requests', (req, res) => {
                             (leaveResults || []).forEach(row => {
                                 const rawDate = row['Created At'] || row['Start Date'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || row.ID || 0,
@@ -667,7 +693,7 @@ router.get('/api/my-requests', (req, res) => {
                             (disResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,
@@ -686,7 +712,7 @@ router.get('/api/my-requests', (req, res) => {
                             (travelResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,
@@ -705,7 +731,7 @@ router.get('/api/my-requests', (req, res) => {
                             (otResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,
@@ -724,7 +750,7 @@ router.get('/api/my-requests', (req, res) => {
                             (loanResults || []).forEach(row => {
                                 const rawDate = row['created_at'] || '—';
                                 let formattedDate = '—';
-                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch(e) {}
+                                try { formattedDate = new Date(rawDate).toISOString().split('T')[0]; } catch (e) { }
 
                                 combinedData.push({
                                     id: row.id || 0,

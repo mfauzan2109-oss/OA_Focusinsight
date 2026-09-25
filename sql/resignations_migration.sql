@@ -8,7 +8,7 @@
 -- (2026-09-23). Until this runs, resignation submission itself is also
 -- broken (same missing-column error, just on the INSERT instead of SELECT).
 --
--- Run once against the portal_oa database. Skip any ADD COLUMN that errors
+-- Run once against the fis_os_system database. Skip any ADD COLUMN that errors
 -- with "Duplicate column name" - it just means that part's already applied.
 
 ALTER TABLE `resignations`

@@ -4,7 +4,7 @@ const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'mysql',
-    database: process.env.DB_NAME || 'portal_oa'
+    database: process.env.DB_NAME || 'fis_oa'
 });
 
 db.connect((err) => {

@@ -2,7 +2,7 @@
     // Match backend session timeout.
     // Untuk PM demo: 60 minit.
     // Kalau nak test cepat, temporary tukar ke 2 * 60 * 1000.
-    const IDLE_TIMEOUT_MS = 2 * 60 * 1000;
+    const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 
     let idleTimer = null;
     let redirecting = false;

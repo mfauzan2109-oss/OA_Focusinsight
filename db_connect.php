@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $servername = "localhost";
 $username   = "root";
 $password   = "mysql"; // AMPPS default password
-$dbname     = "portal_oa";
+$dbname     = "fis_os_system";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);

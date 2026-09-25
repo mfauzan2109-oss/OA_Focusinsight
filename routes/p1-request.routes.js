@@ -1679,6 +1679,15 @@ router.get('/api/request-details', requireLogin, (req, res) => {
                LOWER(u.user_id COLLATE utf8mb4_general_ci)
         WHERE sa.id = ?
     `;
+    } else if (['job transfer', 'job-transfer', 'job_transfer'].includes(reqType)) {
+        query = `
+        SELECT jt.*, u.phone_no, u.email, u.department AS department
+        FROM job_transfer_requests jt
+        LEFT JOIN users u
+            ON LOWER(jt.employee_id) =
+               LOWER(u.user_id COLLATE utf8mb4_general_ci)
+        WHERE jt.id = ?
+    `;
     } else if (reqType === 'resignation') {
         query = `
         SELECT r.*, u.phone_no, u.email
@@ -1749,6 +1758,8 @@ router.get('/api/request-details', requireLogin, (req, res) => {
             sessionDepartment === 'management';
 
         const isDepartmentApprover =
+            sessionDepartment !== '' &&
+            recordDepartment !== '' &&
             (
                 sessionPosition.includes('manager') ||
                 sessionPosition.includes('supervisor')
@@ -1799,7 +1810,26 @@ router.get('/api/request-details', requireLogin, (req, res) => {
                 purpose_of_travel: 'Business trip'
             }];
 
-            return res.json({ success: true, data: record });
+            const stepsQuery = `
+    SELECT step_order, step_label, approver_role,
+           status, acted_by, acted_at, remarks
+    FROM travel_approval_steps
+    WHERE travel_id = ?
+    ORDER BY step_order
+`;
+
+            return db.query(stepsQuery, [record.id], (stepsErr, steps) => {
+                if (stepsErr) {
+                    console.error('Travel approval timeline error:', stepsErr);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to load Travel approval history.'
+                    });
+                }
+
+                record.approval_steps = steps;
+                return res.json({ success: true, data: record });
+            });
         }
         // 5. Standard return for Leave, Overtime, and Loans
         else {
@@ -2025,13 +2055,46 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                                         }); // <-- SALARY HABIS
 
 
-                                        combinedData.sort((a, b) => {
-                                            if (a.date_submitted === 'ΓÇö') return 1;
-                                            if (b.date_submitted === 'ΓÇö') return -1;
-                                            return b.date_submitted.localeCompare(a.date_submitted);
-                                        });
+                                        const jobTransferQuery = `
+    SELECT id, employee_id, employee_name, transfer_type,
+           created_at, status,
+           DATE_FORMAT(created_at, '%Y-%m-%d') AS date_submitted
+    FROM job_transfer_requests
+    WHERE LOWER(employee_id) = LOWER(?)
+`;
 
-                                        return res.json({ success: true, data: combinedData });
+                                        db.query(jobTransferQuery, [req_user_id], (jobErr, jobRows) => {
+                                            if (jobErr) {
+                                                console.error('My Requests Job Transfer error:', jobErr);
+                                                return res.status(500).json({
+                                                    success: false,
+                                                    message: 'Failed to load Job Transfer requests.'
+                                                });
+                                            }
+
+                                            (jobRows || []).forEach(row => {
+                                                combinedData.push({
+                                                    id: row.id,
+                                                    employee_id: row.employee_id,
+                                                    employee_name: row.employee_name,
+                                                    request_type: 'Job Transfer',
+                                                    details: ['Department', 'Position', 'Location'].includes(row.transfer_type)
+                                                        ? row.transfer_type : 'Transfer Request',
+                                                    date_submitted: row.date_submitted || '—',
+                                                    created_at: row.created_at || null,
+                                                    last_reminder_sent: null,
+                                                    amount: '—',
+                                                    status: (row.status || 'Pending').trim()
+                                                });
+                                            });
+
+                                            combinedData.sort((a, b) =>
+                                                (Date.parse(b.date_submitted) || 0) -
+                                                (Date.parse(a.date_submitted) || 0)
+                                            );
+
+                                            return res.json({ success: true, data: combinedData });
+                                        });
                                     });
                             });
                         });
@@ -2043,120 +2106,120 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
 
 })
 
-    router.post(
-        '/api/submit-hiring-approval',
-        requireHRAccess,
-        upload.single('attachment'),
-        (req, res) => {
+router.post(
+    '/api/submit-hiring-approval',
+    requireHRAccess,
+    upload.single('attachment'),
+    (req, res) => {
 
-            const {
-                employee_name,
-                hiring_type,
-                employee_replaced_id,
-                employment_type,
-                employment_period,
-                work_location,
-                required_start_date,
-                reason_for_hiring,
-                job_description,
-                key_responsibilities,
-                minimum_qualification,
-                required_skills,
-                required_experience,
-                salary_range,
-                hiring_priority
-            } = req.body;
+        const {
+            employee_name,
+            hiring_type,
+            employee_replaced_id,
+            employment_type,
+            employment_period,
+            work_location,
+            required_start_date,
+            reason_for_hiring,
+            job_description,
+            key_responsibilities,
+            minimum_qualification,
+            required_skills,
+            required_experience,
+            salary_range,
+            hiring_priority
+        } = req.body;
 
-            if (!employee_name || !hiring_type) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        'Employee Name and Hiring type are required.'
-                });
-            }
+        if (!employee_name || !hiring_type) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee Name and Hiring type are required.'
+            });
+        }
 
-            if (
-                hiring_type === 'Replacement' &&
-                !employee_replaced_id
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        'Employee being replaced is required for Replacement hiring type.'
-                });
-            }
+        if (
+            hiring_type === 'Replacement' &&
+            !employee_replaced_id
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Employee being replaced is required for Replacement hiring type.'
+            });
+        }
 
-            if (
-                !employment_type ||
-                !work_location ||
-                !required_start_date ||
-                !reason_for_hiring
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        'Please complete all Employment Information fields.'
-                });
-            }
+        if (
+            !employment_type ||
+            !work_location ||
+            !required_start_date ||
+            !reason_for_hiring
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Employment Information fields.'
+            });
+        }
 
-            const PERIOD_REQUIRED_TYPES = [
-                'Contract',
-                'Intern',
-                'Probation'
-            ];
+        const PERIOD_REQUIRED_TYPES = [
+            'Contract',
+            'Intern',
+            'Probation'
+        ];
 
-            if (
-                PERIOD_REQUIRED_TYPES.includes(
-                    employment_type
-                ) &&
-                !employment_period
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        'Period is required for Contract, Intern, or Probation employment types.'
-                });
-            }
+        if (
+            PERIOD_REQUIRED_TYPES.includes(
+                employment_type
+            ) &&
+            !employment_period
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Period is required for Contract, Intern, or Probation employment types.'
+            });
+        }
 
-            if (
-                !job_description ||
-                !key_responsibilities ||
-                !minimum_qualification ||
-                !required_skills ||
-                !required_experience
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        'Please complete all Job Requirement fields.'
-                });
-            }
+        if (
+            !job_description ||
+            !key_responsibilities ||
+            !minimum_qualification ||
+            !required_skills ||
+            !required_experience
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Job Requirement fields.'
+            });
+        }
 
-            if (
-                !salary_range ||
-                !hiring_priority
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        'Please complete all Salary Info fields.'
-                });
-            }
+        if (
+            !salary_range ||
+            !hiring_priority
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Please complete all Salary Info fields.'
+            });
+        }
 
-            const requester =
-                req.session.user;
+        const requester =
+            req.session.user;
 
-            const requestDate =
-                new Date()
-                    .toISOString()
-                    .split('T')[0];
+        const requestDate =
+            new Date()
+                .toISOString()
+                .split('T')[0];
 
-            const attachment_path =
-                req.file
-                    ? `uploads/${req.file.filename}`
-                    : null;
+        const attachment_path =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
 
-            const query = `
+        const query = `
             INSERT INTO hiring_approvals
             (
                 requested_by,
@@ -2200,60 +2263,60 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
             )
         `;
 
-            db.query(
-                query,
-                [
-                    requester.user_id,
-                    requestDate,
-                    requester.department,
+        db.query(
+            query,
+            [
+                requester.user_id,
+                requestDate,
+                requester.department,
 
-                    safeVal(employee_name, 100),
-                    safeVal(hiring_type, 50),
-                    safeVal(employee_replaced_id, 50),
+                safeVal(employee_name, 100),
+                safeVal(hiring_type, 50),
+                safeVal(employee_replaced_id, 50),
 
-                    safeVal(employment_type, 50),
-                    safeVal(employment_period, 50),
-                    safeVal(work_location, 150),
-                    safeVal(required_start_date, 20),
+                safeVal(employment_type, 50),
+                safeVal(employment_period, 50),
+                safeVal(work_location, 150),
+                safeVal(required_start_date, 20),
 
-                    safeVal(reason_for_hiring, 0),
-                    safeVal(job_description, 0),
-                    safeVal(key_responsibilities, 0),
+                safeVal(reason_for_hiring, 0),
+                safeVal(job_description, 0),
+                safeVal(key_responsibilities, 0),
 
-                    safeVal(minimum_qualification, 255),
-                    safeVal(required_skills, 0),
-                    safeVal(required_experience, 0),
+                safeVal(minimum_qualification, 255),
+                safeVal(required_skills, 0),
+                safeVal(required_experience, 0),
 
-                    safeVal(salary_range, 100),
-                    safeVal(hiring_priority, 20),
+                safeVal(salary_range, 100),
+                safeVal(hiring_priority, 20),
 
-                    attachment_path
-                ],
-                (err, result) => {
+                attachment_path
+            ],
+            (err, result) => {
 
-                    if (err) {
-                        console.error(
-                            'Hiring Approval SQL Error:',
-                            err
-                        );
+                if (err) {
+                    console.error(
+                        'Hiring Approval SQL Error:',
+                        err
+                    );
 
-                        return res.status(500).json({
-                            success: false,
-                            message:
-                                'Database Error: ' +
-                                err.message
-                        });
-                    }
-
-                    return res.json({
-                        success: true,
+                    return res.status(500).json({
+                        success: false,
                         message:
-                            'Hiring approval form submitted successfully!',
-                        id: result.insertId
+                            'Database Error: ' +
+                            err.message
                     });
                 }
-            );
-        }
-    );
+
+                return res.json({
+                    success: true,
+                    message:
+                        'Hiring approval form submitted successfully!',
+                    id: result.insertId
+                });
+            }
+        );
+    }
+);
 
 module.exports = router;

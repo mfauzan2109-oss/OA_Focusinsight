@@ -1076,8 +1076,6 @@
                 });
             }
 
-            loadDraft();
-
             const addEmployeeBtn = document.getElementById('addEmployeeBtn');
             const employeeTableBody = document.getElementById('employeeTableBody');
             const employeeEmptyHint = document.getElementById('employeeEmptyHint');
@@ -1238,6 +1236,8 @@
             if (departureDateInput) departureDateInput.addEventListener('change', calculateAllowance);
             if (returnDateInput) returnDateInput.addEventListener('change', calculateAllowance);
             if (hotelNightsInput) hotelNightsInput.addEventListener('input', calculateAllowance);
+
+            loadDraft();
 
             const errorBanner = document.getElementById('errorBanner');
             const submitBtn = document.getElementById('submitBtn');
