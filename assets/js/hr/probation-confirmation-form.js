@@ -142,6 +142,35 @@ document.addEventListener('DOMContentLoaded', function() {
         async function handleSubmit(e) {
             e.preventDefault();
 
+            // Guard against session drift across tabs: the sidebar above reads
+            // sessionStorage (per-tab), but the server checks its own session
+            // cookie (shared across all tabs in this browser). If another tab
+            // logged into a different account since this tab loaded, the two
+            // can disagree and submission would fail with an HR-only 403 even
+            // though this tab still displays an HR user. Catch that here with
+            // a clear message instead of a confusing "Access Denied" alert.
+            try {
+                const meRes = await fetch('/api/me');
+                const me = await meRes.json();
+                const sessionUserId = (sessionStorage.getItem('userId') || '').toLowerCase();
+                const activeUserId = (me?.user?.user_id || '').toLowerCase();
+
+                if (!meRes.ok || !me.success) {
+                    alert('Your session has expired or you were signed out in another tab. Please log in again in this tab before submitting.');
+                    return;
+                }
+
+                if (sessionUserId && activeUserId && sessionUserId !== activeUserId) {
+                    alert(`This tab is showing ${sessionUserId.toUpperCase()}, but the active login in this browser is now ${activeUserId.toUpperCase()} (likely from another tab). Please refresh or re-log in on this tab as ${sessionUserId.toUpperCase()} before submitting.`);
+                    return;
+                }
+            } catch (err) {
+                console.error('Session check failed:', err);
+                // Non-fatal: fall through and let the actual submit attempt
+                // surface any real auth error, rather than blocking on a
+                // network hiccup in this pre-check.
+            }
+
             const employeeId = document.getElementById('employeeId').value.trim();
             const employeeName = document.getElementById('employeeName').value.trim();
             const probationPeriod = document.getElementById('probationPeriod').value.trim();
