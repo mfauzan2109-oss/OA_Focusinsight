@@ -1810,7 +1810,26 @@ router.get('/api/request-details', requireLogin, (req, res) => {
                 purpose_of_travel: 'Business trip'
             }];
 
-            return res.json({ success: true, data: record });
+            const stepsQuery = `
+    SELECT step_order, step_label, approver_role,
+           status, acted_by, acted_at, remarks
+    FROM travel_approval_steps
+    WHERE travel_id = ?
+    ORDER BY step_order
+`;
+
+            return db.query(stepsQuery, [record.id], (stepsErr, steps) => {
+                if (stepsErr) {
+                    console.error('Travel approval timeline error:', stepsErr);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to load Travel approval history.'
+                    });
+                }
+
+                record.approval_steps = steps;
+                return res.json({ success: true, data: record });
+            });
         }
         // 5. Standard return for Leave, Overtime, and Loans
         else {

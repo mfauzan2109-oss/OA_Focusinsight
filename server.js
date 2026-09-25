@@ -16,7 +16,7 @@ const HOST = '0.0.0.0';
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const SESSION_TIMEOUT_MS = 1000 * 60 * 2; // 5 minutes for testing
+const SESSION_TIMEOUT_MS = 1000 * 60 * 10; // 10 minutes for testing
 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'focusinsight-secret-key',

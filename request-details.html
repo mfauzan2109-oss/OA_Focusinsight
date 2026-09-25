@@ -1064,9 +1064,11 @@
                 <div class="card-header-sm"><i class="fa-solid fa-timeline"></i> Approval Timeline</div>
                 <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
                     <div><i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <strong>Submitted:</strong>
-                        <span id="timeline-created">—</span></div>
+                        <span id="timeline-created">—</span>
+                    </div>
                     <div id="timeline-stage1"><i class="fa-solid fa-user-clock" style="color: #d97706;"></i>
-                        <strong>Stage 1 Approval:</strong> Pending Review</div>
+                        <strong>Stage 1 Approval:</strong> Pending Review
+                    </div>
                 </div>
             </div>
         </div>
@@ -1471,12 +1473,75 @@
             }
 
             const timelineStage1 = document.getElementById('timeline-stage1');
-            if (statusRaw === 'APPROVED' || statusRaw === 'APPROVE') {
-                timelineStage1.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <strong>Stage 1 Approval:</strong> Approved`;
+
+            if (String(type).trim().toLowerCase() === 'travel') {
+                timelineStage1.replaceChildren();
+
+                const steps = Array.isArray(data.approval_steps)
+                    ? data.approval_steps : [];
+
+                if (steps.length === 0) {
+                    timelineStage1.textContent = 'No approval history available.';
+                }
+
+                const colors = {
+                    approved: '#16a34a',
+                    rejected: '#dc2626',
+                    pending: '#d97706',
+                    waiting: '#64748b',
+                    cancelled: '#64748b'
+                };
+
+                steps.forEach(step => {
+                    const row = document.createElement('div');
+                    row.style.marginTop = '8px';
+
+                    const label = document.createElement('strong');
+                    label.textContent =
+                        `${step.step_label || step.approver_role || 'Approval'}: `;
+
+                    const status = document.createElement('span');
+                    status.textContent = step.status || 'Unknown';
+                    status.style.color =
+                        colors[String(step.status).toLowerCase()] || '#64748b';
+
+                    row.append(label, status);
+
+                    const details = [];
+                    if (step.acted_by) details.push(step.acted_by);
+
+                    if (step.acted_at) {
+                        const date = new Date(step.acted_at);
+                        if (!Number.isNaN(date.getTime())) {
+                            details.push(date.toLocaleString());
+                        }
+                    }
+
+                    if (details.length) {
+                        const meta = document.createElement('div');
+                        meta.style.fontSize = '12px';
+                        meta.textContent = details.join(' · ');
+                        row.appendChild(meta);
+                    }
+
+                    if (step.remarks) {
+                        const remarks = document.createElement('div');
+                        remarks.style.whiteSpace = 'pre-wrap';
+                        remarks.textContent = step.remarks;
+                        row.appendChild(remarks);
+                    }
+
+                    timelineStage1.appendChild(row);
+                });
+            } else if (statusRaw === 'APPROVED' || statusRaw === 'APPROVE') {
+                timelineStage1.innerHTML =
+                    '<strong>Stage 1 Approval:</strong> Approved';
             } else if (statusRaw === 'REJECTED' || statusRaw === 'REJECT') {
-                timelineStage1.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color: #dc2626;"></i> <strong>Stage 1 Approval:</strong> Rejected`;
+                timelineStage1.innerHTML =
+                    '<strong>Stage 1 Approval:</strong> Rejected';
             } else {
-                timelineStage1.innerHTML = `<i class="fa-solid fa-user-clock" style="color: #d97706;"></i> <strong>Stage 1 Approval:</strong> Pending Review`;
+                timelineStage1.innerHTML =
+                    '<strong>Stage 1 Approval:</strong> Pending Review';
             }
 
             document.getElementById('req-reason').innerText = data.reason || data['Reason'] || 'No description provided.';
