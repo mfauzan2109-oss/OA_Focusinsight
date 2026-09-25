@@ -1,14 +1,32 @@
 const express = require('express');
-
 const db = require('../config/database');
-
+const profileUpload = require('../middleware/profile-upload');
+const { requireLogin } = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/api/profile/:id', (req, res) => {
     const userId = req.params.id;
     // Your `users` table only has `basic_salary` (no separate `salary` column),
     // so we select it directly and alias it to `salary` for the frontend.
-    const query = `SELECT user_id, name, email, ic_no, phone_no, emergency_contact, address, department, position, employment_type, manager, join_date, company_name, basic_salary AS salary FROM users WHERE LOWER(user_id) = LOWER(?)`;
+    const query = `
+    SELECT
+        user_id,
+        name,
+        email,
+        ic_no,
+        phone_no,
+        emergency_contact,
+        address,
+        department,
+        position,
+        employment_type,
+        manager,
+        join_date,
+        company_name,
+        basic_salary AS salary,
+        profile_picture
+    FROM users
+    WHERE LOWER(user_id) = LOWER(?)`;
 
     db.query(query, [userId], (err, results) => {
         if (err) {
@@ -27,6 +45,86 @@ router.get('/api/profile/:id', (req, res) => {
         }
     });
 });
+
+router.post(
+    '/api/profile/:id/picture',
+    requireLogin,
+
+    // Employee can only change their own profile picture.
+    (req, res, next) => {
+        const loggedInUserId = String(
+            req.session.user.user_id || ''
+        ).trim().toLowerCase();
+
+        const requestedUserId = String(
+            req.params.id || ''
+        ).trim().toLowerCase();
+
+        if (loggedInUserId !== requestedUserId) {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only update your own profile picture.'
+            });
+        }
+
+        next();
+    },
+
+    profileUpload.single('profile_picture'),
+
+    (req, res) => {
+        const userId = req.params.id;
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please select an image.'
+            });
+        }
+
+        const profilePicturePath =
+            `uploads/profile-pictures/${req.file.filename}`;
+
+        const query = `
+            UPDATE users
+            SET profile_picture = ?
+            WHERE LOWER(user_id) = LOWER(?)
+        `;
+
+        db.query(
+            query,
+            [profilePicturePath, userId],
+            (err, result) => {
+                if (err) {
+                    console.error(
+                        'Profile Picture Update Error:',
+                        err
+                    );
+
+                    return res.status(500).json({
+                        success: false,
+                        message:
+                            'Failed to save profile picture.'
+                    });
+                }
+
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'User not found.'
+                    });
+                }
+
+                return res.json({
+                    success: true,
+                    message:
+                        'Profile picture updated successfully!',
+                    profile_picture: profilePicturePath
+                });
+            }
+        );
+    }
+);
 
 router.get('/api/user-status/:id', (req, res) => {
     const userId = req.params.id;
@@ -74,9 +172,9 @@ router.get('/api/user-status/:id', (req, res) => {
 
 router.put('/api/profile/:id', (req, res) => {
     const userId = req.params.id;
-    const { 
-        name, email, ic_no, phone_no, emergency_contact, 
-        address, department, position, manager, join_date 
+    const {
+        name, email, ic_no, phone_no, emergency_contact,
+        address, department, position, manager, join_date
     } = req.body;
 
     if (!userId) {
@@ -118,12 +216,12 @@ router.put('/api/profile/:id', (req, res) => {
         `;
 
         db.query(query, [
-            name || '', 
-            email || '', 
-            ic_no || '', 
-            phone_no || '', 
-            emergency_contact || '', 
-            address || '', 
+            name || '',
+            email || '',
+            ic_no || '',
+            phone_no || '',
+            emergency_contact || '',
+            address || '',
             cleanDept,
             cleanPos,
             cleanManager,
@@ -326,7 +424,7 @@ router.get('/api/departments', (req, res) => {
             const isLeadership = (position) => {
                 const pos = (position || '').toLowerCase();
                 return pos.includes('ceo') || pos.includes('manager') || pos.includes('head') ||
-                       pos.includes('director') || pos.includes('hod') || pos.includes('supervisor') || pos.includes('lead');
+                    pos.includes('director') || pos.includes('hod') || pos.includes('supervisor') || pos.includes('lead');
             };
 
             const globalManagers = (users || []).filter(u => isLeadership(u.position));

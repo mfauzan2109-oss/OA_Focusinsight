@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `join_date` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `basic_salary` decimal(10,2) DEFAULT '0.00',
-  PRIMARY KEY (`user_id`)
+`profile_picture` varchar(500) DEFAULT NULL,
+PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `workflows` (
