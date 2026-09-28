@@ -369,6 +369,12 @@
             60%      { transform: rotate(-8deg); }
             80%      { transform: rotate(6deg); }
         }
+    
+        .optional-tag {
+            font-weight: 400;
+            font-size: 0.85em;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -508,7 +514,7 @@
                             <!-- Rows added dynamically -->
                         </tbody>
                     </table>
-                    <div class="empty-table-hint" id="employeeEmptyHint">No employees added yet. Click "Add Employee" to include travellers on this request.</div>
+                    <div class="empty-table-hint" id="employeeEmptyHint">No employee added yet. Click "Add Employee" to add the traveller (one person per travel group).</div>
                 </div>
             </section>
 
@@ -583,22 +589,22 @@
 
             <!-- CONTACT DETAILS SECTION -->
             <section class="form-section" id="contact-section">
-                <h3 class="form-section-title" id="contact-section-title">Oversea Contact Details</h3>
+                <h3 class="form-section-title" id="contact-section-title">Oversea Contact Details (Optional)</h3>
 
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
-                        <label for="primary-contact">Primary Contact<span class="required">*</span></label>
-                        <input type="text" id="primary-contact" name="primary_contact" placeholder="Full name" required>
+                        <label for="primary-contact">Primary Contact <span class="optional-tag">(Optional)</span></label>
+                        <input type="text" id="primary-contact" name="primary_contact" placeholder="Full name">
                     </div>
                     <div class="input-group">
-                        <label for="phone-number">Phone Number<span class="required">*</span></label>
-                        <input type="tel" id="phone-number" name="phone_number" placeholder="e.g. +65 8123 4567" required>
+                        <label for="phone-number">Phone Number <span class="optional-tag">(Optional)</span></label>
+                        <input type="tel" id="phone-number" name="phone_number" placeholder="e.g. +65 8123 4567">
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label for="venue-address">Venue &amp; Address<span class="required">*</span></label>
-                    <textarea id="venue-address" name="venue_address" rows="3" placeholder="Enter venue name and full address" required></textarea>
+                    <label for="venue-address">Venue &amp; Address <span class="optional-tag">(Optional)</span></label>
+                    <textarea id="venue-address" name="venue_address" rows="3" placeholder="Enter venue name and full address"></textarea>
                 </div>
             </section>
 
@@ -758,55 +764,9 @@
                 <div class="input-group">
                     <label for="hotel-price">Estimated Price<span class="required">*</span></label>
                     <input type="number" step="0.01" id="hotel-price" name="hotel_price" placeholder="0.00" required>
+                    <span class="upload-hint" id="hotel-budget-hint">Hotel budget: RM 300 per room/night.</span>
                 </div>
             </section>
-
-            <!-- ATTACHMENT SECTION -->
-            <section class="form-section">
-                <h3 class="form-section-title">Supporting Document</h3>
-                <div class="input-group">
-                    <label for="attachment">Attachment</label>
-                    <input type="file" id="attachment" name="attachment">
-                    <span class="upload-hint">Upload itineraries, flight/hotel quotes, or invitation letters (PDF, JPG, PNG).</span>
-                </div>
-            </section>
-
-            <!-- ALLOWANCE CALCULATION -->
-            <div class="allowance-container">
-                <h3 class="allowance-title">
-                    <i class="fa-solid fa-calculator"></i> Allowance Calculation
-                </h3>
-
-                <div class="allowance-grid">
-                    
-                    <!-- Travel Allowance -->
-                    <div class="allowance-card">
-                        <div class="allowance-header">
-                            <i class="fa-solid fa-plane allowance-icon"></i>
-                            <span class="allowance-name">Travel Allowance</span>
-                        </div>
-                        <div class="allowance-metrics">
-                            <div class="metric-item">
-                                <span class="metric-label">Trip Days</span>
-                                <span class="metric-value" id="travel-days">0</span>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-label">Rate</span>
-                                <span class="metric-value" id="rate-travel">RM150</span>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-label">Allowance</span>
-                                <span class="metric-value" id="travel-allowance">RM 0.00</span>
-                            </div>
-                            <div class="metric-item highlight">
-                                <span class="metric-label">Est. Total</span>
-                                <span class="metric-value" id="travel-total">RM 0.00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
 
             <div class="form-actions-pill form-actions-margin">
                 <button type="button" class="btn-cancel-pill" id="cancelBtn">Cancel</button>
@@ -975,32 +935,12 @@
             });
 
             let currentGrandTotalAllowance = 0;
-            let rates = {}; 
             let allFetchedRequests = [];
 
-            async function fetchAllowanceRates() {
-                try {
-                    const response = await fetch(`${CONFIG.apiBaseUrl}${CONFIG.endpoints.allowanceRates}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        rates = Object.keys(data).reduce((acc, key) => {
-                            acc[key] = parseFloat(data[key]) || 0;
-                            return acc;
-                        }, {});
-                        
-                        if(rates.travel !== undefined) document.getElementById('rate-travel').textContent = `RM${rates.travel}`;
-
-                        calculateAllowance();
-                    } else {
-                        rates = { travel: 150 };
-                    }
-                } catch (error) {
-                    console.error('Error fetching allowance rates:', error);
-                    rates = { travel: 150 };
-                }
-            }
-
-            await fetchAllowanceRates();
+            // Company rules
+            const TRAVEL_ALLOWANCE_PER_DAY = 150;   // RM per day
+            const HOTEL_BUDGET_PER_NIGHT = 300;     // RM per room per night
+            const MAX_TRAVELLERS = 1;               // one person per travel group
 
             // AUTO-SAVE DRAFT LOGIC
             const AUTOSAVE_KEY = `travel_request_draft_${currentEmployeeId}`;
@@ -1080,8 +1020,21 @@
             const employeeTableBody = document.getElementById('employeeTableBody');
             const employeeEmptyHint = document.getElementById('employeeEmptyHint');
 
+            function updateAddEmployeeState() {
+                if (!addEmployeeBtn || !employeeTableBody) return;
+                const full = employeeTableBody.children.length >= MAX_TRAVELLERS;
+                addEmployeeBtn.disabled = full;
+                addEmployeeBtn.style.opacity = full ? '0.5' : '';
+                addEmployeeBtn.style.cursor = full ? 'not-allowed' : '';
+                addEmployeeBtn.title = full ? 'Only one person is allowed per travel group.' : '';
+            }
+
             if (addEmployeeBtn && employeeTableBody) {
                 addEmployeeBtn.addEventListener('click', () => {
+                    if (employeeTableBody.children.length >= MAX_TRAVELLERS) {
+                        alert('Only one person is allowed per travel group.');
+                        return;
+                    }
                     if (employeeEmptyHint) {
                         employeeEmptyHint.style.display = 'none';
                     }
@@ -1112,10 +1065,12 @@
                         if (employeeTableBody.children.length === 0 && employeeEmptyHint) {
                             employeeEmptyHint.style.display = 'block';
                         }
+                        updateAddEmployeeState();
                         calculateAllowance();
                     });
 
                     employeeTableBody.appendChild(tr);
+                    updateAddEmployeeState();
                     calculateAllowance();
                 });
             }
@@ -1146,9 +1101,9 @@
                     const isFlight = mode === 'flight';
 
                     if (mode === 'car' || mode === 'others') {
-                        if (contactSectionTitle) contactSectionTitle.textContent = 'Contact Details';
+                        if (contactSectionTitle) contactSectionTitle.textContent = 'Contact Details (Optional)';
                     } else {
-                        if (contactSectionTitle) contactSectionTitle.textContent = 'Oversea Contact Details';
+                        if (contactSectionTitle) contactSectionTitle.textContent = 'Oversea Contact Details (Optional)';
                     }
 
                     flightSections.forEach(section => {
@@ -1183,11 +1138,11 @@
             const returnDateInput = document.getElementById('return-date');
             const hotelNightsInput = document.getElementById('hotel-nights');
 
+            // Allowance is still calculated (RM150/day x trip days) and sent as total_amount,
+            // but it is no longer displayed on the form.
             function calculateAllowance() {
                 const depDateVal = departureDateInput ? departureDateInput.value : '';
                 const retDateVal = returnDateInput ? returnDateInput.value : '';
-                const travellerCount = Math.max(1, employeeTableBody ? employeeTableBody.children.length : 1);
-                const nights = parseInt(hotelNightsInput ? hotelNightsInput.value : 0) || 0;
 
                 let diffDays = 0;
                 if (depDateVal && retDateVal) {
@@ -1198,46 +1153,48 @@
                     }
                 }
 
-                if (diffDays > 0) {
-                    const travelRate = rates.travel || 150;
-                    const travelTotal = diffDays * travelRate * travellerCount;
+                currentGrandTotalAllowance = diffDays * TRAVEL_ALLOWANCE_PER_DAY;
+            }
 
-                    updateMetricDisplay('travel', diffDays, travelRate * diffDays, travelTotal);
+            // Hotel budget: estimated price must not exceed RM300 x total nights (one room).
+            const hotelPriceInput = document.getElementById('hotel-price');
+            const hotelBudgetHint = document.getElementById('hotel-budget-hint');
+            const hotelBudgetDefaultText = `Hotel budget: RM ${HOTEL_BUDGET_PER_NIGHT} per room/night.`;
 
-                    currentGrandTotalAllowance = travelTotal;
+            function validateHotelBudget() {
+                if (!hotelPriceInput) return;
+                const hotelActive = accommodationSelect && accommodationSelect.value === 'yes';
+                const nights = parseInt(hotelNightsInput ? hotelNightsInput.value : 0) || 0;
+                const price = parseFloat(hotelPriceInput.value) || 0;
+                const maxAllowed = nights * HOTEL_BUDGET_PER_NIGHT;
+
+                if (hotelActive && nights > 0 && price > maxAllowed) {
+                    const msg = `Exceeds hotel budget: maximum is RM ${maxAllowed.toFixed(2)} for ${nights} night(s) (RM ${HOTEL_BUDGET_PER_NIGHT} per room/night).`;
+                    hotelPriceInput.setCustomValidity(msg);
+                    if (hotelBudgetHint) {
+                        hotelBudgetHint.textContent = msg;
+                        hotelBudgetHint.style.color = '#ef4444';
+                    }
                 } else {
-                    resetAllowanceDisplay();
-                    currentGrandTotalAllowance = 0;
+                    // Also clears the error when the hotel section is hidden, so it can't block submit.
+                    hotelPriceInput.setCustomValidity('');
+                    if (hotelBudgetHint) {
+                        hotelBudgetHint.textContent = hotelBudgetDefaultText;
+                        hotelBudgetHint.style.color = '';
+                    }
                 }
             }
 
-            function updateMetricDisplay(prefix, daysCount, singleTotal, groupTotal) {
-                const daysEl = document.getElementById(`${prefix}-days`);
-                const allowEl = document.getElementById(`${prefix}-allowance`);
-                const totalEl = document.getElementById(`${prefix}-total`);
-
-                if (daysEl) daysEl.textContent = daysCount;
-                if (allowEl) allowEl.textContent = `RM ${singleTotal.toFixed(2)}`;
-                if (totalEl) totalEl.textContent = `RM ${groupTotal.toFixed(2)}`;
-            }
-
-            function resetAllowanceDisplay() {
-                ['travel'].forEach(prefix => {
-                    const daysEl = document.getElementById(`${prefix}-days`);
-                    const allowEl = document.getElementById(`${prefix}-allowance`);
-                    const totalEl = document.getElementById(`${prefix}-total`);
-
-                    if (daysEl) daysEl.textContent = '0';
-                    if (allowEl) allowEl.textContent = 'RM 0.00';
-                    if (totalEl) totalEl.textContent = 'RM 0.00';
-                });
-            }
+            if (hotelPriceInput) hotelPriceInput.addEventListener('input', validateHotelBudget);
+            if (hotelNightsInput) hotelNightsInput.addEventListener('input', validateHotelBudget);
+            if (accommodationSelect) accommodationSelect.addEventListener('change', validateHotelBudget);
 
             if (departureDateInput) departureDateInput.addEventListener('change', calculateAllowance);
             if (returnDateInput) returnDateInput.addEventListener('change', calculateAllowance);
             if (hotelNightsInput) hotelNightsInput.addEventListener('input', calculateAllowance);
 
             loadDraft();
+            validateHotelBudget();
 
             const errorBanner = document.getElementById('errorBanner');
             const submitBtn = document.getElementById('submitBtn');
