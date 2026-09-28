@@ -7,7 +7,7 @@
 -- this column yet, any submission with Employment Type set to Contract,
 -- Intern, or Probation would fail with "Unknown column 'employment_period'".
 --
--- Run once against the portal_oa database. Skip if the column already
+-- Run once against the fis_os_system database. Skip if the column already
 -- exists (error will say "Duplicate column name").
 
 ALTER TABLE `hiring_approvals`

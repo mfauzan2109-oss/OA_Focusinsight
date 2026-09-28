@@ -8,6 +8,7 @@ const approval = require('../utils/resignation-approval');
 const probationService = require('../utils/probation-service');
 const salaryAdjustmentApproval = require('../utils/salary-adjustment-approval');
 const p1Approval = require('../utils/p1-approval');
+const jobTransferApproval = require('../utils/job-transfer-approval');
 
 const router = express.Router();
 async function openConnection() {
@@ -39,6 +40,22 @@ function endpoint(action) {
 // Mounted before the legacy approval router. Its PUT routes for other form types remain active.
 router.put('/api/approval-queue/:type/:id', requireLogin, (req, res, next) => {
     const type = approval.norm(req.params.type);
+
+    if (
+        type === 'job transfer' ||
+        type === 'job-transfer' ||
+        type === 'job_transfer'
+    ) {
+        return endpoint((connection, request) =>
+            jobTransferApproval.decide(
+                connection,
+                request.session.user.user_id,
+                request.params.id,
+                request.body.status,
+                request.body.remarks || request.body.comment || null
+            )
+        )(req, res);
+    }
 
     if (type === 'resignation') {
         return endpoint((connection, request) =>
@@ -133,6 +150,14 @@ router.get('/api/approval-queue', requireLogin, endpoint(async (connection, req)
             })));
         }
     }
+
+    const jobTransferRequests = await jobTransferApproval.queue(
+        connection,
+        req.session.user.user_id
+    );
+
+    combined.push(...jobTransferRequests);
+
     const [leaveRequests] = await connection.query(`
     SELECT
         l.ID AS id,
