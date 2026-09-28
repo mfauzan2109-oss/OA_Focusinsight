@@ -18,6 +18,7 @@ router.use(require('./request.routes'));
 // P1 notifications + approval MUST be before legacy approval
 router.use(require('./resignation-notifications.routes'));
 router.use(require('./resignation-approval.routes'));
+router.use(require('./approval-history.routes'));
 
 // Legacy fallback
 router.use(require('./approval.routes'));
