@@ -250,6 +250,24 @@ router.put(
             const userId =
                 req.session.user.user_id;
 
+            const actor =
+                await p1Approval.freshUser(
+                    connection,
+                    userId
+                );
+
+            if (
+                String(actor.position || '')
+                    .trim()
+                    .toLowerCase() !== 'vgm'
+            ) {
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        'Bulk approval is only available to VGM.'
+                });
+            }
+
             const results = [];
 
             for (const item of requests) {
@@ -329,7 +347,7 @@ router.put(
             if (connection) {
                 await connection
                     .end()
-                    .catch(() => {});
+                    .catch(() => { });
             }
         }
     }

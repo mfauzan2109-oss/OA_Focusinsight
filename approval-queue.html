@@ -5,18 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Approval Queue - FocusInsight</title>
-  <script>
-    // VGM-only page: anyone logged in with another position is sent away before the page renders.
-    (function () {
-      var pos = (sessionStorage.getItem('position') || '').toLowerCase();
-      var loggedIn = sessionStorage.getItem('userId') && sessionStorage.getItem('username');
-      if (loggedIn && pos.indexOf('vgm') === -1) {
-        document.documentElement.style.visibility = 'hidden';
-        alert('Access Denied! Only VGM can access the Approval Queue.');
-        window.location.replace('dashboard.html');
-      }
-    })();
-  </script>
   <link rel="stylesheet" href="style.css">
   <!-- Boxicons & FontAwesome CDN -->
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -698,6 +686,7 @@
       flex-wrap: wrap;
       padding: 10px 4px 12px;
     }
+
     .bulk-select-all {
       display: inline-flex;
       align-items: center;
@@ -707,6 +696,7 @@
       color: #2563eb;
       cursor: pointer;
     }
+
     .bulk-toolbar input[type="checkbox"],
     #completedTableBody input[type="checkbox"] {
       width: 16px;
@@ -714,13 +704,19 @@
       accent-color: #2563eb;
       cursor: pointer;
     }
+
     .bulk-count {
       margin-left: auto;
       font-size: 12px;
       font-weight: 600;
       color: #2563eb;
     }
-    .bulk-actions { display: flex; gap: 10px; }
+
+    .bulk-actions {
+      display: flex;
+      gap: 10px;
+    }
+
     .btn-bulk {
       display: inline-flex;
       align-items: center;
@@ -734,10 +730,24 @@
       cursor: pointer;
       transition: opacity 0.15s ease;
     }
-    .btn-bulk-approve { background: #16a34a; }
-    .btn-bulk-reject { background: #dc2626; }
-    .btn-bulk:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-bulk:focus-visible { outline: 2px solid #0f172a; outline-offset: 2px; }
+
+    .btn-bulk-approve {
+      background: #16a34a;
+    }
+
+    .btn-bulk-reject {
+      background: #dc2626;
+    }
+
+    .btn-bulk:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-bulk:focus-visible {
+      outline: 2px solid #0f172a;
+      outline-offset: 2px;
+    }
 
     #bulkApprovalTable thead th {
       background: #e5177f;
@@ -746,14 +756,33 @@
       font-size: 11px;
       letter-spacing: 0.4px;
     }
+
     #bulkApprovalTable th.cb-col,
-    #bulkApprovalTable td.cb-cell { width: 36px; text-align: center; }
-    #bulkApprovalTable tbody tr.row-selected { background: #eff6ff; }
+    #bulkApprovalTable td.cb-cell {
+      width: 36px;
+      text-align: center;
+    }
 
-    .table-badge.pending { background: #fef3c7; color: #b45309; }
-    .table-badge.resubmission { background: #ffedd5; color: #c2410c; }
+    #bulkApprovalTable tbody tr.row-selected {
+      background: #eff6ff;
+    }
 
-    .pagination { display: flex; gap: 6px; align-items: center; }
+    .table-badge.pending {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .table-badge.resubmission {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .pagination {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
     .pagination .page-btn {
       min-width: 28px;
       height: 28px;
@@ -765,8 +794,17 @@
       font-size: 12px;
       cursor: pointer;
     }
-    .pagination .page-btn.active { background: #2563eb; border-color: #2563eb; color: #ffffff; }
-    .pagination .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .pagination .page-btn.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .pagination .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
@@ -936,8 +974,8 @@
       </div>
     </section>
 
-    <!-- All Approval History Section -->
-    <section class="table-panel">
+    <!-- VGM-only All Approval Section -->
+    <section class="table-panel" id="vgmAllApprovalSection">
       <h3>All Approval</h3>
 
       <!-- VGM bulk actions: approve / reject all or selected pending requests -->
@@ -997,12 +1035,6 @@
       if (!username || !userId) {
         alert("Access Denied! Please log in first.");
         window.location.href = "index.html";
-        return;
-      }
-
-      // Only VGM may use this page (the <head> guard already redirects; this stops the script too).
-      if ((position || '').toLowerCase().indexOf('vgm') === -1) {
-        window.location.replace('dashboard.html');
         return;
       }
 
@@ -1078,8 +1110,38 @@
       const normalizedPosition =
         (position || '').trim().toLowerCase();
 
+      const isVGM =
+        normalizedPosition === 'vgm';
+
+      const vgmAllApprovalSection =
+        document.getElementById('vgmAllApprovalSection');
+
+      if (!isVGM && vgmAllApprovalSection) {
+        vgmAllApprovalSection.style.display = 'none';
+      }
+
       const approvalOnlyRole =
         ['ceo', 'chairman'].includes(normalizedPosition);
+
+      // Bulk approval is VGM-only.
+      // Other approvers can still use the normal Approval Queue.
+      const bulkToolbar =
+        document.getElementById('bulkToolbar');
+
+      const bulkCheckboxHeader =
+        document.querySelector(
+          '#bulkApprovalTable th.cb-col'
+        );
+
+      if (!isVGM) {
+        if (bulkToolbar) {
+          bulkToolbar.style.display = 'none';
+        }
+
+        if (bulkCheckboxHeader) {
+          bulkCheckboxHeader.style.display = 'none';
+        }
+      }
 
       if (approvalOnlyRole) {
         const dashboardLink =
@@ -1360,6 +1422,22 @@
           const lowerType = reqType.toLowerCase();
           let htmlFields = '';
 
+          function formatDateOnly(value) {
+            if (!value) return '—';
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+              return String(value).slice(0, 10);
+            }
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+          }
+
           // A. LEAVE APPLICATION DETAILS
           if (lowerType.includes('leave')) {
             htmlFields = `
@@ -1367,8 +1445,8 @@
                 <div class="detail-field"><label>Leave Type</label><div class="field-box">${data['Leave Type'] || data.leave_type || '—'}</div></div>
                 <div class="detail-field"><label>Day Type</label><div class="field-box">${data['Day type'] || data.day_type || 'Full Day'}</div></div>
                 <div class="detail-field"><label>No. of Days</label><div class="field-box">${data['No of Days'] || data.no_of_days || '1'}</div></div>
-                <div class="detail-field"><label>Start Date</label><div class="field-box">${data['Start Date'] ? new Date(data['Start Date']).toISOString().split('T')[0] : '—'}</div></div>
-                <div class="detail-field"><label>End Date</label><div class="field-box">${data['End Date'] ? new Date(data['End Date']).toISOString().split('T')[0] : '—'}</div></div>
+                <div class="detail-field"><label>Start Date</label><div class="field-box">${data['Start Date'] ? formatDateOnly(data['Start Date'] || data.start_date) : '—'}</div></div>
+                <div class="detail-field"><label>End Date</label><div class="field-box">${data['End Date'] ? formatDateOnly(data['End Date'] || data.end_date) : '—'}</div></div>
                 <div class="detail-field"><label>Supporting Document</label><div class="field-box" style="background:transparent; border:none; padding:0;">${docHTML}</div></div>
               </div>
               <div class="detail-field" style="margin-top: 14px;">
@@ -1555,6 +1633,9 @@
       }
 
       function renderApprovalTable() {
+        if (!isVGM) {
+          return;
+        }
         const body = document.getElementById('completedTableBody');
         const info = document.getElementById('paginationInfo');
         const controls = document.getElementById('paginationControls');
@@ -1566,7 +1647,14 @@
         controls.innerHTML = '';
 
         if (total === 0) {
-          body.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No approval records found.</td></tr>`;
+          body.innerHTML = `
+            <tr>
+              <td colspan="${isVGM ? 7 : 6}"
+                  style="text-align:center;color:#64748b;padding:20px;">
+                No approval records found.
+              </td>
+            </tr>
+          `;
           info.textContent = 'Showing 0 of 0 records';
           updateBulkBar();
           return;
@@ -1596,7 +1684,12 @@
 
           const cbTd = document.createElement('td');
           cbTd.className = 'cb-cell';
-          if (pending) {
+
+          if (!isVGM) {
+            cbTd.style.display = 'none';
+          }
+
+          if (pending && isVGM) {
             const cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.checked = selectedKeys.has(key);
@@ -1653,6 +1746,9 @@
 
       // Approves/rejects every selected request using the existing per-request endpoint.
       async function bulkUpdate(actionStatus) {
+        if (!isVGM) {
+          return;
+        }
         const items = tableRows.filter(item => isPendingItem(item) && selectedKeys.has(rowKey(item)));
         if (items.length === 0) {
           alert('Please select at least one pending request.');
