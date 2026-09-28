@@ -19,6 +19,7 @@ router.use(require('./request.routes'));
 router.use(require('./resignation-notifications.routes'));
 router.use(require('./resignation-approval.routes'));
 router.use(require('./approval-history.routes'));
+router.use(require('./bulk-approval.routes'));
 
 // Legacy fallback
 router.use(require('./approval.routes'));
