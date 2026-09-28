@@ -17,7 +17,7 @@
 --    (via probation-confirmation-detail.html), so HR's initial submission
 --    correctly leaves them blank - which fails unless we make them nullable.
 --
--- Run this once against the portal_oa database (skip any ADD COLUMN that
+-- Run this once against the fis_os_system database (skip any ADD COLUMN that
 -- errors with "Duplicate column name" - it just means that part's already
 -- been applied):
 

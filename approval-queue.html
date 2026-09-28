@@ -5,6 +5,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Approval Queue - FocusInsight</title>
+  <script>
+    // VGM-only page: anyone logged in with another position is sent away before the page renders.
+    (function () {
+      var pos = (sessionStorage.getItem('position') || '').toLowerCase();
+      var loggedIn = sessionStorage.getItem('userId') && sessionStorage.getItem('username');
+      if (loggedIn && pos.indexOf('vgm') === -1) {
+        document.documentElement.style.visibility = 'hidden';
+        alert('Access Denied! Only VGM can access the Approval Queue.');
+        window.location.replace('dashboard.html');
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
   <!-- Boxicons & FontAwesome CDN -->
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -677,6 +689,84 @@
     .doc-link-btn:hover {
       background: #dbeafe;
     }
+
+    /* ---- VGM bulk approval: toolbar, selectable table, pagination ---- */
+    .bulk-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 10px 4px 12px;
+    }
+    .bulk-select-all {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2563eb;
+      cursor: pointer;
+    }
+    .bulk-toolbar input[type="checkbox"],
+    #completedTableBody input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+    .bulk-count {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2563eb;
+    }
+    .bulk-actions { display: flex; gap: 10px; }
+    .btn-bulk {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+    .btn-bulk-approve { background: #16a34a; }
+    .btn-bulk-reject { background: #dc2626; }
+    .btn-bulk:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-bulk:focus-visible { outline: 2px solid #0f172a; outline-offset: 2px; }
+
+    #bulkApprovalTable thead th {
+      background: #e5177f;
+      color: #ffffff;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+    }
+    #bulkApprovalTable th.cb-col,
+    #bulkApprovalTable td.cb-cell { width: 36px; text-align: center; }
+    #bulkApprovalTable tbody tr.row-selected { background: #eff6ff; }
+
+    .table-badge.pending { background: #fef3c7; color: #b45309; }
+    .table-badge.resubmission { background: #ffedd5; color: #c2410c; }
+
+    .pagination { display: flex; gap: 6px; align-items: center; }
+    .pagination .page-btn {
+      min-width: 28px;
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #ffffff;
+      color: #334155;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .pagination .page-btn.active { background: #2563eb; border-color: #2563eb; color: #ffffff; }
+    .pagination .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   </style>
 </head>
 
@@ -697,14 +787,18 @@
     </a>
 
     <nav class="nav-menu">
+      <a href="dashboard.html" class="nav-item">
+        <i class='bx bx-grid-alt'></i>
+        <span>Dashboard</span>
+      </a>
       <a href="approval-queue.html" class="nav-item active">
         <i class='bx bx-check-shield'></i>
         <span>Approval Queue</span>
         <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
       </a>
-      <a href="dashboard.html" class="nav-item">
-        <i class='bx bx-grid-alt'></i>
-        <span>Dashboard</span>
+      <a href="approval-history.html" class="nav-item">
+        <i class='bx bx-history'></i>
+        <span>Approval History</span>
       </a>
       <a href="my-request.html" class="nav-item">
         <i class='bx bx-file'></i>
@@ -845,17 +939,34 @@
     <!-- All Approval History Section -->
     <section class="table-panel">
       <h3>All Approval</h3>
+
+      <!-- VGM bulk actions: approve / reject all or selected pending requests -->
+      <div class="bulk-toolbar" id="bulkToolbar">
+        <label class="bulk-select-all">
+          <input type="checkbox" id="selectAllCheckbox"> Select All
+        </label>
+        <span class="bulk-count" id="bulkCount">0 Selected</span>
+        <div class="bulk-actions">
+          <button type="button" class="btn-bulk btn-bulk-approve" id="approveSelectedBtn" disabled>
+            <i class='bx bx-check-circle'></i> Approve Selected
+          </button>
+          <button type="button" class="btn-bulk btn-bulk-reject" id="rejectSelectedBtn" disabled>
+            <i class='bx bx-x-circle'></i> Reject Selected
+          </button>
+        </div>
+      </div>
+
       <div class="table-container">
-        <table class="approval-table">
+        <table class="approval-table" id="bulkApprovalTable">
           <thead>
             <tr>
+              <th class="cb-col"></th>
               <th>Request ID</th>
               <th>Type</th>
               <th>Employee (Department)</th>
               <th>Amount</th>
               <th>Submitted</th>
               <th>Status</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tbody id="completedTableBody">
@@ -886,6 +997,12 @@
       if (!username || !userId) {
         alert("Access Denied! Please log in first.");
         window.location.href = "index.html";
+        return;
+      }
+
+      // Only VGM may use this page (the <head> guard already redirects; this stops the script too).
+      if ((position || '').toLowerCase().indexOf('vgm') === -1) {
+        window.location.replace('dashboard.html');
         return;
       }
 
@@ -958,17 +1075,22 @@
         }
       }
 
+      const normalizedPosition =
+        (position || '').trim().toLowerCase();
+
       const approvalOnlyRole =
-        ['ceo', 'chairman'].includes(
-          (position || '').trim().toLowerCase()
-        );
+        ['ceo', 'chairman'].includes(normalizedPosition);
 
       if (approvalOnlyRole) {
         const dashboardLink =
           document.querySelector('.nav-menu a[href="dashboard.html"]');
 
         if (dashboardLink) {
-          dashboardLink.href = 'dashboard-approver.html';
+          if (normalizedPosition === 'ceo') {
+            dashboardLink.href = 'dashboard.html';
+          } else if (normalizedPosition === 'chairman') {
+            dashboardLink.href = 'dashboard-approver.html';
+          }
         }
 
         document.querySelectorAll(
@@ -1402,6 +1524,196 @@
         }
       }
 
+      // =========================================================================
+      // 5a. VGM BULK APPROVAL — selectable + paginated "All Approval" table
+      // =========================================================================
+      const PAGE_SIZE = 7;
+      let tableRows = [];
+      let tablePage = 1;
+      const selectedKeys = new Set();
+
+      function isPendingItem(item) {
+        const st = (item.status || '').trim().toLowerCase();
+        return st === 'pending' || st === 'in review' || st === 'submitted';
+      }
+      function rowKey(item) { return `${item.request_type}|${item.id}`; }
+      function escHtml(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      }
+
+      function updateBulkBar() {
+        const pendingTotal = tableRows.filter(isPendingItem).length;
+        const count = selectedKeys.size;
+        document.getElementById('bulkCount').textContent = `${count} Selected`;
+        document.getElementById('approveSelectedBtn').disabled = count === 0;
+        document.getElementById('rejectSelectedBtn').disabled = count === 0;
+
+        const all = document.getElementById('selectAllCheckbox');
+        all.disabled = pendingTotal === 0;
+        all.checked = pendingTotal > 0 && count === pendingTotal;
+        all.indeterminate = count > 0 && count < pendingTotal;
+      }
+
+      function renderApprovalTable() {
+        const body = document.getElementById('completedTableBody');
+        const info = document.getElementById('paginationInfo');
+        const controls = document.getElementById('paginationControls');
+        const total = tableRows.length;
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        if (tablePage > totalPages) tablePage = totalPages;
+
+        body.innerHTML = '';
+        controls.innerHTML = '';
+
+        if (total === 0) {
+          body.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No approval records found.</td></tr>`;
+          info.textContent = 'Showing 0 of 0 records';
+          updateBulkBar();
+          return;
+        }
+
+        const pageRows = tableRows.slice((tablePage - 1) * PAGE_SIZE, tablePage * PAGE_SIZE);
+
+        pageRows.forEach(item => {
+          const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
+          const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
+          const reqType = item.request_type || 'General';
+          const pending = isPendingItem(item);
+          const key = rowKey(item);
+
+          let statusClass, statusLabel = item.status;
+          if (pending) {
+            const isResub = !!item.is_resubmission || (item.resubmission_count && item.resubmission_count > 0);
+            statusClass = isResub ? 'resubmission' : 'pending';
+            statusLabel = isResub ? 'Resubmission' : (item.status || 'Pending');
+          } else {
+            const lower = (item.status || '').toLowerCase();
+            statusClass = lower.includes('reject') ? 'rejected' : lower.includes('revision') ? 'revision' : 'approved';
+          }
+
+          const tr = document.createElement('tr');
+          if (selectedKeys.has(key)) tr.classList.add('row-selected');
+
+          const cbTd = document.createElement('td');
+          cbTd.className = 'cb-cell';
+          if (pending) {
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = selectedKeys.has(key);
+            cb.setAttribute('aria-label', `Select ${formattedId}`);
+            cb.addEventListener('change', () => {
+              if (cb.checked) selectedKeys.add(key); else selectedKeys.delete(key);
+              tr.classList.toggle('row-selected', cb.checked);
+              updateBulkBar();
+            });
+            cbTd.appendChild(cb);
+          }
+          tr.appendChild(cbTd);
+
+          tr.insertAdjacentHTML('beforeend', `
+            <td><a href="request-details.html?id=${encodeURIComponent(item.id)}&type=${encodeURIComponent(reqType)}" class="view-action-link"><strong>${formattedId}</strong></a></td>
+            <td>${escHtml(reqType)}</td>
+            <td>${escHtml(item.employee_name)} (${escHtml(item.department)})</td>
+            <td>${escHtml(item.amount || '—')}</td>
+            <td>${dateStr}</td>
+            <td><span class="table-badge ${statusClass}">${escHtml(statusLabel)}</span></td>
+          `);
+          body.appendChild(tr);
+        });
+
+        info.textContent = `Showing ${pageRows.length} of ${total} records`;
+
+        // Pagination: ‹ 1 2 3 ›
+        const mkBtn = (label, page, opts = {}) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'page-btn' + (opts.active ? ' active' : '');
+          b.textContent = label;
+          b.disabled = !!opts.disabled;
+          b.addEventListener('click', () => { tablePage = page; renderApprovalTable(); });
+          return b;
+        };
+        if (totalPages > 1) {
+          controls.appendChild(mkBtn('‹', tablePage - 1, { disabled: tablePage === 1 }));
+          for (let pg = 1; pg <= totalPages; pg++) controls.appendChild(mkBtn(String(pg), pg, { active: pg === tablePage }));
+          controls.appendChild(mkBtn('›', tablePage + 1, { disabled: tablePage === totalPages }));
+        }
+
+        updateBulkBar();
+      }
+
+      document.getElementById('selectAllCheckbox')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          tableRows.filter(isPendingItem).forEach(item => selectedKeys.add(rowKey(item)));
+        } else {
+          selectedKeys.clear();
+        }
+        renderApprovalTable();
+      });
+
+      // Approves/rejects every selected request using the existing per-request endpoint.
+      async function bulkUpdate(actionStatus) {
+        const items = tableRows.filter(item => isPendingItem(item) && selectedKeys.has(rowKey(item)));
+        if (items.length === 0) {
+          alert('Please select at least one pending request.');
+          return;
+        }
+
+        const commentBox = document.getElementById('comment');
+        let commentText = commentBox.value.trim();
+        if (actionStatus === 'Rejected' && !commentText) {
+          const reason = prompt(`Please state your reason for rejecting ${items.length} request(s):`);
+          if (!reason || !reason.trim()) {
+            alert('A reason/comment is required to reject.');
+            return;
+          }
+          commentText = reason.trim();
+        }
+
+        const verb = actionStatus === 'Approved' ? 'Approve' : 'Reject';
+        if (!confirm(`${verb} ${items.length} selected request(s)?`)) return;
+
+        const approveBtn = document.getElementById('approveSelectedBtn');
+        const rejectBtn = document.getElementById('rejectSelectedBtn');
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+
+        let okCount = 0;
+        const failed = [];
+        for (const item of items) {
+          const label = `REQ-2026-${String(item.id).padStart(3, '0')}`;
+          try {
+            const res = await fetch(`/api/approval-queue/${encodeURIComponent(item.request_type)}/${item.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: actionStatus, comment: commentText })
+            });
+            const result = await res.json();
+            if (result.success) {
+              okCount++;
+              selectedKeys.delete(rowKey(item));
+            } else {
+              failed.push(`${label}: ${result.message || 'Failed'}`);
+            }
+          } catch (err) {
+            console.error('Bulk update error:', err);
+            failed.push(`${label}: server error`);
+          }
+        }
+
+        commentBox.value = '';
+        let msg = `${okCount} of ${items.length} request(s) marked as '${actionStatus}'.`;
+        if (failed.length) msg += `\n\nCould not update:\n${failed.join('\n')}`;
+        alert(msg);
+
+        await fetchApprovalQueue();
+        fetchNotifications();
+        updateBulkBar();
+      }
+
+      document.getElementById('approveSelectedBtn')?.addEventListener('click', () => bulkUpdate('Approved'));
+      document.getElementById('rejectSelectedBtn')?.addEventListener('click', () => bulkUpdate('Rejected'));
+
       // 5. MEMUATKAN SENARAI APPROVAL QUEUE
       async function fetchApprovalQueue() {
         try {
@@ -1545,38 +1857,14 @@
               resetDetailCard();
             }
 
-            if (completedItems.length > 0) {
-              completedItems.forEach(item => {
-                const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
-                const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
+            // Table shows pending requests first (selectable), then completed ones.
+            tableRows = [...pendingItems, ...completedItems];
 
-                let statusClass = 'approved';
-                const lowerStatus = (item.status || '').toLowerCase();
-                if (lowerStatus.includes('reject')) {
-                  statusClass = 'rejected';
-                } else if (lowerStatus.includes('revision')) {
-                  statusClass = 'revision';
-                }
+            // Drop selections for requests that are no longer pending (approved/rejected since last refresh).
+            const stillPending = new Set(pendingItems.map(rowKey));
+            Array.from(selectedKeys).forEach(k => { if (!stillPending.has(k)) selectedKeys.delete(k); });
 
-                const reqType = item.request_type || 'General';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                  <td><strong>${formattedId}</strong></td>
-                  <td>${reqType}</td>
-                  <td>${item.employee_name} (${item.department})</td>
-                  <td>${item.amount || '—'}</td>
-                  <td>${dateStr}</td>
-                  <td><span class="table-badge ${statusClass}">${item.status}</span></td>
-                  <td><a href="request-details.html?id=${item.id}&type=${encodeURIComponent(reqType)}" class="view-action-link">View</a></td>
-                `;
-                completedBody.appendChild(tr);
-              });
-              document.getElementById('paginationInfo').textContent = `Showing ${completedItems.length} of ${completedItems.length} entries`;
-            } else {
-              completedBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No completed approval records found.</td></tr>`;
-              document.getElementById('paginationInfo').textContent = `Showing 0 of 0 entries`;
-            }
+            renderApprovalTable();
 
           } else {
             queueList.innerHTML = `<div style="padding: 20px; text-align: center; color: #64748b;">No requests found.</div>`;
