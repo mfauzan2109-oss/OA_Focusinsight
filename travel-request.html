@@ -369,6 +369,12 @@
             60%      { transform: rotate(-8deg); }
             80%      { transform: rotate(6deg); }
         }
+    
+        .optional-tag {
+            font-weight: 400;
+            font-size: 0.85em;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -583,22 +589,22 @@
 
             <!-- CONTACT DETAILS SECTION -->
             <section class="form-section" id="contact-section">
-                <h3 class="form-section-title" id="contact-section-title">Oversea Contact Details</h3>
+                <h3 class="form-section-title" id="contact-section-title">Oversea Contact Details (Optional)</h3>
 
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
-                        <label for="primary-contact">Primary Contact<span class="required">*</span></label>
-                        <input type="text" id="primary-contact" name="primary_contact" placeholder="Full name" required>
+                        <label for="primary-contact">Primary Contact <span class="optional-tag">(Optional)</span></label>
+                        <input type="text" id="primary-contact" name="primary_contact" placeholder="Full name">
                     </div>
                     <div class="input-group">
-                        <label for="phone-number">Phone Number<span class="required">*</span></label>
-                        <input type="tel" id="phone-number" name="phone_number" placeholder="e.g. +65 8123 4567" required>
+                        <label for="phone-number">Phone Number <span class="optional-tag">(Optional)</span></label>
+                        <input type="tel" id="phone-number" name="phone_number" placeholder="e.g. +65 8123 4567">
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label for="venue-address">Venue &amp; Address<span class="required">*</span></label>
-                    <textarea id="venue-address" name="venue_address" rows="3" placeholder="Enter venue name and full address" required></textarea>
+                    <label for="venue-address">Venue &amp; Address <span class="optional-tag">(Optional)</span></label>
+                    <textarea id="venue-address" name="venue_address" rows="3" placeholder="Enter venue name and full address"></textarea>
                 </div>
             </section>
 
@@ -1146,9 +1152,9 @@
                     const isFlight = mode === 'flight';
 
                     if (mode === 'car' || mode === 'others') {
-                        if (contactSectionTitle) contactSectionTitle.textContent = 'Contact Details';
+                        if (contactSectionTitle) contactSectionTitle.textContent = 'Contact Details (Optional)';
                     } else {
-                        if (contactSectionTitle) contactSectionTitle.textContent = 'Oversea Contact Details';
+                        if (contactSectionTitle) contactSectionTitle.textContent = 'Oversea Contact Details (Optional)';
                     }
 
                     flightSections.forEach(section => {
