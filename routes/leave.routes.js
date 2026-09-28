@@ -89,137 +89,114 @@ router.get('/api/user-leave-info', requireLogin, (req, res) => {
     });
 });
 
+// Leave balance table on the leave forms (leave.html, hr/leave-application-hr.html).
+// Entitlement + carry-forward come from the leave_balances table; Annual/Sick fall
+// back to the tenure-based helpers when an employee has no row yet. "Used" counts
+// Pending + Approved requests (Rejected/Cancelled don't count) for the current year.
+const BALANCE_TYPES = [
+    { key: 'annual',          label: 'Annual Leave' },
+    { key: 'sick',            label: 'Sick Leave' },
+    { key: 'hospitalization', label: 'Hospitalization' },
+    { key: 'maternity',       label: 'Maternity' },
+    { key: 'paternity',       label: 'Paternity' }
+];
+const BALANCE_DEFAULTS = { hospitalization: 60, maternity: 98, paternity: 7 };
+
+function balanceKeyFor(rawType) {
+    const t = String(rawType || '').trim().toLowerCase();
+    if (t === 'annual' || t === 'annual leave') return 'annual';
+    if (t === 'sick' || t === 'sick leave') return 'sick';
+    if (t === 'hospitalization' || t === 'medical leave') return 'hospitalization';
+    if (t === 'maternity') return 'maternity';
+    if (t === 'paternity') return 'paternity';
+    return null;
+}
+
 router.get('/api/leave-balance', requireLogin, (req, res) => {
-    const employeeId = req.session.user.user_id;
-    const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+    // Always the logged-in user; the employee_id query param the forms send is ignored.
+    const userId = req.session.user.user_id;
+    const year = new Date().getFullYear();
 
-    const balanceQuery = `
-        SELECT
-            leave_type,
-            entitlement,
-            carried_forward,
-            carried_forward_expires
-        FROM leave_balances
-        WHERE LOWER(employee_id) = LOWER(?)
-          AND year = ?
-        ORDER BY FIELD(
-            leave_type,
-            'Annual Leave',
-            'Sick Leave',
-            'Hospitalization',
-            'Maternity',
-            'Paternity'
-        )
-    `;
-
-    db.query(balanceQuery, [employeeId, year], (balanceErr, balances) => {
-        if (balanceErr) {
-            console.error('Leave balance query error:', balanceErr);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load leave balance.'
-            });
+    db.query('SELECT join_date FROM users WHERE LOWER(user_id) = LOWER(?)', [userId], (userErr, userRows) => {
+        let years = 1;
+        if (!userErr && userRows && userRows.length > 0 && userRows[0].join_date) {
+            const diff = Math.abs(new Date() - new Date(userRows[0].join_date));
+            years = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)));
         }
 
-        const usedQuery = `
-            SELECT
-                CASE
-                    WHEN LOWER(TRIM(\`Leave Type\`)) IN ('annual', 'annual leave')
-                        THEN 'Annual Leave'
-                    WHEN LOWER(TRIM(\`Leave Type\`)) IN ('sick', 'sick leave')
-                        THEN 'Sick Leave'
-                    WHEN LOWER(TRIM(\`Leave Type\`)) IN ('hospitalization', 'medical leave')
-                        THEN 'Hospitalization'
-                    WHEN LOWER(TRIM(\`Leave Type\`)) = 'maternity'
-                        THEN 'Maternity'
-                    WHEN LOWER(TRIM(\`Leave Type\`)) = 'paternity'
-                        THEN 'Paternity'
-                    ELSE NULL
-                END AS leave_type,
-                SUM(\`No of Days\`) AS used
-            FROM \`leave\`
-            WHERE LOWER(\`Employee ID\`) = LOWER(?)
-              AND YEAR(\`Start Date\`) = ?
-              AND LOWER(TRIM(\`Status\`)) NOT IN ('rejected', 'cancelled')
-            GROUP BY leave_type
+        const balQuery = `
+            SELECT leave_type, entitlement, carried_forward, carried_forward_expires
+            FROM leave_balances
+            WHERE LOWER(employee_id) = LOWER(?) AND year = ?
         `;
 
-        db.query(usedQuery, [employeeId, year], (usedErr, usedRows) => {
-            if (usedErr) {
-                console.error('Leave usage query error:', usedErr);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Failed to calculate leave usage.'
-                });
+        db.query(balQuery, [userId, year], (balErr, balRows) => {
+            if (balErr) {
+                console.error('Leave Balance (leave_balances) Error:', balErr);
+                return res.status(500).json({ success: false, message: 'Database error.' });
             }
 
-            const usedMap = {};
+            const usedQuery = `
+                SELECT \`Leave Type\` AS leave_type, SUM(\`No of Days\`) AS used
+                FROM \`leave\`
+                WHERE LOWER(\`Employee ID\`) = LOWER(?)
+                  AND LOWER(TRIM(Status)) IN ('pending', 'approved')
+                  AND YEAR(\`Start Date\`) = ?
+                GROUP BY \`Leave Type\`
+            `;
 
-            (usedRows || []).forEach(row => {
-                if (row.leave_type) {
-                    usedMap[row.leave_type] = Number(row.used || 0);
-                }
-            });
-
-            const today = new Date();
-
-            const data = (balances || []).map(row => {
-                const entitlement = Number(row.entitlement || 0);
-
-                let carriedForward = Number(row.carried_forward || 0);
-
-                if (
-                    row.carried_forward_expires &&
-                    new Date(row.carried_forward_expires) < today
-                ) {
-                    carriedForward = 0;
+            db.query(usedQuery, [userId, year], (usedErr, usedRows) => {
+                if (usedErr) {
+                    console.error('Leave Balance (used days) Error:', usedErr);
+                    return res.status(500).json({ success: false, message: 'Database error.' });
                 }
 
-                const used = usedMap[row.leave_type] || 0;
-                const remaining = Math.max(
-                    0,
-                    entitlement + carriedForward - used
-                );
+                const usedMap = {};
+                (usedRows || []).forEach(r => {
+                    const key = balanceKeyFor(r.leave_type);
+                    if (key) usedMap[key] = (usedMap[key] || 0) + (parseFloat(r.used) || 0);
+                });
 
-                return {
-                    leave_type: row.leave_type,
-                    entitlement,
-                    carried_forward: carriedForward,
-                    used,
-                    remaining
-                };
+                const rowMap = {};
+                (balRows || []).forEach(r => {
+                    const key = balanceKeyFor(r.leave_type);
+                    if (key) rowMap[key] = r;
+                });
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const data = BALANCE_TYPES.map(t => {
+                    const row = rowMap[t.key];
+                    let entitlement;
+                    let carried = 0;
+
+                    if (row) {
+                        entitlement = parseFloat(row.entitlement) || 0;
+                        carried = parseFloat(row.carried_forward) || 0;
+                        if (carried > 0 && row.carried_forward_expires && new Date(row.carried_forward_expires) < today) {
+                            carried = 0; // carry-forward expired
+                        }
+                    } else if (t.key === 'annual') {
+                        entitlement = getAnnualEntitlement(years);
+                    } else if (t.key === 'sick') {
+                        entitlement = getSickEntitlement(years);
+                    } else {
+                        entitlement = BALANCE_DEFAULTS[t.key];
+                    }
+
+                    const used = usedMap[t.key] || 0;
+                    return {
+                        leave_type: t.label,
+                        entitlement: entitlement,
+                        carried_forward: carried,
+                        used: used,
+                        remaining: Math.max(0, entitlement + carried - used)
+                    };
+                });
+
+                return res.json({ success: true, data: data });
             });
-
-            return res.json({
-                success: true,
-                year,
-                data
-            });
-        });
-    });
-});
-
-router.get('/api/public-holidays', requireLogin, (req, res) => {
-    const query = `
-        SELECT
-            holiday_date,
-            holiday_name
-        FROM public_holidays
-        ORDER BY holiday_date
-    `;
-
-    db.query(query, [], (err, rows) => {
-        if (err) {
-            console.error('Public holidays query error:', err);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load public holidays.'
-            });
-        }
-
-        return res.json({
-            success: true,
-            data: rows
         });
     });
 });
