@@ -448,7 +448,10 @@
                 <span>Approval Queue</span>
                 <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
             </a>
-
+            <a href="approval-history.html" class="nav-item" id="approvalHistoryItem" style="display: none;">
+                <i class='bx bx-history'></i>
+                <span>Approval History</span>
+            </a>
             <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
             <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
             <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
@@ -1452,5 +1455,21 @@ async function checkApprovalQueueAccess(userId, department, position) {
 }
     </script>
 <script src="/assets/js/session-guard.js"></script>
+<script>
+// Approval History link: visible to VGM and Managers only
+(function () {
+    function showApprovalHistory() {
+        var link = document.getElementById('approvalHistoryItem');
+        if (!link) return;
+        var pos = (sessionStorage.getItem('position') || '').toLowerCase();
+        var id = (sessionStorage.getItem('userId') || '').toUpperCase();
+        if (pos.indexOf('vgm') !== -1 || pos.indexOf('manager') !== -1 || id.indexOf('MGR') === 0) {
+            link.style.display = 'flex';
+        }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showApprovalHistory);
+    else showApprovalHistory();
+})();
+</script>
 </body>
 </html>
