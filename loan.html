@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Application | OA Portal</title>
+    <title>Travel Loan Application | OA Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -68,29 +68,6 @@
             border-radius: 6px;
             margin-bottom: 16px;
             display: none;
-        }
-
-        .repayment-summary-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 14px 18px;
-            margin-top: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .repayment-summary-box span {
-            font-size: 13px;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .repayment-summary-box strong {
-            font-size: 16px;
-            color: #0284c7;
-            font-weight: 700;
         }
 
         .error-banner {
@@ -485,7 +462,7 @@
     <main class="main-content">
 
         <header class="page-header">
-            <h2 class="page-header-title">Loan Application</h2>
+            <h2 class="page-header-title">Travel Loan Application</h2>
             <div class="header-actions">
                 <!-- Search -->
                 <div class="search-container">
@@ -578,22 +555,7 @@
                     </select>
                 </div>
 
-                <div class="form-grid form-grid-2">
-                    <div class="input-group">
-                        <label for="repayment-period">Expected Repayment Period<span class="required">*</span></label>
-                        <select id="repayment-period" required>
-                            <option value="" selected disabled>Select period</option>
-                            <option value="3">3 Months</option>
-                            <option value="6">6 Months</option>
-                            <option value="12">12 Months</option>
-                            <option value="24">24 Months</option>
-                            <option value="36">36 Months</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <input type="hidden" id="monthly-salary" value="0.00">
-                    </div>
-                </div>
+                <input type="hidden" id="monthly-salary" value="0.00">
 
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
@@ -606,14 +568,8 @@
                         <select id="disbursement-method" required>
                             <option value="" selected disabled>Select method</option>
                             <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Cash">Cash</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="repayment-summary-box">
-                    <span>Estimated Monthly Installment:</span>
-                    <strong id="estimatedInstallmentDisplay">RM 0.00</strong>
                 </div>
             </section>
 
@@ -1289,28 +1245,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 }
 
     // ==========================================
-    // 3. DYNAMIC INSTALLMENT CALCULATOR
-    // ==========================================
-    const repaymentPeriodSelect = document.getElementById('repayment-period');
-    const amountRequestedInput = document.getElementById('amount-requested');
-    const installmentDisplay = document.getElementById('estimatedInstallmentDisplay');
-
-    function calculateInstallment() {
-        const months = parseInt(repaymentPeriodSelect.value, 10) || 0;
-        const amount = parseFloat(amountRequestedInput.value) || 0;
-
-        if (months > 0 && amount > 0) {
-            const monthlyPayment = amount / months;
-            installmentDisplay.textContent = `RM ${monthlyPayment.toFixed(2)}`;
-        } else {
-            installmentDisplay.textContent = 'RM 0.00';
-        }
-    }
-
-    if (repaymentPeriodSelect) repaymentPeriodSelect.addEventListener('change', calculateInstallment);
-    if (amountRequestedInput) amountRequestedInput.addEventListener('input', calculateInstallment);
-
-    // ==========================================
     // 4. FILE UPLOAD DROPZONE LOGIC
     // ==========================================
     const dropzone = document.getElementById('dropzone');
@@ -1365,7 +1299,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     function saveDraft() {
         const draftData = {
             loanType: document.getElementById('loan-type').value,
-            repaymentPeriod: document.getElementById('repayment-period').value,
             amountRequested: document.getElementById('amount-requested').value,
             disbursementMethod: document.getElementById('disbursement-method').value,
             accountHolder: document.getElementById('account-holder').value,
@@ -1381,14 +1314,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             try {
                 const draft = JSON.parse(savedDraft);
                 if (draft.loanType) document.getElementById('loan-type').value = draft.loanType;
-                if (draft.repaymentPeriod) document.getElementById('repayment-period').value = draft.repaymentPeriod;
                 if (draft.amountRequested) document.getElementById('amount-requested').value = draft.amountRequested;
                 if (draft.disbursementMethod) document.getElementById('disbursement-method').value = draft.disbursementMethod;
                 if (draft.accountHolder) document.getElementById('account-holder').value = draft.accountHolder;
                 if (draft.accountNumber) document.getElementById('account-number').value = draft.accountNumber;
                 if (draft.bankDetails) document.getElementById('bank-details').value = draft.bankDetails;
 
-                calculateInstallment();
                 if (draftNotice) draftNotice.style.display = 'block';
             } catch (e) {
                 console.error('Error parsing draft data:', e);
@@ -1432,7 +1363,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         formData.append('model_no', document.getElementById('loan-model-no')?.value?.trim() || '');
         formData.append('person_in_charge', document.getElementById('loan-pic')?.value?.trim() || '');
         formData.append('loan_type', document.getElementById('loan-type').value);
-        formData.append('repayment_period', document.getElementById('repayment-period').value);
         formData.append('monthly_salary', salaryInput.value || '0.00');
         formData.append('amount_requested', document.getElementById('amount-requested').value);
         formData.append('disbursement_method', document.getElementById('disbursement-method').value);
@@ -1454,11 +1384,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             if (result.success) {
                 localStorage.removeItem(DRAFT_KEY);
-                alert('Loan application submitted successfully!');
+                alert('Travel Loan application submitted successfully!');
                 fetchNotifications();
                 window.location.href = 'my-request.html';
             } else {
-                showError(result.message || 'Failed to submit loan application.');
+                showError(result.message || 'Failed to submit travel loan application.');
             }
         } catch (err) {
             console.error('Submission error:', err);
