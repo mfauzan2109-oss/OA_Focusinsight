@@ -1400,19 +1400,11 @@
 
                     const createdDate = new Date(data.created_at || data['Created At'] || new Date());
                     const lastReminder = data.last_reminder_sent ? new Date(data.last_reminder_sent) : createdDate;
-                    const unlockTime = new Date(lastReminder.getTime() + 24 * 60 * 60 * 1000);
+                    const unlockTime = new Date(lastReminder.getTime() + 5 * 60 * 1000); // 5-minute cooldown
 
                     // Clear any previous countdown timer running on this button
                     if (btnReminder._countdownInterval) {
                         clearInterval(btnReminder._countdownInterval);
-                    }
-
-                    function formatCountdown(ms) {
-                        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-                        const h = Math.floor(totalSeconds / 3600);
-                        const m = Math.floor((totalSeconds % 3600) / 60);
-                        const s = totalSeconds % 60;
-                        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                     }
 
                     function tickCountdown() {
@@ -1432,7 +1424,7 @@
                             btnReminder.style.opacity = '0.6';
                             btnReminder.style.cursor = 'not-allowed';
                             btnReminder.style.pointerEvents = 'none';
-                            btnReminder.innerHTML = `<i class="fa-solid fa-clock"></i> Available in ${formatCountdown(remainingMs)}`;
+                            btnReminder.innerHTML = `<i class="fa-solid fa-bell"></i> Send Reminder`;
                         }
                     }
 
@@ -1591,6 +1583,22 @@
             container.innerHTML = '';
             let fieldsHTML = '';
 
+            function formatDateOnly(value) {
+                if (!value) return '—';
+
+                const date = new Date(value);
+
+                if (Number.isNaN(date.getTime())) {
+                    return String(value).slice(0, 10);
+                }
+
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+
+                return `${year}-${month}-${day}`;
+            }
+
             const lowerType = type.toLowerCase();
 
             if (lowerType.includes('leave')) {
@@ -1598,8 +1606,8 @@
                 fieldsHTML = `
                     <div class="form-group"><label>Leave Type</label><div class="form-control-static" data-field="leave_type" data-input-type="text">${data['Leave Type'] || data.leave_type || '—'}</div></div>
                     <div class="form-group"><label>Day Type</label><div class="form-control-static" data-field="day_type" data-input-type="text">${data['Day type'] || data.day_type || 'Full Day'}</div></div>
-                    <div class="form-group"><label>Start Date</label><div class="form-control-static" data-field="start_date" data-input-type="text">${data['Start Date'] ? new Date(data['Start Date']).toISOString().split('T')[0] : '—'}</div></div>
-                    <div class="form-group"><label>End Date</label><div class="form-control-static" data-field="end_date" data-input-type="text">${data['End Date'] ? new Date(data['End Date']).toISOString().split('T')[0] : '—'}</div></div>
+                    <div class="form-group"><label>Start Date</label><div class="form-control-static" data-field="start_date" data-input-type="text">${formatDateOnly(data['Start Date'] || data.start_date)}</div></div>
+                    <div class="form-group"><label>End Date</label><div class="form-control-static" data-field="end_date" data-input-type="text">${formatDateOnly(data['End Date'] || data.end_date)}</div></div>
                     <div class="form-group"><label>Total Days</label><div class="form-control-static" data-field="total_days" data-input-type="text">${data['No of Days'] || data.total_days || '1'}</div></div>
                 `;
             } else if (lowerType.includes('overtime')) {

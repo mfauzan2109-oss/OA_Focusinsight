@@ -10,6 +10,65 @@
     <link rel="stylesheet" href="../style.css">
     <script src="../js/auth_check.js"></script>
     <link rel="stylesheet" href="../assets/css/hr/employee-profile-edit.css">
+    <style>
+        /* ---- Salary Information (read-only summary + increment history) ---- */
+        .salary-summary {
+            background: #d6f1f7;
+            border: 1px solid #7fc6d6;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .salary-summary-row {
+            display: grid;
+            grid-template-columns: minmax(140px, 1fr) 2fr;
+            border-bottom: 1px solid #7fc6d6;
+        }
+        .salary-summary-row:last-child { border-bottom: none; }
+        .salary-summary-row > div { padding: 10px 14px; font-size: 14px; }
+        .salary-summary-row > div:first-child {
+            font-weight: 500;
+            border-right: 1px solid #7fc6d6;
+        }
+
+        .increment-history {
+            background: #ffffff;
+            border: 1px solid #7fc6d6;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .increment-history-title {
+            background: #d6f1f7;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid #7fc6d6;
+        }
+        .increment-table-wrap { overflow-x: auto; }
+        .increment-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 520px;
+        }
+        .increment-table th {
+            background: #d6f1f7;
+            font-weight: 600;
+            text-align: left;
+        }
+        .increment-table th,
+        .increment-table td {
+            padding: 9px 14px;
+            border: 1px solid #7fc6d6;
+        }
+        .increment-table th:first-child,
+        .increment-table td:first-child { border-left: none; }
+        .increment-table th:last-child,
+        .increment-table td:last-child { border-right: none; }
+        .increment-table tbody tr:last-child td { border-bottom: none; }
+        .increment-empty { text-align: center; color: #6b7280; }
+    </style>
 </head>
 <body>
 
@@ -127,6 +186,46 @@
                 <input type="password" id="empPassword" class="form-input" placeholder="••••••••">
             </div>
 
+            <!-- 3. SALARY INFORMATION -->
+            <div class="section-badge">Salary Information</div>
+
+            <div class="salary-summary" id="salarySummary">
+                <div class="salary-summary-row">
+                    <div>Current Salary</div>
+                    <div id="currentSalary">-</div>
+                </div>
+                <div class="salary-summary-row">
+                    <div>Last Increment Date</div>
+                    <div id="lastIncrementDate">-</div>
+                </div>
+                <div class="salary-summary-row">
+                    <div>Last Increment Amount</div>
+                    <div id="lastIncrementAmount">-</div>
+                </div>
+            </div>
+
+            <div class="increment-history">
+                <div class="increment-history-title">Salary Increment History</div>
+                <div class="increment-table-wrap">
+                    <table class="increment-table">
+                        <thead>
+                            <tr>
+                                <th>Effective Date</th>
+                                <th>Previous Salary</th>
+                                <th>New Salary</th>
+                                <th>Increment (%)</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incrementHistoryBody">
+                            <tr>
+                                <td colspan="5" class="increment-empty">No salary increments recorded yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- BOTTOM ACTION BUTTONS -->
             <div class="bottom-actions">
                 <a href="user-management.html" class="btn-action-back">Back</a>
@@ -137,6 +236,50 @@
     </main>
 
     <script src="../assets/js/hr/employee-profile-edit.js"></script>
+    <script>
+        // Fills the Salary Information section. Call from your profile-load code:
+        //   renderSalaryInfo({
+        //     currentSalary: 4500,
+        //     history: [{ effective_date:'2026-01-01', previous_salary:4000, new_salary:4500, reason:'Annual Increment' }]
+        //   });
+        (function () {
+            const fmtMoney = n => 'RM ' + Number(n).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const fmtDate = d => {
+                const dt = new Date(d);
+                return isNaN(dt) ? '-' : dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            };
+            const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+            window.renderSalaryInfo = function (data) {
+                data = data || {};
+                const history = (data.history || []).slice().sort((a, b) => new Date(b.effective_date) - new Date(a.effective_date));
+
+                document.getElementById('currentSalary').textContent =
+                    data.currentSalary != null ? fmtMoney(data.currentSalary) : '-';
+
+                if (history.length) {
+                    const last = history[0];
+                    const diff = Number(last.new_salary) - Number(last.previous_salary);
+                    const pct = Number(last.previous_salary) ? (diff / Number(last.previous_salary)) * 100 : 0;
+                    document.getElementById('lastIncrementDate').textContent = fmtDate(last.effective_date);
+                    document.getElementById('lastIncrementAmount').textContent =
+                        '+ RM' + diff.toLocaleString('en-MY', { maximumFractionDigits: 2 }) + ' (' + pct.toFixed(1) + ' %)';
+
+                    document.getElementById('incrementHistoryBody').innerHTML = history.map(h => {
+                        const d = Number(h.new_salary) - Number(h.previous_salary);
+                        const p = Number(h.previous_salary) ? (d / Number(h.previous_salary)) * 100 : 0;
+                        return '<tr>' +
+                            '<td>' + fmtDate(h.effective_date) + '</td>' +
+                            '<td>' + fmtMoney(h.previous_salary) + '</td>' +
+                            '<td>' + fmtMoney(h.new_salary) + '</td>' +
+                            '<td>' + (p >= 0 ? '+' : '') + p.toFixed(2) + '</td>' +
+                            '<td>' + esc(h.reason) + '</td>' +
+                            '</tr>';
+                    }).join('');
+                }
+            };
+        })();
+    </script>
 <script src="/assets/js/session-guard.js"></script>
 </body>
-</html> 
+</html>

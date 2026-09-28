@@ -1,7 +1,9 @@
 -- Migration: adds the Manager/HOD probation assessment columns to probation_confirmations.
 -- Needed by POST /api/probation-confirmation/:id/assessment (probation-confirmation-detail.html).
 --
-
+-- Run ONCE. MySQL 8 has no "ADD COLUMN IF NOT EXISTS", so running it a second time fails with
+-- "Duplicate column name" - that just means it is already applied. The single ALTER is atomic
+-- (all columns are added, or none).
 
 ALTER TABLE `probation_confirmations`
   ADD COLUMN `assessment_job_knowledge` TINYINT NULL,

@@ -5,7 +5,7 @@ const {
     resolveApproverRecipients,
     resolveOutcomeRecipients
 } = require('./p1-email');
-const { ROLES, norm, problem, requestId, freshUser, canAct, canRead, validatePending, canOpenQueue } = require('./resignation-approval');
+const { ROLES, norm, problem, requestId, isHOD, freshUser, canAct, canRead, validatePending, canOpenQueue } = require('./resignation-approval');
 const isHR = u => ['hr', 'human resources'].includes(norm(u.department)) || ['hr', 'human resources', 'hr specialist'].includes(norm(u.position));
 
 // HR only fills Request Information, Employee Information, and
@@ -415,4 +415,134 @@ async function decide(connection, sessionUserId, idValue, body) {
     }
 }
 
-module.exports = { validate, submit, details, queue, mine, notifications, decide };
+// ---------------------------------------------------------------------------
+// Manager / HOD probation ASSESSMENT (probation-confirmation-list.html and
+// probation-confirmation-detail.html). This step only SAVES the assessment;
+// approving/rejecting still happens in the Approval Queue via decide().
+// ---------------------------------------------------------------------------
+const ASSESSMENT_KEYS = [
+    'job_knowledge', 'quality_of_work', 'work_productivity', 'communication_skills',
+    'teamwork_collaboration', 'problem_solving_initiative', 'attendance_punctuality',
+    'adaptability_learning', 'responsibility_attitude', 'compliance_policies'
+];
+const ASSESSMENT_PASSING_POINTS = 40;
+const RECOMMENDATIONS = ['Confirm Employment', 'Extend Probation', 'Do Not Confirm'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const pad = n => String(n).padStart(2, '0');
+const ymd = v => {
+    if (v == null || v === '') return v;
+    const d = v instanceof Date ? v : new Date(v);
+    if (Number.isNaN(d.getTime())) return v;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+async function requireDepartmentHOD(c, sessionId) {
+    const user = await freshUser(c, sessionId);
+    if (!isHOD(user) || !norm(user.department)) throw problem(403, 'Only a Manager/HOD can assess probation confirmations.');
+    return user;
+}
+
+// GET /api/probation-confirmation/list : pending, not-yet-assessed requests for the
+// HOD's own department. Department comes from the DB, never from the browser.
+async function assessmentList(c, sessionId) {
+    const user = await requireDepartmentHOD(c, sessionId);
+    const [rows] = await c.query(
+        `SELECT id, employee_name, created_at FROM probation_confirmations
+         WHERE status = 'Pending' AND total_points IS NULL AND LOWER(TRIM(employee_department)) = ?
+         ORDER BY created_at DESC, id DESC`, [norm(user.department)]);
+    const records = rows.map(r => {
+        const d = new Date(r.created_at);
+        const h = d.getHours();
+        return {
+            id: r.id,
+            name: r.employee_name,
+            submittedDate: `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+            submittedTime: `${h % 12 || 12}:${pad(d.getMinutes())} ${h >= 12 ? 'PM' : 'AM'}`,
+            highlighted: false
+        };
+    });
+    return { success: true, records, total: records.length };
+}
+
+// GET /api/probation-confirmation/:id : the record for the assessment page. Deliberately does
+// NOT validate the approval-step chain (details() does), so older requests that were submitted
+// before approval steps existed can still be opened and assessed. Dates come back as YYYY-MM-DD
+// so the page's <input type="date"> fields fill correctly.
+async function assessmentDetails(c, sessionId, idValue) {
+    const id = requestId(idValue), user = await freshUser(c, sessionId);
+    const [rows] = await c.query(
+        `SELECT p.*, u.phone_no AS employee_phone_no, u.email AS employee_email
+         FROM probation_confirmations p LEFT JOIN users u ON u.user_id = p.employee_id
+         WHERE p.id = ?`, [id]);
+    if (!rows.length) throw problem(404, 'Probation confirmation not found.');
+    const record = rows[0];
+    if (!canRead(user, { ...record, department: record.employee_department })) {
+        throw problem(403, 'Access denied for this probation request.');
+    }
+    const data = {
+        ...record,
+        requester_department: record.department,
+        phone_no: record.employee_phone_no || null,
+        email: record.employee_email || null
+    };
+    for (const k of ['request_date', 'probation_end_date', 'proposed_confirmation_date', 'employment_date']) {
+        if (data[k] instanceof Date) data[k] = ymd(data[k]);
+    }
+    return { success: true, id, status: record.status, data };
+}
+
+// POST /api/probation-confirmation/:id/assessment
+async function assess(c, sessionId, idValue, body) {
+    const id = requestId(idValue);
+    const user = await requireDepartmentHOD(c, sessionId);
+    body = body || {};
+
+    const scores = {};
+    let total = 0;
+    for (const key of ASSESSMENT_KEYS) {
+        const raw = String(body['assessment_' + key] ?? '').trim();
+        if (!/^[1-5]$/.test(raw)) throw problem(400, 'Rate every assessment item from 1 to 5.');
+        scores[key] = Number(raw);
+        total += scores[key];
+    }
+
+    const recommendation = String(body.overall_recommendation || '').trim();
+    if (!RECOMMENDATIONS.includes(recommendation)) throw problem(400, 'Select a valid Overall Recommendation.');
+
+    let proposedDate = null, extendedPeriod = null;
+    if (recommendation === 'Confirm Employment') {
+        proposedDate = String(body.proposed_confirmation_date || '').trim();
+        const d = new Date(proposedDate);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(proposedDate) || Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== proposedDate) {
+            throw problem(400, 'Proposed Confirmation Date must be a valid YYYY-MM-DD date.');
+        }
+    } else if (recommendation === 'Extend Probation') {
+        extendedPeriod = String(body.extended_probation_period || '').trim();
+        if (!extendedPeriod || extendedPeriod.length > 100) throw problem(400, 'Extended Probation Period is required (max 100 characters).');
+    }
+
+    const summary = String(body.performance_summary || '').trim();
+    if (!summary) throw problem(400, 'Comments supporting the recommendation are required.');
+    if (summary.length > 10000) throw problem(400, 'Comments must be 10000 characters or fewer.');
+
+    const [rows] = await c.query('SELECT id, status, employee_department, total_points FROM probation_confirmations WHERE id = ?', [id]);
+    if (!rows.length) throw problem(404, 'Probation confirmation not found.');
+    const rec = rows[0];
+    if (norm(rec.employee_department) !== norm(user.department)) throw problem(403, 'This request belongs to a different department.');
+    if (rec.status !== 'Pending') throw problem(409, 'This request is already completed or rejected.');
+    if (rec.total_points !== null && rec.total_points !== undefined) throw problem(409, 'This request has already been assessed.');
+
+    const setCols = ASSESSMENT_KEYS.map(k => `assessment_${k} = ?`).join(', ');
+    const [result] = await c.query(
+        `UPDATE probation_confirmations SET ${setCols}, total_points = ?, passing_points = ?,
+            overall_recommendation = ?, proposed_confirmation_date = ?, extended_probation_period = ?,
+            performance_summary = ?, assessed_by = ?, assessed_at = NOW()
+         WHERE id = ? AND status = 'Pending' AND total_points IS NULL`,
+        [...ASSESSMENT_KEYS.map(k => scores[k]), total, ASSESSMENT_PASSING_POINTS,
+         recommendation, proposedDate, extendedPeriod, summary, user.user_id, id]);
+    if (result.affectedRows !== 1) throw problem(409, 'This request has already been assessed.');
+
+    return { success: true, id, total_points: total, passing_points: ASSESSMENT_PASSING_POINTS, passed: total >= ASSESSMENT_PASSING_POINTS };
+}
+
+module.exports = { validate, submit, details, queue, mine, notifications, decide, assessmentList, assessmentDetails, assess };
