@@ -463,7 +463,7 @@
                         <label for="empDept">Department</label>
                         <input type="text" id="empDept" name="department" readonly class="form-control">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="display: none;">
                         <label for="basicSalary">Basic Salary (Auto)</label>
                         <input type="text" id="basicSalary" name="basic_salary" readonly placeholder="Fetching..." class="form-control">
                     </div>
@@ -505,7 +505,7 @@
                             <input type="text" id="otAllowance" name="ot_allowance" readonly value="RM 0.00" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="otRate">OT Rate Formula / Base:</label>
+                            <label for="otRate">OT rate:</label>
                             <input type="text" id="otRate" name="ot_rate" readonly value="-" class="form-control">
                         </div>
                     </div>
@@ -522,14 +522,14 @@
                         
                         <div class="checkbox-group">
                             <div>
-                                <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (RM 50/day)</label>
+                                <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance</label>
                                 <div class="rule-warning" id="nightWarning" style="display: none;">Only for full night shift (≥ 12 hrs)</div>
                             </div>
                             <input type="checkbox" id="nightAllowanceCheck" name="night_allowance_check">
                         </div>
                         <div class="checkbox-group">
                             <div>
-                                <label for="mealAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Meal Allowance (RM 5/day)</label>
+                                <label for="mealAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Meal Allowance</label>
                                 <div class="rule-warning" id="mealWarning" style="display: none;">Requires ≥ 3 hrs of OT on a weekday</div>
                             </div>
                             <input type="checkbox" id="mealAllowanceCheck" name="meal_allowance_check">

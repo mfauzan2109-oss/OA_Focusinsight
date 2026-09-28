@@ -585,6 +585,31 @@
                         </div>
 
                         <div class="form-group">
+                            <label>Period <span class="required">*</span></label>
+                            <input type="text" id="period" name="period" readonly class="form-control" placeholder="0.0 hrs">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Day Type :</label>
+                            <select id="dayType" name="day_type" required class="form-control">
+                                <option value="Weekdays & Saturday">Weekdays & Saturday (x1.5)</option>
+                                <option value="Sunday & Public Holiday">Sunday & Public Holiday (x2.0)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>OT Allowance:</label>
+                            <input type="text" id="otAllowanceInput" name="ot_allowance" readonly class="form-control" value="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label>OT rate:</label>
+                            <input type="text" id="otRateInput" name="ot_rate" readonly class="form-control" value="RM 15.00/hr">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="form-group">
                             <label>Start Time <span class="required">*</span></label>
                             <input type="time" id="startTime" name="start_time" required class="form-control">
                         </div>
@@ -595,45 +620,19 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Period</label>
-                            <input type="text" id="period" name="period" readonly class="form-control" placeholder="0.0 hrs">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Day Type <span class="required">*</span></label>
-                            <select id="dayType" name="day_type" required class="form-control">
-                                <option value="Weekdays & Saturday">Weekdays & Saturday (x1.5)</option>
-                                <option value="Sunday & Public Holiday">Sunday & Public Holiday (x2.0)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Allowances</label>
                             <label class="checkbox-label">
-                                <input type="checkbox" id="nightCheck" name="night_allowance_check"> Night Allowance (RM 50.00)
+                                <input type="checkbox" id="nightCheck" name="night_allowance_check"> Night Allowance
                             </label>
                             <small id="nightWarning" style="display:none; color:#dc2626; font-size:11px;">Only for full night shift (≥ 12 hrs)</small>
                             <label class="checkbox-label">
-                                <input type="checkbox" id="mealCheck" name="meal_allowance_check"> Meal Allowance (RM 5.00)
+                                <input type="checkbox" id="mealCheck" name="meal_allowance_check"> Meal Allowance
                             </label>
                             <small id="mealWarning" style="display:none; color:#dc2626; font-size:11px;">Requires ≥ 3 hrs of OT on a weekday</small>
                         </div>
 
-                        <div class="form-group">
-                            <label>OT Allowance (RM)</label>
-                            <input type="text" id="otAllowanceInput" name="ot_allowance" readonly class="form-control" value="0.00">
-                        </div>
-
-                        <div class="form-group">
-                            <label>OT Rate</label>
-                            <input type="text" id="otRateInput" name="ot_rate" readonly class="form-control" value="RM 15.00/hr">
-                        </div>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
                         <div class="form-group" style="margin-bottom:0;">
                             <label>Reason / Description <span class="required">*</span></label>
-                            <textarea id="reason" name="reason" rows="4" required class="form-control" placeholder="Provide a brief description of your overtime reason..."></textarea>
+                            <textarea id="reason" name="reason" rows="6" required class="form-control" placeholder="Provide a brief description of your overtime reason..."></textarea>
                         </div>
                     </div>
                 </div>
