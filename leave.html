@@ -564,19 +564,19 @@
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
                         <label for="start-date">Start Date<span class="required">*</span></label>
-                        <input type="date" id="start-date" name="start_date" required>
+                        <input type="date" id="start-date" name="start_date">
                         <div class="field-hint" id="startDateHint">📌 Leave must be submitted at least 3 days in advance.</div>
                     </div>
                     <div class="input-group">
                         <label for="end-date">End Date<span class="required">*</span></label>
-                        <input type="date" id="end-date" name="end_date" required>
+                        <input type="date" id="end-date" name="end_date">
                     </div>
                 </div>
 
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
                         <label for="day-type">Day Type<span class="required">*</span></label>
-                        <select id="day-type" name="day_type" required>
+                        <select id="day-type" name="day_type">
                             <option value="" selected disabled>Select day type</option>
                             <option value="full">Full Day</option>
                             <option value="half-am">Half Day (Morning)</option>
@@ -584,12 +584,34 @@
                             <option value="24hr" disabled>24 Hours (Sick Leave/MC only)</option>
                             <option value="48hr" disabled>48 Hours (Sick Leave/MC only)</option>
                         </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="num-days">No. of Days<span class="required">*</span></label>
-                        <input type="number" id="num-days" name="num_days" min="0" step="0.5" placeholder="0" readonly required>
+                        <div class="field-hint">Once Start Date, End Date and Day Type are all filled in, this range is added to the table below automatically. Add a separate entry for any gap (e.g. a skipped weekend) or a different day type.</div>
+                        <input type="hidden" id="num-days" name="num_days" value="">
                     </div>
                 </div>
+
+                <table class="data-table" id="leaveEntriesTable">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Day Type</th>
+                            <th>Duration</th>
+                            <th style="width: 36px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveEntriesBody">
+                        <tr id="leaveEntriesEmptyRow">
+                            <td colspan="5" style="text-align:center; color:#94a3b8;">No dates added yet. Fill in Start Date, End Date and Day Type above to add one.</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align:right; font-weight:600;">Total Days</td>
+                            <td id="leaveEntriesTotal" style="font-weight:700;">0</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
 
                 <div class="input-group">
                     <label for="reason">Reason / Description<span class="required">*</span></label>
@@ -923,6 +945,7 @@
                     draftData[input.id] = input.value;
                 }
             });
+            draftData.__leaveEntries = leaveEntries;
             localStorage.setItem(`draft_${formattedUserId}_leaveForm`, JSON.stringify(draftData));
         }
 
@@ -932,19 +955,20 @@
             try {
                 const draftData = JSON.parse(rawData);
                 Object.keys(draftData).forEach(key => {
+                    if (key === '__leaveEntries') return;
                     const el = document.getElementById(key);
                     if (el && !el.readOnly) {
                         el.value = draftData[key];
                     }
                 });
+                if (Array.isArray(draftData.__leaveEntries) && draftData.__leaveEntries.length > 0) {
+                    leaveEntries = draftData.__leaveEntries;
+                    renderLeaveEntries();
+                }
                 return true;
             } catch (e) {
                 return false;
             }
-        }
-
-        if (loadFormDraft()) {
-            document.getElementById('draftNotice').style.display = 'block';
         }
 
         document.querySelectorAll('#leaveForm input, #leaveForm select, #leaveForm textarea').forEach(el => {
@@ -979,10 +1003,9 @@
                 startDateInput.min = dateStr(minDate);
                 if (startDateHint) startDateHint.textContent = '📌 Leave must be submitted at least 3 days in advance.';
 
-                const dayTypeSelect = document.getElementById('day-type');
                 if (dayTypeSelect.value === '24hr' || dayTypeSelect.value === '48hr') {
                     dayTypeSelect.value = '';
-                    numDaysInput.value = '';
+                    stagedDuration = null;
                 }
             }
         }
@@ -1070,7 +1093,99 @@
 
         const startDateInput = document.getElementById('start-date');
         const endDateInput = document.getElementById('end-date');
-        const numDaysInput = document.getElementById('num-days');
+        const numDaysInput = document.getElementById('num-days'); // hidden - holds the TOTAL across all added entries
+        const dayTypeSelect = document.getElementById('day-type');
+        let stagedDuration = null; // duration for whatever's currently in the Start/End/Day Type fields, not yet added to the table
+
+        // ==========================================
+        // LEAVE DATE ENTRIES (multi-entry table)
+        // ==========================================
+        let leaveEntries = [];
+        const dayTypeLabels = {
+            full: 'Full Day',
+            'half-am': 'Half Day (Morning)',
+            'half-pm': 'Half Day (Afternoon)',
+            '24hr': '24 Hours (MC)',
+            '48hr': '48 Hours (MC)'
+        };
+
+        function renderLeaveEntries() {
+            const tbody = document.getElementById('leaveEntriesBody');
+            const emptyRow = document.getElementById('leaveEntriesEmptyRow');
+            tbody.querySelectorAll('tr[data-entry-row]').forEach(tr => tr.remove());
+
+            if (leaveEntries.length === 0) {
+                if (emptyRow) emptyRow.style.display = '';
+            } else {
+                if (emptyRow) emptyRow.style.display = 'none';
+                leaveEntries.forEach((entry, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.entryRow = 'true';
+                    const durationLabel = entry.duration === 1 ? '1 day' : `${entry.duration} days`;
+                    tr.innerHTML = `
+                        <td>${entry.start}</td>
+                        <td>${entry.end}</td>
+                        <td>${dayTypeLabels[entry.dayType] || entry.dayType}</td>
+                        <td>${durationLabel}</td>
+                        <td></td>
+                    `;
+                    const actionTd = tr.lastElementChild;
+                    const delBtn = document.createElement('button');
+                    delBtn.type = 'button';
+                    delBtn.title = 'Remove this entry';
+                    delBtn.style.cssText = 'background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;line-height:1;';
+                    delBtn.innerHTML = "<i class='bx bx-trash'></i>";
+                    delBtn.addEventListener('click', () => {
+                        leaveEntries.splice(idx, 1);
+                        renderLeaveEntries();
+                        saveFormDraft();
+                    });
+                    actionTd.appendChild(delBtn);
+                    tbody.appendChild(tr);
+                });
+            }
+
+            const total = leaveEntries.reduce((sum, e) => sum + e.duration, 0);
+            document.getElementById('leaveEntriesTotal').textContent = total;
+            numDaysInput.value = total;
+        }
+
+        function clearStagedFields() {
+            startDateInput.value = '';
+            endDateInput.value = '';
+            dayTypeSelect.value = '';
+            stagedDuration = null;
+            endDateInput.min = '';
+        }
+
+        // Called after Start Date / End Date / Day Type are (re)evaluated. Once all
+        // three are filled and a duration has been computed, the entry is added to
+        // the table automatically and the staging fields are cleared for the next one.
+        function maybeAddEntry() {
+            if (!startDateInput.value || !endDateInput.value || !dayTypeSelect.value) return;
+            if (stagedDuration === null || stagedDuration === '' || Number(stagedDuration) <= 0) return;
+
+            const newEntry = {
+                start: startDateInput.value,
+                end: endDateInput.value,
+                dayType: dayTypeSelect.value,
+                duration: Number(stagedDuration)
+            };
+
+            const overlapsExisting = leaveEntries.some(e =>
+                new Date(newEntry.start) <= new Date(e.end) && new Date(e.start) <= new Date(newEntry.end)
+            );
+            if (overlapsExisting) {
+                alert('That date range overlaps with an entry already in the table below. Please adjust the dates.');
+                return;
+            }
+
+            leaveEntries.push(newEntry);
+            leaveEntries.sort((a, b) => new Date(a.start) - new Date(b.start));
+            renderLeaveEntries();
+            clearStagedFields();
+            saveFormDraft();
+        }
 
         // Sekat calendar picker daripada pilih tarikh kurang dari 3 hari notis (UX level)
         (function setMinStartDate() {
@@ -1101,30 +1216,36 @@
             return count;
         }
 
+        // Draft restore happens here (not earlier in the file) since it can populate leaveEntries.
+        if (loadFormDraft()) {
+            document.getElementById('draftNotice').style.display = 'block';
+        }
+
         startDateInput.addEventListener('change', () => {
             if (startDateInput.value) {
                 const start = new Date(startDateInput.value);
                 if (isWeekend(start)) {
                     alert('Weekends are excluded from leave. Please choose a Start Date that falls on a weekday (Mon–Fri).');
                     startDateInput.value = '';
-                    numDaysInput.value = '';
+                    stagedDuration = null;
                     return;
                 }
             }
             endDateInput.min = startDateInput.value;
 
-            const dayTypeVal = document.getElementById('day-type').value;
+            const dayTypeVal = dayTypeSelect.value;
             if (dayTypeVal === '24hr' && startDateInput.value) {
                 endDateInput.value = startDateInput.value;
-                numDaysInput.value = 1;
+                stagedDuration = 1;
             } else if (dayTypeVal === '48hr' && startDateInput.value) {
                 const end = new Date(startDateInput.value);
                 end.setDate(end.getDate() + 1);
                 endDateInput.value = dateStr(end);
-                numDaysInput.value = 2;
+                stagedDuration = 2;
             } else {
                 calculateDays();
             }
+            maybeAddEntry();
         });
 
         endDateInput.addEventListener('change', () => {
@@ -1133,11 +1254,12 @@
                 if (isWeekend(end)) {
                     alert('Weekends are excluded from leave. Please choose an End Date that falls on a weekday (Mon–Fri).');
                     endDateInput.value = '';
-                    numDaysInput.value = '';
+                    stagedDuration = null;
                     return;
                 }
             }
             calculateDays();
+            maybeAddEntry();
         });
 
         function calculateDays() {
@@ -1145,42 +1267,40 @@
                 const start = new Date(startDateInput.value);
                 const end = new Date(endDateInput.value);
                 if (end >= start) {
-                    const businessDays = countBusinessDays(start, end);
-                    numDaysInput.value = businessDays;
+                    stagedDuration = countBusinessDays(start, end);
                 } else {
-                    numDaysInput.value = 0;
+                    stagedDuration = 0;
                 }
             }
         }
 
         function day_type_is_half() {
-            const dt = document.getElementById('day-type').value;
-            return dt === 'half-am' || dt === 'half-pm';
+            return dayTypeSelect.value === 'half-am' || dayTypeSelect.value === 'half-pm';
         }
 
         function day_type_is_hourly() {
-            const dt = document.getElementById('day-type').value;
-            return dt === '24hr' || dt === '48hr';
+            return dayTypeSelect.value === '24hr' || dayTypeSelect.value === '48hr';
         }
 
-        document.getElementById('day-type').addEventListener('change', function() {
+        dayTypeSelect.addEventListener('change', function() {
             if (this.value === '24hr') {
                 if (startDateInput.value) {
                     endDateInput.value = startDateInput.value;
                 }
-                numDaysInput.value = 1;
+                stagedDuration = 1;
             } else if (this.value === '48hr') {
                 if (startDateInput.value) {
                     const end = new Date(startDateInput.value);
                     end.setDate(end.getDate() + 1);
                     endDateInput.value = dateStr(end);
                 }
-                numDaysInput.value = 2;
+                stagedDuration = 2;
             } else if (day_type_is_half() && startDateInput.value && startDateInput.value === endDateInput.value) {
-                numDaysInput.value = 0.5;
+                stagedDuration = 0.5;
             } else {
                 calculateDays();
             }
+            maybeAddEntry();
         });
 
         // --- 3 HARI NOTIS MINIMUM VALIDATION ---
@@ -1223,22 +1343,34 @@
         document.getElementById('leaveForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            if (leaveTypeSelect.value !== 'sick' && !isAtLeast3DaysAdvance(startDateInput.value)) {
+            // If the user finished filling Start/End/Day Type but the row hasn't
+            // been added yet (e.g. they hit Submit before it auto-added), add it now.
+            maybeAddEntry();
+
+            if (leaveEntries.length === 0) {
+                alert('Please add at least one date entry to the table before submitting.');
+                return;
+            }
+
+            const earliestStart = leaveEntries.reduce((min, e) => e.start < min ? e.start : min, leaveEntries[0].start);
+            const latestEnd = leaveEntries.reduce((max, e) => e.end > max ? e.end : max, leaveEntries[0].end);
+
+            if (leaveTypeSelect.value !== 'sick' && !isAtLeast3DaysAdvance(earliestStart)) {
                 alert('Leave must be submitted at least 3 days in advance. Sila pilih Start Date yang sekurang-kurangnya 3 hari dari hari ini.');
                 return;
             }
 
-            if (isWeekend(new Date(startDateInput.value)) || isWeekend(new Date(endDateInput.value))) {
-                alert('Weekends are excluded from leave. Please select weekday dates only.');
-                return;
-            }
-
-            if (await hasOverlappingLeave(startDateInput.value, endDateInput.value)) {
+            if (await hasOverlappingLeave(earliestStart, latestEnd)) {
                 alert('You already have a pending or approved leave request that overlaps with these dates. Duplicate leave applications are not allowed.');
                 return;
             }
 
             const formData = new FormData(this);
+            formData.set('start_date', earliestStart);
+            formData.set('end_date', latestEnd);
+            formData.set('day_type', leaveEntries.length === 1 ? leaveEntries[0].dayType : 'mixed');
+            formData.set('num_days', leaveEntries.reduce((sum, e) => sum + e.duration, 0));
+            formData.set('leave_entries', JSON.stringify(leaveEntries));
 
             try {
                 const response = await fetch('/api/submit-leave', {

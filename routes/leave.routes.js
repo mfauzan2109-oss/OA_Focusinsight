@@ -211,38 +211,69 @@ router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req
         leave_type = req.body.leave_type_others;
     }
 
-    const start_date = req.body.start_date;
-    const end_date = req.body.end_date;
-    const day_type = req.body.day_type;
     const reason = req.body.reason;
     const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
 
-    if (!start_date || !end_date) {
-        return res.status(400).json({
-            success: false,
-            message: 'Start Date and End Date are required.'
-        });
+    // Multi-entry submissions (current leave.html) send leave_entries as a JSON array of
+    // { start, end, dayType } so a single application can cover gapped or mixed-day-type
+    // dates (e.g. Friday full day + Monday half day, skipping the weekend in between).
+    // Older/other callers (e.g. the HR-side form) may still POST a single start_date/
+    // end_date/day_type instead - that path is preserved below unchanged.
+    let entries;
+    if (req.body.leave_entries) {
+        try {
+            const parsed = JSON.parse(req.body.leave_entries);
+            if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('empty');
+            entries = parsed.map(e => ({ start_date: e.start, end_date: e.end, day_type: e.dayType }));
+        } catch (e) {
+            return res.status(400).json({ success: false, message: 'Invalid leave date entries.' });
+        }
+    } else {
+        entries = [{ start_date: req.body.start_date, end_date: req.body.end_date, day_type: req.body.day_type }];
     }
 
-    const startObj = new Date(start_date);
-    const endObj = new Date(end_date);
+    let num_days = 0;
+    for (const entry of entries) {
+        const { start_date, end_date, day_type } = entry;
 
-    if (isNaN(startObj.getTime()) || isNaN(endObj.getTime()) || endObj < startObj) {
-        return res.status(400).json({ success: false, message: 'Invalid date range provided.' });
-    }
+        if (!start_date || !end_date) {
+            return res.status(400).json({ success: false, message: 'Start Date and End Date are required for every entry.' });
+        }
 
-    if (isWeekend(startObj) || isWeekend(endObj)) {
-        return res.status(400).json({ success: false, message: 'Weekends are excluded from leave. Please select a Start Date and End Date that fall on a weekday.' });
-    }
+        const startObj = new Date(start_date);
+        const endObj = new Date(end_date);
 
-    let num_days = countBusinessDays(start_date, end_date);
-    if ((day_type === 'half-am' || day_type === 'half-pm') && start_date === end_date) {
-        num_days = 0.5;
+        if (isNaN(startObj.getTime()) || isNaN(endObj.getTime()) || endObj < startObj) {
+            return res.status(400).json({ success: false, message: 'Invalid date range provided.' });
+        }
+
+        if (isWeekend(startObj) || isWeekend(endObj)) {
+            return res.status(400).json({ success: false, message: 'Weekends are excluded from leave. Please select a Start Date and End Date that fall on a weekday.' });
+        }
+
+        let entryDays;
+        if ((day_type === 'half-am' || day_type === 'half-pm') && start_date === end_date) {
+            entryDays = 0.5;
+        } else if (day_type === '24hr') {
+            entryDays = 1;
+        } else if (day_type === '48hr') {
+            entryDays = 2;
+        } else {
+            entryDays = countBusinessDays(start_date, end_date);
+        }
+
+        entry.days = entryDays;
+        num_days += entryDays;
     }
 
     if (num_days <= 0) {
         return res.status(400).json({ success: false, message: 'The selected date range contains no working days (weekends are excluded).' });
     }
+
+    const start_date = entries.reduce((min, e) => e.start_date < min ? e.start_date : min, entries[0].start_date);
+    const end_date = entries.reduce((max, e) => e.end_date > max ? e.end_date : max, entries[0].end_date);
+    const day_type = entries.length === 1 ? entries[0].day_type : 'mixed';
+    const date_entries_json = entries.length > 1 ? JSON.stringify(entries) : null;
 
     const overlapQuery = `
         SELECT ID as id, \`Start Date\` as start_date, \`End Date\` as end_date, Status as status
@@ -268,8 +299,8 @@ router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req
 
         const query = `
             INSERT INTO \`leave\` 
-            (\`Employee ID\`, \`Employee Name\`, \`Department\`, \`Leave Type\`, \`Start Date\`, \`End Date\`, \`Day type\`, \`No of Days\`, \`Reason\`, \`Supporting Documen\`, \`Status\`, \`Created At\`) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+            (\`Employee ID\`, \`Employee Name\`, \`Department\`, \`Leave Type\`, \`Start Date\`, \`End Date\`, \`Day type\`, \`No of Days\`, \`Reason\`, \`Supporting Documen\`, \`Date Entries\`, \`Status\`, \`Created At\`) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
         `;
 
         const roles = ['Head of Department'];
@@ -297,7 +328,8 @@ router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req
                 day_type,
                 num_days,
                 reason,
-                attachment_path
+                attachment_path,
+                date_entries_json
             ],
             roles,
             department

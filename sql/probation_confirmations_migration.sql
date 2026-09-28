@@ -1,33 +1,24 @@
--- Migration: fix the live probation_confirmations table so HR can actually
--- submit hr/probation-confirmation-form.html.
+-- Migration: adds the Manager/HOD probation assessment columns to probation_confirmations.
+-- Needed by POST /api/probation-confirmation/:id/assessment (probation-confirmation-detail.html).
 --
--- Two separate problems, found by comparing the real table (via DESCRIBE) to
--- what the route/form expect - the sql/probation_confirmations.sql file in
--- this repo does not reflect the live table (it looks like it was written
--- for a planned redesign - assessment_job_knowledge, overall_recommendation,
--- performance_summary, etc. - that was never actually migrated in). Worth a
--- separate look at some point, but out of scope for this fix.
---
--- 1) reason_remarks / supporting_document may already exist on your table -
---    if step 1 errors with "Duplicate column name", just skip to step 2.
--- 2) overall_performance / work_performance / attendance_punctuality /
---    work_attitude_teamwork / recommendation are still NOT NULL with no
---    default, left over from the old form design where HR filled these in
---    directly. The current form design has the Manager fill these in later
---    (via probation-confirmation-detail.html), so HR's initial submission
---    correctly leaves them blank - which fails unless we make them nullable.
---
--- Run this once against the fis_os_system database (skip any ADD COLUMN that
--- errors with "Duplicate column name" - it just means that part's already
--- been applied):
+
 
 ALTER TABLE `probation_confirmations`
-  ADD COLUMN `reason_remarks` TEXT COLLATE utf8mb4_general_ci NULL AFTER `probation_end_date`,
-  ADD COLUMN `supporting_document` VARCHAR(255) COLLATE utf8mb4_general_ci NULL AFTER `reason_remarks`;
-
-ALTER TABLE `probation_confirmations`
-  MODIFY COLUMN `overall_performance` varchar(50) COLLATE utf8mb4_general_ci NULL,
-  MODIFY COLUMN `work_performance` varchar(50) COLLATE utf8mb4_general_ci NULL,
-  MODIFY COLUMN `attendance_punctuality` varchar(50) COLLATE utf8mb4_general_ci NULL,
-  MODIFY COLUMN `work_attitude_teamwork` varchar(50) COLLATE utf8mb4_general_ci NULL,
-  MODIFY COLUMN `recommendation` varchar(50) COLLATE utf8mb4_general_ci NULL;
+  ADD COLUMN `assessment_job_knowledge` TINYINT NULL,
+  ADD COLUMN `assessment_quality_of_work` TINYINT NULL,
+  ADD COLUMN `assessment_work_productivity` TINYINT NULL,
+  ADD COLUMN `assessment_communication_skills` TINYINT NULL,
+  ADD COLUMN `assessment_teamwork_collaboration` TINYINT NULL,
+  ADD COLUMN `assessment_problem_solving_initiative` TINYINT NULL,
+  ADD COLUMN `assessment_attendance_punctuality` TINYINT NULL,
+  ADD COLUMN `assessment_adaptability_learning` TINYINT NULL,
+  ADD COLUMN `assessment_responsibility_attitude` TINYINT NULL,
+  ADD COLUMN `assessment_compliance_policies` TINYINT NULL,
+  ADD COLUMN `total_points` INT NULL,
+  ADD COLUMN `passing_points` INT NULL,
+  ADD COLUMN `overall_recommendation` VARCHAR(30) NULL,
+  ADD COLUMN `proposed_confirmation_date` DATE NULL,
+  ADD COLUMN `extended_probation_period` VARCHAR(100) NULL,
+  ADD COLUMN `performance_summary` TEXT NULL,
+  ADD COLUMN `assessed_by` VARCHAR(20) NULL,
+  ADD COLUMN `assessed_at` DATETIME NULL;
