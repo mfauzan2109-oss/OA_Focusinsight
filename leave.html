@@ -415,6 +415,22 @@
         .leave-balance-table td.balance-low {
             color: #dc2626;
         }
+        .balance-breakdown { line-height: 1.4; font-size: 12px; text-align: left; }
+        .balance-breakdown .bb-label { display: block; font-weight: 700; color: #1e293b; }
+        .balance-breakdown .bb-value { display: block; font-weight: 700; color: #0d9488; margin-bottom: 8px; }
+        .balance-breakdown .bb-value:last-child { margin-bottom: 0; }
+        .entries-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
+        .entries-toolbar .field-hint { margin: 0; flex: 1; min-width: 220px; }
+        .btn-add-row { background: #2563eb; color: #fff; border: none; border-radius: 999px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .btn-add-row:hover { background: #1d4ed8; }
+        .entries-wrap { overflow-x: auto; }
+        .leave-entries-table input[type="date"],
+        .leave-entries-table select { width: 100%; min-width: 130px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; box-sizing: border-box; }
+        .leave-entries-table td { vertical-align: middle; }
+        .leave-entries-table .entry-duration { font-weight: 600; color: #1e293b; white-space: nowrap; }
+        .leave-entries-table .entry-duration.invalid { color: #dc2626; }
+        .leave-entries-table .entry-del { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px; line-height: 1; }
+        .leave-entries-table th:last-child, .leave-entries-table td.entry-action { text-align: center; width: 70px; }
     </style>
 </head>
 <body>
@@ -566,57 +582,34 @@
                     </div>
                 </div>
 
-                <div class="form-grid form-grid-2">
-                    <div class="input-group">
-                        <label for="start-date">Start Date<span class="required">*</span></label>
-                        <input type="date" id="start-date" name="start_date">
-                        <div class="field-hint" id="startDateHint">📌 Leave must be submitted at least 3 days in advance.</div>
-                    </div>
-                    <div class="input-group">
-                        <label for="end-date">End Date<span class="required">*</span></label>
-                        <input type="date" id="end-date" name="end_date">
-                    </div>
+                <div class="entries-toolbar">
+                    <div class="field-hint" id="startDateHint">📌 Leave must be submitted at least 3 days in advance.</div>
+                    <button type="button" class="btn-add-row" id="addRowBtn">+ Add Row</button>
                 </div>
 
-                <div class="form-grid form-grid-2">
-                    <div class="input-group">
-                        <label for="day-type">Day Type<span class="required">*</span></label>
-                        <select id="day-type" name="day_type">
-                            <option value="" selected disabled>Select day type</option>
-                            <option value="full">Full Day</option>
-                            <option value="half-am">Half Day (Morning)</option>
-                            <option value="half-pm">Half Day (Afternoon)</option>
-                            <option value="24hr" disabled>24 Hours (Sick Leave/MC only)</option>
-                            <option value="48hr" disabled>48 Hours (Sick Leave/MC only)</option>
-                        </select>
-                        <div class="field-hint">Once Start Date, End Date and Day Type are all filled in, this range is added to the table below automatically. Add a separate entry for any gap (e.g. a skipped weekend) or a different day type.</div>
-                        <input type="hidden" id="num-days" name="num_days" value="">
-                    </div>
+                <div class="entries-wrap">
+                    <table class="data-table leave-entries-table" id="leaveEntriesTable">
+                        <thead>
+                            <tr>
+                                <th>Start Date<span class="required">*</span></th>
+                                <th>End Date<span class="required">*</span></th>
+                                <th>Day Type<span class="required">*</span></th>
+                                <th>Duration</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaveEntriesBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align:right; font-weight:600;">Total Days</td>
+                                <td id="leaveEntriesTotal" style="font-weight:700;">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-
-                <table class="data-table" id="leaveEntriesTable">
-                    <thead>
-                        <tr>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Day Type</th>
-                            <th>Duration</th>
-                            <th style="width: 36px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaveEntriesBody">
-                        <tr id="leaveEntriesEmptyRow">
-                            <td colspan="5" style="text-align:center; color:#94a3b8;">No dates added yet. Fill in Start Date, End Date and Day Type above to add one.</td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" style="text-align:right; font-weight:600;">Total Days</td>
-                            <td id="leaveEntriesTotal" style="font-weight:700;">0</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+                <div class="field-hint" style="margin-bottom: 14px;">Use one row for each different day type. Half Day and 24/48 hour MC use a single date. Weekends are not counted.</div>
+                <input type="hidden" id="num-days" name="num_days" value="">
 
                 <div class="input-group">
                     <label for="reason">Reason / Description<span class="required">*</span></label>
@@ -950,7 +943,7 @@
                     draftData[input.id] = input.value;
                 }
             });
-            draftData.__leaveEntries = leaveEntries;
+            draftData.__leaveEntries = getRowsState();
             localStorage.setItem(`draft_${formattedUserId}_leaveForm`, JSON.stringify(draftData));
         }
 
@@ -967,9 +960,12 @@
                     }
                 });
                 if (Array.isArray(draftData.__leaveEntries) && draftData.__leaveEntries.length > 0) {
-                    leaveEntries = draftData.__leaveEntries;
-                    renderLeaveEntries();
+                    entriesBody.innerHTML = '';
+                    draftData.__leaveEntries.forEach(entry => addEntryRow(entry));
                 }
+                if (leaveTypeSelect.value === 'annual') annualNote.style.display = 'block';
+                applyLeaveTypeRules();
+                highlightBalanceRow(leaveTypeSelect.value);
                 return true;
             } catch (e) {
                 return false;
@@ -988,32 +984,10 @@
 
         const leaveTypeSelect = document.getElementById('leave-type');
         const annualNote = document.getElementById('annual-leave-note');
-        const day24hrOption = document.querySelector('#day-type option[value="24hr"]');
-        const day48hrOption = document.querySelector('#day-type option[value="48hr"]');
         const startDateHint = document.getElementById('startDateHint');
 
         function pad2(n) { return String(n).padStart(2, '0'); }
         function dateStr(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
-
-        function setSickLeaveMode(isSick) {
-            if (day24hrOption) day24hrOption.disabled = !isSick;
-            if (day48hrOption) day48hrOption.disabled = !isSick;
-
-            if (isSick) {
-                startDateInput.min = dateStr(new Date());
-                if (startDateHint) startDateHint.textContent = '📌 Sick Leave/MC can be requested immediately (same day), including 24/48 hour MC.';
-            } else {
-                const minDate = new Date();
-                minDate.setDate(minDate.getDate() + 3);
-                startDateInput.min = dateStr(minDate);
-                if (startDateHint) startDateHint.textContent = '📌 Leave must be submitted at least 3 days in advance.';
-
-                if (dayTypeSelect.value === '24hr' || dayTypeSelect.value === '48hr') {
-                    dayTypeSelect.value = '';
-                    stagedDuration = null;
-                }
-            }
-        }
 
         leaveTypeSelect.addEventListener('change', () => {
             if (leaveTypeSelect.value === 'annual') {
@@ -1022,7 +996,7 @@
                 annualNote.style.display = 'none';
             }
 
-            setSickLeaveMode(leaveTypeSelect.value === 'sick');
+            applyLeaveTypeRules();
 
             highlightBalanceRow(leaveTypeSelect.value);
         });
@@ -1039,6 +1013,7 @@
             if (t === 'hospitalization' || t === 'medical leave') return 'Hospitalization';
             if (t === 'maternity') return 'Maternity';
             if (t === 'paternity') return 'Paternity';
+            if (t === 'compassionate') return 'Compassionate';
             return null;
         }
 
@@ -1047,6 +1022,13 @@
             document.querySelectorAll('#leaveBalanceBody tr').forEach(tr => {
                 tr.style.background = (norm && tr.dataset.type === norm) ? '#eff6ff' : '';
             });
+        }
+
+        function formatExpiry(value) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value || ''));
+            if (!m) return '';
+            return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+                .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
         async function loadLeaveBalance() {
@@ -1064,11 +1046,29 @@
                     const tr = document.createElement('tr');
                     tr.dataset.type = row.leave_type;
                     const lowClass = row.remaining <= 2 ? ' balance-low' : '';
+                    let remainingHtml = `${row.remaining} days`;
+                    if (row.leave_type === 'Annual Leave' && Number(row.carried_forward) > 0) {
+                        // Current Year = this year's entitlement less what has been used;
+                        // Carry Forward = whatever else is still left. The two add up to Total Remaining.
+                        const total = Number(row.remaining);
+                        const currentYear = Math.min(total, Math.max(0, Number(row.entitlement) - Number(row.used)));
+                        const carry = total - currentYear;
+                        const expiry = formatExpiry(row.carried_forward_expires);
+                        remainingHtml = `
+                            <div class="balance-breakdown">
+                                <span class="bb-label">Carry Forward${expiry ? ' (Valid until ' + expiry + ')' : ''}</span>
+                                <span class="bb-value">= ${carry} days</span>
+                                <span class="bb-label">Current Year</span>
+                                <span class="bb-value">= ${currentYear} days</span>
+                                <span class="bb-label">Total Remaining</span>
+                                <span class="bb-value">= ${total} days</span>
+                            </div>`;
+                    }
                     tr.innerHTML = `
                         <td>${row.leave_type}</td>
-                        <td>${row.entitlement}${row.carried_forward ? ' (+' + row.carried_forward + ' c/f)' : ''} days</td>
+                        <td>${row.entitlement} days</td>
                         <td>${row.used} days</td>
-                        <td class="balance-remaining${lowClass}">${row.remaining} days</td>
+                        <td class="balance-remaining${lowClass}">${remainingHtml}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1096,111 +1096,21 @@
             }
         });
 
-        const startDateInput = document.getElementById('start-date');
-        const endDateInput = document.getElementById('end-date');
-        const numDaysInput = document.getElementById('num-days'); // hidden - holds the TOTAL across all added entries
-        const dayTypeSelect = document.getElementById('day-type');
-        let stagedDuration = null; // duration for whatever's currently in the Start/End/Day Type fields, not yet added to the table
-
         // ==========================================
-        // LEAVE DATE ENTRIES (multi-entry table)
+        // LEAVE DATE ENTRIES (editable rows)
         // ==========================================
-        let leaveEntries = [];
-        const dayTypeLabels = {
-            full: 'Full Day',
-            'half-am': 'Half Day (Morning)',
-            'half-pm': 'Half Day (Afternoon)',
-            '24hr': '24 Hours (MC)',
-            '48hr': '48 Hours (MC)'
-        };
+        const numDaysInput = document.getElementById('num-days'); // hidden - holds the TOTAL across all valid rows
+        const entriesBody = document.getElementById('leaveEntriesBody');
+        const MAX_ENTRY_ROWS = 31;
 
-        function renderLeaveEntries() {
-            const tbody = document.getElementById('leaveEntriesBody');
-            const emptyRow = document.getElementById('leaveEntriesEmptyRow');
-            tbody.querySelectorAll('tr[data-entry-row]').forEach(tr => tr.remove());
+        function isSickSelected() { return leaveTypeSelect.value === 'sick'; }
 
-            if (leaveEntries.length === 0) {
-                if (emptyRow) emptyRow.style.display = '';
-            } else {
-                if (emptyRow) emptyRow.style.display = 'none';
-                leaveEntries.forEach((entry, idx) => {
-                    const tr = document.createElement('tr');
-                    tr.dataset.entryRow = 'true';
-                    const durationLabel = entry.duration === 1 ? '1 day' : `${entry.duration} days`;
-                    tr.innerHTML = `
-                        <td>${entry.start}</td>
-                        <td>${entry.end}</td>
-                        <td>${dayTypeLabels[entry.dayType] || entry.dayType}</td>
-                        <td>${durationLabel}</td>
-                        <td></td>
-                    `;
-                    const actionTd = tr.lastElementChild;
-                    const delBtn = document.createElement('button');
-                    delBtn.type = 'button';
-                    delBtn.title = 'Remove this entry';
-                    delBtn.style.cssText = 'background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;line-height:1;';
-                    delBtn.innerHTML = "<i class='bx bx-trash'></i>";
-                    delBtn.addEventListener('click', () => {
-                        leaveEntries.splice(idx, 1);
-                        renderLeaveEntries();
-                        saveFormDraft();
-                    });
-                    actionTd.appendChild(delBtn);
-                    tbody.appendChild(tr);
-                });
-            }
-
-            const total = leaveEntries.reduce((sum, e) => sum + e.duration, 0);
-            document.getElementById('leaveEntriesTotal').textContent = total;
-            numDaysInput.value = total;
+        function minStartDateStr() {
+            if (isSickSelected()) return dateStr(new Date());
+            const d = new Date();
+            d.setDate(d.getDate() + 3);
+            return dateStr(d);
         }
-
-        function clearStagedFields() {
-            startDateInput.value = '';
-            endDateInput.value = '';
-            dayTypeSelect.value = '';
-            stagedDuration = null;
-            endDateInput.min = '';
-        }
-
-        // Called after Start Date / End Date / Day Type are (re)evaluated. Once all
-        // three are filled and a duration has been computed, the entry is added to
-        // the table automatically and the staging fields are cleared for the next one.
-        function maybeAddEntry() {
-            if (!startDateInput.value || !endDateInput.value || !dayTypeSelect.value) return;
-            if (stagedDuration === null || stagedDuration === '' || Number(stagedDuration) <= 0) return;
-
-            const newEntry = {
-                start: startDateInput.value,
-                end: endDateInput.value,
-                dayType: dayTypeSelect.value,
-                duration: Number(stagedDuration)
-            };
-
-            const overlapsExisting = leaveEntries.some(e =>
-                new Date(newEntry.start) <= new Date(e.end) && new Date(e.start) <= new Date(newEntry.end)
-            );
-            if (overlapsExisting) {
-                alert('That date range overlaps with an entry already in the table below. Please adjust the dates.');
-                return;
-            }
-
-            leaveEntries.push(newEntry);
-            leaveEntries.sort((a, b) => new Date(a.start) - new Date(b.start));
-            renderLeaveEntries();
-            clearStagedFields();
-            saveFormDraft();
-        }
-
-        // Sekat calendar picker daripada pilih tarikh kurang dari 3 hari notis (UX level)
-        (function setMinStartDate() {
-            const minDate = new Date();
-            minDate.setDate(minDate.getDate() + 3);
-            const yyyy = minDate.getFullYear();
-            const mm = String(minDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(minDate.getDate()).padStart(2, '0');
-            startDateInput.min = `${yyyy}-${mm}-${dd}`;
-        })();
 
         // Weekends excluded: Saturday (6) and Sunday (0) don't count as leave days
         function isWeekend(date) {
@@ -1221,92 +1131,200 @@
             return count;
         }
 
-        // Draft restore happens here (not earlier in the file) since it can populate leaveEntries.
+        function formatDuration(d) { return d === 1 ? '1 day' : `${d} days`; }
+
+        // null = not enough info yet, 0 = invalid, > 0 = valid duration
+        function computeDuration(start, end, dayType) {
+            if (!start || !dayType) return null;
+            if (dayType === '24hr') return 1;
+            if (dayType === '48hr') return 2;
+            if (!end) return null;
+            const s = new Date(start);
+            const e = new Date(end);
+            if (e < s) return 0;
+            if (dayType === 'half-am' || dayType === 'half-pm') return start === end ? 0.5 : 0;
+            return countBusinessDays(s, e);
+        }
+
+        function rowFields(tr) {
+            return {
+                start: tr.querySelector('.entry-start'),
+                end: tr.querySelector('.entry-end'),
+                dayType: tr.querySelector('.entry-daytype'),
+                durationCell: tr.querySelector('.entry-duration')
+            };
+        }
+
+        function entryRows() { return Array.from(entriesBody.querySelectorAll('tr[data-entry-row]')); }
+
+        function applyRuleToRow(tr) {
+            const f = rowFields(tr);
+            const sick = isSickSelected();
+            f.start.min = minStartDateStr();
+            f.end.min = f.start.value || minStartDateStr();
+            f.dayType.querySelectorAll('option[value="24hr"], option[value="48hr"]').forEach(o => { o.disabled = !sick; });
+            if (!sick && (f.dayType.value === '24hr' || f.dayType.value === '48hr')) f.dayType.value = '';
+        }
+
+        function applyLeaveTypeRules() {
+            if (startDateHint) {
+                startDateHint.textContent = isSickSelected()
+                    ? '📌 Sick Leave/MC can be requested immediately (same day), including 24/48 hour MC.'
+                    : '📌 Leave must be submitted at least 3 days in advance.';
+            }
+            entryRows().forEach(tr => { applyRuleToRow(tr); refreshRow(tr); });
+            refreshTotals();
+        }
+
+        function refreshRow(tr) {
+            const f = rowFields(tr);
+            const dur = computeDuration(f.start.value, f.end.value, f.dayType.value);
+            f.durationCell.classList.remove('invalid');
+            if (dur === null) {
+                tr.dataset.duration = '';
+                f.durationCell.textContent = '–';
+            } else if (dur <= 0) {
+                tr.dataset.duration = '0';
+                f.durationCell.textContent = 'Invalid';
+                f.durationCell.classList.add('invalid');
+            } else {
+                tr.dataset.duration = String(dur);
+                f.durationCell.textContent = formatDuration(dur);
+            }
+        }
+
+        function refreshTotals() {
+            const total = entryRows().reduce((sum, tr) => sum + (Number(tr.dataset.duration) || 0), 0);
+            document.getElementById('leaveEntriesTotal').textContent = total;
+            numDaysInput.value = total;
+        }
+
+        function overlapsOtherRow(tr) {
+            const f = rowFields(tr);
+            if (!f.start.value || !f.end.value) return false;
+            return entryRows().some(other => {
+                if (other === tr) return false;
+                const o = rowFields(other);
+                if (!o.start.value || !o.end.value) return false;
+                return f.start.value <= o.end.value && o.start.value <= f.end.value;
+            });
+        }
+
+        function onRowChange(tr, changedEl) {
+            const f = rowFields(tr);
+
+            if ((changedEl === f.start || changedEl === f.end) && changedEl.value && isWeekend(new Date(changedEl.value))) {
+                alert(`Weekends are excluded from leave. Please choose ${changedEl === f.start ? 'a Start' : 'an End'} Date that falls on a weekday (Mon–Fri).`);
+                changedEl.value = '';
+            }
+
+            // These day types always use a fixed date range, so the End Date follows the Start Date.
+            const dt = f.dayType.value;
+            if (f.start.value) {
+                if (dt === 'half-am' || dt === 'half-pm' || dt === '24hr') {
+                    f.end.value = f.start.value;
+                } else if (dt === '48hr') {
+                    const end = new Date(f.start.value);
+                    end.setDate(end.getDate() + 1);
+                    f.end.value = dateStr(end);
+                }
+            }
+
+            applyRuleToRow(tr);
+
+            const dur = computeDuration(f.start.value, f.end.value, f.dayType.value);
+            if (dur > 0 && overlapsOtherRow(tr)) {
+                alert('That date range overlaps with another row in the table. Please adjust the dates.');
+                changedEl.value = '';
+                if (changedEl === f.start && (dt === 'half-am' || dt === 'half-pm' || dt === '24hr' || dt === '48hr')) f.end.value = '';
+                applyRuleToRow(tr);
+            }
+
+            refreshRow(tr);
+            refreshTotals();
+            saveFormDraft();
+        }
+
+        function addEntryRow(values) {
+            if (entryRows().length >= MAX_ENTRY_ROWS) {
+                alert(`You can add at most ${MAX_ENTRY_ROWS} rows in one application.`);
+                return null;
+            }
+            const tr = document.createElement('tr');
+            tr.dataset.entryRow = 'true';
+            tr.innerHTML = `
+                <td><input type="date" class="entry-start"></td>
+                <td><input type="date" class="entry-end"></td>
+                <td>
+                    <select class="entry-daytype">
+                        <option value="" selected disabled>Select</option>
+                        <option value="full">Full Day</option>
+                        <option value="half-am">Half Day (Morning)</option>
+                        <option value="half-pm">Half Day (Afternoon)</option>
+                        <option value="24hr" disabled>24 Hours (MC only)</option>
+                        <option value="48hr" disabled>48 Hours (MC only)</option>
+                    </select>
+                </td>
+                <td class="entry-duration">–</td>
+                <td class="entry-action"><button type="button" class="entry-del" title="Remove this row"><i class='bx bx-trash'></i></button></td>
+            `;
+            entriesBody.appendChild(tr);
+
+            const f = rowFields(tr);
+            if (values) {
+                f.start.value = values.start || '';
+                f.end.value = values.end || '';
+                f.dayType.value = values.dayType || '';
+            }
+            f.start.addEventListener('change', () => onRowChange(tr, f.start));
+            f.end.addEventListener('change', () => onRowChange(tr, f.end));
+            f.dayType.addEventListener('change', () => onRowChange(tr, f.dayType));
+            tr.querySelector('.entry-del').addEventListener('click', () => {
+                tr.remove();
+                if (entryRows().length === 0) addEntryRow(); // always keep one row to fill in
+                refreshTotals();
+                saveFormDraft();
+            });
+
+            applyRuleToRow(tr);
+            refreshRow(tr);
+            refreshTotals();
+            return tr;
+        }
+
+        // Everything typed so far (including half-filled rows), used for the saved draft.
+        function getRowsState() {
+            return entryRows().map(tr => {
+                const f = rowFields(tr);
+                return { start: f.start.value, end: f.end.value, dayType: f.dayType.value };
+            });
+        }
+
+        // Only complete, valid rows, in the shape the server expects.
+        function getEntries() {
+            return entryRows()
+                .filter(tr => Number(tr.dataset.duration) > 0)
+                .map(tr => {
+                    const f = rowFields(tr);
+                    return { start: f.start.value, end: f.end.value, dayType: f.dayType.value, duration: Number(tr.dataset.duration) };
+                })
+                .sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
+        }
+
+        document.getElementById('addRowBtn').addEventListener('click', () => {
+            addEntryRow();
+            saveFormDraft();
+        });
+
+        // Draft restore happens here (not earlier in the file) since it can populate the rows.
         if (loadFormDraft()) {
             document.getElementById('draftNotice').style.display = 'block';
         }
-
-        startDateInput.addEventListener('change', () => {
-            if (startDateInput.value) {
-                const start = new Date(startDateInput.value);
-                if (isWeekend(start)) {
-                    alert('Weekends are excluded from leave. Please choose a Start Date that falls on a weekday (Mon–Fri).');
-                    startDateInput.value = '';
-                    stagedDuration = null;
-                    return;
-                }
-            }
-            endDateInput.min = startDateInput.value;
-
-            const dayTypeVal = dayTypeSelect.value;
-            if (dayTypeVal === '24hr' && startDateInput.value) {
-                endDateInput.value = startDateInput.value;
-                stagedDuration = 1;
-            } else if (dayTypeVal === '48hr' && startDateInput.value) {
-                const end = new Date(startDateInput.value);
-                end.setDate(end.getDate() + 1);
-                endDateInput.value = dateStr(end);
-                stagedDuration = 2;
-            } else {
-                calculateDays();
-            }
-            maybeAddEntry();
-        });
-
-        endDateInput.addEventListener('change', () => {
-            if (endDateInput.value) {
-                const end = new Date(endDateInput.value);
-                if (isWeekend(end)) {
-                    alert('Weekends are excluded from leave. Please choose an End Date that falls on a weekday (Mon–Fri).');
-                    endDateInput.value = '';
-                    stagedDuration = null;
-                    return;
-                }
-            }
-            calculateDays();
-            maybeAddEntry();
-        });
-
-        function calculateDays() {
-            if (startDateInput.value && endDateInput.value) {
-                const start = new Date(startDateInput.value);
-                const end = new Date(endDateInput.value);
-                if (end >= start) {
-                    stagedDuration = countBusinessDays(start, end);
-                } else {
-                    stagedDuration = 0;
-                }
-            }
+        if (entryRows().length === 0) {
+            addEntryRow();
+            addEntryRow();
         }
-
-        function day_type_is_half() {
-            return dayTypeSelect.value === 'half-am' || dayTypeSelect.value === 'half-pm';
-        }
-
-        function day_type_is_hourly() {
-            return dayTypeSelect.value === '24hr' || dayTypeSelect.value === '48hr';
-        }
-
-        dayTypeSelect.addEventListener('change', function() {
-            if (this.value === '24hr') {
-                if (startDateInput.value) {
-                    endDateInput.value = startDateInput.value;
-                }
-                stagedDuration = 1;
-            } else if (this.value === '48hr') {
-                if (startDateInput.value) {
-                    const end = new Date(startDateInput.value);
-                    end.setDate(end.getDate() + 1);
-                    endDateInput.value = dateStr(end);
-                }
-                stagedDuration = 2;
-            } else if (day_type_is_half() && startDateInput.value && startDateInput.value === endDateInput.value) {
-                stagedDuration = 0.5;
-            } else {
-                calculateDays();
-            }
-            maybeAddEntry();
-        });
+        refreshTotals();
 
         // --- 3 HARI NOTIS MINIMUM VALIDATION ---
         function isAtLeast3DaysAdvance(startDateValue) {
@@ -1348,12 +1366,19 @@
         document.getElementById('leaveForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // If the user finished filling Start/End/Day Type but the row hasn't
-            // been added yet (e.g. they hit Submit before it auto-added), add it now.
-            maybeAddEntry();
+            const incomplete = entryRows().filter(tr => {
+                const f = rowFields(tr);
+                const touched = f.start.value || f.end.value || f.dayType.value;
+                return touched && !(Number(tr.dataset.duration) > 0);
+            });
+            if (incomplete.length > 0) {
+                alert('Please complete or remove the incomplete row(s) in the Leave Details table before submitting.');
+                return;
+            }
 
+            const leaveEntries = getEntries();
             if (leaveEntries.length === 0) {
-                alert('Please add at least one date entry to the table before submitting.');
+                alert('Please fill in at least one row (Start Date, End Date and Day Type) before submitting.');
                 return;
             }
 
