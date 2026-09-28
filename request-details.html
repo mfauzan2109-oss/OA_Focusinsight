@@ -1400,19 +1400,11 @@
 
                     const createdDate = new Date(data.created_at || data['Created At'] || new Date());
                     const lastReminder = data.last_reminder_sent ? new Date(data.last_reminder_sent) : createdDate;
-                    const unlockTime = new Date(lastReminder.getTime() + 24 * 60 * 60 * 1000);
+                    const unlockTime = new Date(lastReminder.getTime() + 5 * 60 * 1000); // 5-minute cooldown
 
                     // Clear any previous countdown timer running on this button
                     if (btnReminder._countdownInterval) {
                         clearInterval(btnReminder._countdownInterval);
-                    }
-
-                    function formatCountdown(ms) {
-                        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-                        const h = Math.floor(totalSeconds / 3600);
-                        const m = Math.floor((totalSeconds % 3600) / 60);
-                        const s = totalSeconds % 60;
-                        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                     }
 
                     function tickCountdown() {
@@ -1432,7 +1424,7 @@
                             btnReminder.style.opacity = '0.6';
                             btnReminder.style.cursor = 'not-allowed';
                             btnReminder.style.pointerEvents = 'none';
-                            btnReminder.innerHTML = `<i class="fa-solid fa-clock"></i> Available in ${formatCountdown(remainingMs)}`;
+                            btnReminder.innerHTML = `<i class="fa-solid fa-bell"></i> Send Reminder`;
                         }
                     }
 

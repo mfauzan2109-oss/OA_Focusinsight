@@ -227,6 +227,19 @@
             box-shadow: 0 4px 14px rgba(0,0,0,0.2);
         }
         .manager-only-section .locked-banner-inner i { font-size: 16px; }
+
+        /* ================= DRAFT AUTO-SAVE ================= */
+        .draft-status {
+            display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+            min-height: 20px; margin: -6px 0 12px 0;
+            font-size: 12px; color: #64748b;
+        }
+        .draft-status.error { color: #ef4444; }
+        .draft-status .draft-discard {
+            background: none; border: none; padding: 0; cursor: pointer;
+            font-size: 12px; font-weight: 600; color: #2563eb; text-decoration: underline;
+        }
+        .draft-status .draft-discard:hover { color: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -347,8 +360,9 @@
                                 <input type="date" id="probationEndDate" required>
                             </div>
                             <div class="input-group">
-                                <label for="probationPeriod">Probation Period<span class="req">*</span></label>
-                                <input type="text" id="probationPeriod" placeholder="e.g. 3 Months" required>
+                                <label for="probationPeriod">Probation Period</label>
+                                <input type="text" id="probationPeriod" disabled placeholder="Auto-calculated">
+                                <span class="helper-text" id="probationPeriodHint"></span>
                             </div>
                         </div>
                     </div>
@@ -531,6 +545,11 @@
                       </div>
                     </div>
 
+                    <div class="draft-status" id="draftStatus" aria-live="polite">
+                        <span id="draftStatusText"></span>
+                        <button type="button" class="draft-discard" id="btnDiscardDraft" style="display:none;">Discard draft</button>
+                    </div>
+
                     <div class="btn-row">
                         <div class="btn-group-actions">
                             <button type="button" class="form-btn btn-cancel" id="btnCancel">Cancel</button>
@@ -607,6 +626,7 @@
             setSafeValue('employeePosition', '');
             setSafeValue('employmentType', '');
             setSafeValue('employmentDate', '');
+            updateProbationPeriod();
         }
 
         async function lookupEmployee(rawId) {
@@ -630,6 +650,7 @@
                     setSafeValue('employeePosition', data.position || '');
                     setSafeValue('employmentType', data.employment_type || '');
                     setSafeValue('employmentDate', data.join_date || '—');
+                    updateProbationPeriod();
 
                     statusEl.textContent = 'Employee found.';
                     statusEl.style.color = '#16a34a';
@@ -643,6 +664,107 @@
                 statusEl.style.color = '#ef4444';
             }
         }
+
+        // -------- Probation Period: auto-calculated from Employment Date -> Probation End Date --------
+        // Parses 'YYYY-MM-DD' (or a full ISO timestamp) into a local-midnight Date, so the
+        // day never shifts because of timezone conversion.
+        function parseLocalDate(value) {
+            if (!value) return null;
+            const str = String(value).trim();
+
+            // Builds a date only if the parts are a real calendar date (rejects 31/02 etc.)
+            const build = (y, m, d) => {
+                const dt = new Date(y, m - 1, d);
+                return (dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d) ? dt : null;
+            };
+
+            // 2026-07-25
+            let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(str);
+            if (m) return build(Number(m[1]), Number(m[2]), Number(m[3]));
+
+            // 25/07/2026, 25-07-2026, 25.07.2026 (day first)
+            m = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/.exec(str);
+            if (m) return build(Number(m[3]), Number(m[2]), Number(m[1]));
+
+            // Anything else the browser understands: full ISO timestamp, "25 Jul 2026", ...
+            const d = new Date(str);
+            if (isNaN(d.getTime())) return null;
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        }
+
+        function toISODateLocal(d) {
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${d.getFullYear()}-${mm}-${dd}`;
+        }
+
+        // Adds whole months, clamping to the last day of the target month (31 Jan + 1 month = 28/29 Feb).
+        function addMonthsClamped(date, months) {
+            const target = new Date(date.getFullYear(), date.getMonth() + months, 1);
+            const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+            target.setDate(Math.min(date.getDate(), lastDay));
+            return target;
+        }
+
+        // The end date is counted as the last day of probation. A 1-day difference from a whole
+        // number of months is treated as that whole number, so both "15 Jan -> 14 Apr" and
+        // "15 Jan -> 15 Apr" read as "3 Months".
+        function formatProbationPeriod(joinDate, endDate) {
+            const endExclusive = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() + 1);
+
+            let months = (endExclusive.getFullYear() - joinDate.getFullYear()) * 12
+                       + (endExclusive.getMonth() - joinDate.getMonth());
+            if (addMonthsClamped(joinDate, months) > endExclusive) months--;
+
+            const anchor = addMonthsClamped(joinDate, months);
+            let days = Math.round((endExclusive - anchor) / 86400000);
+            if (months > 0 && days <= 1) days = 0;
+
+            const parts = [];
+            if (months > 0) parts.push(`${months} Month${months === 1 ? '' : 's'}`);
+            if (days > 0) parts.push(`${days} Day${days === 1 ? '' : 's'}`);
+            return parts.join(' ');
+        }
+
+        function updateProbationPeriod() {
+            const endInput = document.getElementById('probationEndDate');
+            const periodInput = document.getElementById('probationPeriod');
+            const hint = document.getElementById('probationPeriodHint');
+
+            periodInput.value = '';
+            hint.textContent = '';
+            hint.style.color = '#94a3b8';
+
+            const joinRaw = document.getElementById('employmentDate').value.trim();
+            const joinDate = parseLocalDate(joinRaw);
+
+            if (!joinDate) {
+                endInput.removeAttribute('min');
+                if (endInput.value) {
+                    hint.style.color = '#ef4444';
+                    hint.textContent = (!joinRaw || joinRaw === '—')
+                        ? 'This employee has no Employment Date on record, so the period cannot be calculated.'
+                        : `Could not read the Employment Date ("${joinRaw}").`;
+                }
+                return;
+            }
+
+            endInput.min = toISODateLocal(joinDate);
+
+            const endDate = parseLocalDate(endInput.value);
+            if (!endDate) return;
+
+            if (endDate < joinDate) {
+                hint.textContent = 'Probation End Date cannot be earlier than the Employment Date.';
+                hint.style.color = '#ef4444';
+                return;
+            }
+
+            periodInput.value = formatProbationPeriod(joinDate, endDate);
+        }
+
+        document.getElementById('probationEndDate').addEventListener('input', updateProbationPeriod);
+        document.getElementById('probationEndDate').addEventListener('change', updateProbationPeriod);
 
         // -------- Probation Assessment: scoring --------
         const assessmentItems = [
@@ -729,8 +851,8 @@
 
             if (!employeeId || !employeeName) { alert('Please enter a valid Employee ID and wait for auto-fill.'); return; }
             if (!employeeDept) { alert('Could not determine the employee\'s department. Please re-check the Employee ID.'); return; }
-            if (!probationPeriod) { alert('Please enter the Probation Period.'); return; }
             if (!probationEndDate) { alert('Please select the Probation End Date.'); return; }
+            if (!probationPeriod) { alert('The Probation Period could not be calculated. Please check that the Employment Date is set and the Probation End Date is not earlier than it.'); return; }
 
             const btnSubmit = document.getElementById('btnSubmit');
             btnSubmit.disabled = true;
@@ -758,6 +880,7 @@
                 const result = await res.json();
 
                 if (result.success) {
+                    clearDraft();
                     alert('Probation confirmation form submitted successfully!');
                     window.location.href = 'hr-operation.html';
                 } else {
@@ -808,6 +931,130 @@
             clearTimeout(lookupTimer);
             lookupTimer = setTimeout(() => lookupEmployee(e.target.value), 500);
         });
+        // -------- Draft auto-save --------
+        // Saves the fields HR types in (Employee ID, Probation End Date, Reason/Remarks) to
+        // localStorage, per user. Auto-filled fields are re-fetched from the Employee ID on
+        // restore, so they are never stored. Uploaded files can't be kept in a draft.
+        const DRAFT_KEY = `probationConfirmationDraft_${formattedUserId}`;
+        const DRAFT_FIELDS = ['employeeId', 'probationEndDate', 'reasonRemarks'];
+        let draftTimer = null;
+        let draftDisabled = false;
+
+        const draftStatusBox = document.getElementById('draftStatus');
+        const draftStatusText = document.getElementById('draftStatusText');
+        const btnDiscardDraft = document.getElementById('btnDiscardDraft');
+
+        function setDraftStatus(text, isError, showDiscard) {
+            draftStatusText.textContent = text;
+            draftStatusBox.classList.toggle('error', !!isError);
+            btnDiscardDraft.style.display = showDiscard ? 'inline' : 'none';
+        }
+
+        function formatDraftTime(ts) {
+            const d = new Date(ts);
+            const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return d.toDateString() === new Date().toDateString()
+                ? `today at ${time}`
+                : `${d.toLocaleDateString()} ${time}`;
+        }
+
+        function collectDraft() {
+            const data = {};
+            DRAFT_FIELDS.forEach(id => { data[id] = document.getElementById(id).value; });
+            return data;
+        }
+
+        function draftHasContent(data) {
+            return DRAFT_FIELDS.some(id => (data[id] || '').trim() !== '');
+        }
+
+        function removeDraftStorage() {
+            try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* ignore */ }
+        }
+
+        function saveDraft() {
+            clearTimeout(draftTimer);
+            draftTimer = null;
+            if (draftDisabled) return;
+
+            const data = collectDraft();
+            if (!draftHasContent(data)) {
+                removeDraftStorage();
+                setDraftStatus('', false, false);
+                return;
+            }
+            data.savedAt = Date.now();
+            try {
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+                setDraftStatus(`Draft saved ${formatDraftTime(data.savedAt)}`, false, true);
+            } catch (e) {
+                console.error('Draft save failed:', e);
+                setDraftStatus('Could not save draft in this browser.', true, false);
+            }
+        }
+
+        function scheduleDraftSave() {
+            if (draftDisabled) return;
+            setDraftStatus('Saving draft...', false, false);
+            clearTimeout(draftTimer);
+            draftTimer = setTimeout(saveDraft, 800);
+        }
+
+        function clearDraft() {
+            draftDisabled = true;   // stops pagehide/visibility handlers re-saving after submit
+            clearTimeout(draftTimer);
+            draftTimer = null;
+            removeDraftStorage();
+        }
+
+        async function restoreDraft() {
+            let data = null;
+            try {
+                const raw = localStorage.getItem(DRAFT_KEY);
+                if (raw) data = JSON.parse(raw);
+            } catch (e) {
+                console.error('Draft restore failed:', e);
+                removeDraftStorage();
+            }
+            if (!data || !draftHasContent(data)) return;
+
+            DRAFT_FIELDS.forEach(id => {
+                if (typeof data[id] === 'string') document.getElementById(id).value = data[id];
+            });
+            setDraftStatus(`Draft restored (saved ${formatDraftTime(data.savedAt || Date.now())})`, false, true);
+
+            // Re-fetch the employee details; this also recalculates the Probation Period.
+            if (data.employeeId && data.employeeId.trim()) {
+                await lookupEmployee(data.employeeId);
+            }
+        }
+
+        document.getElementById('probationForm').addEventListener('input', (e) => {
+            if (DRAFT_FIELDS.includes(e.target.id)) scheduleDraftSave();
+        });
+        document.getElementById('probationForm').addEventListener('change', (e) => {
+            if (DRAFT_FIELDS.includes(e.target.id)) scheduleDraftSave();
+        });
+
+        // Flush any pending save when the tab is hidden or closed.
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && draftTimer) saveDraft();
+        });
+        window.addEventListener('pagehide', () => { if (draftTimer) saveDraft(); });
+
+        btnDiscardDraft.addEventListener('click', () => {
+            if (!confirm('Discard this draft and clear the form?')) return;
+            clearTimeout(draftTimer);
+            draftTimer = null;
+            removeDraftStorage();
+            DRAFT_FIELDS.forEach(id => { document.getElementById(id).value = ''; });
+            document.getElementById('employeeLookupStatus').textContent = '';
+            clearEmployeeFields();
+            setDraftStatus('Draft discarded.', false, false);
+        });
+
+        restoreDraft();
+
         document.getElementById('probationForm').addEventListener('submit', handleSubmit);
         document.getElementById('btnCancel').addEventListener('click', () => { window.location.href = 'hr-operation.html'; });
     });
