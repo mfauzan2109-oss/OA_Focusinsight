@@ -1593,6 +1593,127 @@
               </div>
             `;
           }
+          // F. PROBATION CONFIRMATION DETAILS
+          else if (lowerType.includes('probation')) {
+
+            const assessmentRows = [
+              ['Job Knowledge & Understanding', data.assessment_job_knowledge],
+              ['Quality of Work', data.assessment_quality_of_work],
+              ['Work Productivity', data.assessment_work_productivity],
+              ['Communication Skills', data.assessment_communication_skills],
+              ['Teamwork & Collaboration', data.assessment_teamwork_collaboration],
+              ['Problem Solving & Initiative', data.assessment_problem_solving_initiative],
+              ['Attendance & Punctuality', data.assessment_attendance_punctuality],
+              ['Adaptability & Learning Ability', data.assessment_adaptability_learning],
+              ['Responsibility & Work Attitude', data.assessment_responsibility_attitude],
+              ['Compliance with Company Policies', data.assessment_compliance_policies]
+            ];
+
+            const assessmentTable = assessmentRows.map(([label, score]) => `
+              <tr>
+                <td>${label}</td>
+                <td>${score ?? '—'}</td>
+              </tr>
+            `).join('');
+
+                      htmlFields = `
+              <div class="detail-fields-grid">
+                <div class="detail-field">
+                  <label>Position</label>
+                  <div class="field-box">${data.position || '—'}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Employment Type</label>
+                  <div class="field-box">${data.employment_type || '—'}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Employment Date</label>
+                  <div class="field-box">${formatDateOnly(data.employment_date)}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Probation Period</label>
+                  <div class="field-box">${data.probation_period || '—'}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Probation End Date</label>
+                  <div class="field-box">${formatDateOnly(data.probation_end_date)}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Supporting Document</label>
+                  <div class="field-box" style="background:transparent; border:none; padding:0;">
+                    ${docHTML}
+                  </div>
+                </div>
+              </div>
+
+              <div class="detail-field" style="margin-top:14px;">
+                <label>Reason / Remarks</label>
+                <div class="field-box">${data.reason_remarks || '—'}</div>
+              </div>
+
+              <div style="margin-top:18px;">
+                <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">
+                  HOD Assessment
+                </label>
+
+                <table class="sub-data-table" style="margin-top:8px;">
+                  <thead>
+                    <tr>
+                      <th>Assessment Item</th>
+                      <th style="width:120px;">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${assessmentTable}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="detail-fields-grid" style="margin-top:14px;">
+                <div class="detail-field">
+                  <label>Total Points</label>
+                  <div class="field-box">
+                    ${data.total_points ?? '—'} / ${data.passing_points ? '50' : '50'}
+                  </div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Passing Points</label>
+                  <div class="field-box">${data.passing_points ?? '—'} / 50</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Overall Recommendation</label>
+                  <div class="field-box">${data.overall_recommendation || '—'}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Proposed Confirmation Date</label>
+                  <div class="field-box">${formatDateOnly(data.proposed_confirmation_date)}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Extended Probation Period</label>
+                  <div class="field-box">${data.extended_probation_period || '—'}</div>
+                </div>
+
+                <div class="detail-field">
+                  <label>Assessed By</label>
+                  <div class="field-box">${data.assessed_by || '—'}</div>
+                </div>
+              </div>
+
+              <div class="detail-field" style="margin-top:14px;">
+                <label>Performance Summary</label>
+                <div class="field-box">${data.performance_summary || '—'}</div>
+              </div>
+            `;
+          }
 
           container.innerHTML = htmlFields;
 
