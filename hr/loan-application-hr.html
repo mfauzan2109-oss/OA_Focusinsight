@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Application - FocusInsight</title>
+    <title>Travel Loan Application - FocusInsight</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -457,7 +457,7 @@
         <!-- HEADER TOP BAR -->
         <header class="top-header">
             <div class="header-title">
-                <h1>Loan Application</h1>
+                <h1>Travel Loan Application</h1>
             </div>
             <div class="header-actions">
                 <div class="search-box">
@@ -854,14 +854,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Loan Application submitted successfully!');
+                    alert('Travel Loan Application submitted successfully!');
                     window.location.href = '/hr/my-request-hr.html';
                 } else {
                     errorBanner.textContent = 'Submission error: ' + (result.message || 'Server error.');
                     errorBanner.style.display = 'block';
                 }
             } catch (err) {
-                console.error('Error submitting loan application:', err);
+                console.error('Error submitting Travel loan application:', err);
                 errorBanner.textContent = 'Failed to submit form. Please verify server connection.';
                 errorBanner.style.display = 'block';
             } finally {
