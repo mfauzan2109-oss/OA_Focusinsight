@@ -495,8 +495,8 @@
                             <input type="date" id="otDate" name="ot_date" required class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="period">Period *</label>
-                            <input type="text" id="period" name="period" readonly placeholder="0.0 hrs" class="form-control">
+                            <label for="endTime">End Time *</label>
+                            <input type="time" id="endTime" name="end_time" required class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="dayType">Day Type :</label>
@@ -521,23 +521,31 @@
                             <input type="time" id="startTime" name="start_time" required class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="endTime">End Time *</label>
-                            <input type="time" id="endTime" name="end_time" required class="form-control">
+                            <label for="period">Period *</label>
+                            <input type="text" id="period" name="period" readonly placeholder="0.0 hrs" class="form-control">
                         </div>
                         
                         <div class="checkbox-group">
                             <div>
-                                <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance</label>
-                                <div class="rule-warning" id="nightWarning" style="display: none;">Only for full night shift (≥ 12 hrs)</div>
+                                <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (FI) (RM 20)</label>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">FI: applied for OT continuing until 1:00 AM</div>
+                                <div class="rule-warning" id="nightWarning" style="display: none;">Only when OT continues until 1:00 AM or later</div>
                             </div>
                             <input type="checkbox" id="nightAllowanceCheck" name="night_allowance_check">
                         </div>
                         <div class="checkbox-group">
                             <div>
-                                <label for="mealAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Meal Allowance</label>
-                                <div class="rule-warning" id="mealWarning" style="display: none;">Requires ≥ 3 hrs of OT on a weekday</div>
+                                <label for="inariNightCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (Inari) (RM 50)</label>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Inari: RM 50 per day</div>
                             </div>
-                            <input type="checkbox" id="mealAllowanceCheck" name="meal_allowance_check">
+                            <input type="checkbox" id="inariNightCheck" name="inari_night_allowance_check">
+                        </div>
+                        <div class="checkbox-group">
+                            <div>
+                                <label for="mealAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569;">Meal Allowance (RM 5)</label>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Applied automatically for 3 hrs or more of OT</div>
+                            </div>
+                            <input type="checkbox" id="mealAllowanceCheck" name="meal_allowance_check" disabled>
                         </div>
 
                         <div class="form-group" style="margin-top: 14px;">
@@ -881,8 +889,8 @@
         const endTimeInput = document.getElementById('endTime');
         const dayTypeSelect = document.getElementById('dayType');
         const nightCheck = document.getElementById('nightAllowanceCheck');
+        const inariCheck = document.getElementById('inariNightCheck');
         const mealCheck = document.getElementById('mealAllowanceCheck');
-        const mealWarning = document.getElementById('mealWarning');
         const nightWarning = document.getElementById('nightWarning');
 
         const periodInput = document.getElementById('period');
@@ -930,6 +938,12 @@
             otDateInput.value = new Date().toISOString().split('T')[0];
         }
 
+        // True when OT crosses midnight and ends at 1:00 AM or later (e.g. 18:00 -> 01:30)
+        function qualifiesOneAm(start, end) {
+            if (!start || !end) return false;
+            return end < start && end >= '01:00';
+        }
+
         function calculateOvertime() {
             const start = startTimeInput.value;
             const end = endTimeInput.value;
@@ -947,7 +961,7 @@
             let hourlyRate = 0;
 
             if (userBasicSalary > 0) {
-                if (userBasicSalary <= 3999.99) {
+                if (userBasicSalary < 4000) {
                     const ORP = userBasicSalary / 26 / 8;
                     const multiplier = isHoliday ? 2.0 : 1.5;
                     hourlyRate = ORP * multiplier;
@@ -966,29 +980,17 @@
 
             const otPayment = totalHours * hourlyRate;
 
-            const isWeekday = dayTypeSelect.value === 'weekdays';
+                        // Meal allowance: applied automatically when OT is 3 hours or more
+            const mealEligible = totalHours >= 3.0;
+            mealCheck.checked = mealEligible;
+            const mealAllowance = mealEligible ? 5.00 : 0.00;
 
-            // Meal allowance: weekday OT only, and at least 3 hours
-            let mealAllowance = 0.00;
-            if (mealCheck.checked) {
-                if (totalHours >= 3.0 && isWeekday) {
-                    mealAllowance = 5.00;
-                    mealWarning.style.display = 'none';
-                } else {
-                    mealWarning.textContent = !isWeekday
-                        ? 'Meal allowance is for weekdays only'
-                        : 'Requires ≥ 3 hrs of OT';
-                    mealWarning.style.display = 'block';
-                }
-            } else {
-                mealWarning.style.display = 'none';
-            }
-
-            // Night allowance: only valid for a full night shift (≥ 12 hrs of OT)
+            // Night allowance (FI, RM 20): OT must continue past midnight until 1:00 AM or later
+            const otUntilOneAm = qualifiesOneAm(start, end);
             let nightAllowance = 0.00;
             if (nightCheck.checked) {
-                if (totalHours >= 12.0) {
-                    nightAllowance = 50.00;
+                if (otUntilOneAm) {
+                    nightAllowance = 20.00;
                     nightWarning.style.display = 'none';
                 } else {
                     nightWarning.style.display = 'block';
@@ -997,7 +999,10 @@
                 nightWarning.style.display = 'none';
             }
 
-            const totalClaim = otPayment + mealAllowance + nightAllowance;
+            // Night allowance (Inari, RM 50 per day): selected manually by the employee
+            const inariAllowance = inariCheck.checked ? 50.00 : 0.00;
+
+            const totalClaim = otPayment + mealAllowance + nightAllowance + inariAllowance;
 
             periodInput.value = `${totalHours.toFixed(1)} hrs`;
             otAllowanceInput.value = `RM ${otPayment.toFixed(2)}`;
@@ -1007,6 +1012,7 @@
                 otPayment,
                 mealAllowance,
                 nightAllowance,
+                inariAllowance,
                 totalClaim
             };
         }
@@ -1084,9 +1090,12 @@
         checkApprovalQueueAccess(userId, department, position);
         setInterval(() => checkApprovalQueueAccess(userId, department, position), 5000);
 
-        const triggers = [startTimeInput, endTimeInput, dayTypeSelect, nightCheck, mealCheck];
+        const triggers = [startTimeInput, endTimeInput, dayTypeSelect, nightCheck, inariCheck];
         triggers.forEach(elem => {
             elem.addEventListener('change', () => {
+                // The two night allowances are alternatives: ticking one clears the other
+                if (elem === nightCheck && nightCheck.checked) inariCheck.checked = false;
+                if (elem === inariCheck && inariCheck.checked) nightCheck.checked = false;
                 calculateOvertime();
                 saveFormDraft('overtimeForm', userId);
             });
@@ -1122,17 +1131,13 @@
 
             const cleanOtRate = shortOtRateCode.substring(0, 10);
 
-            const isWeekdaySubmit = dayTypeSelect.value === 'weekdays';
-            const nightEligible = nightCheck.checked && calc.totalHours >= 12.0;
-            const mealEligible = mealCheck.checked && calc.totalHours >= 3.0 && isWeekdaySubmit;
+            const nightEligible = nightCheck.checked && qualifiesOneAm(startTimeInput.value, endTimeInput.value);
+            const inariEligible = inariCheck.checked;
+            const mealEligible = calc.totalHours >= 3.0;
 
             if (nightCheck.checked && !nightEligible) {
-                alert('Night Allowance can only be claimed for a full night shift (≥ 12 hrs). It will not be included in this claim.');
+                alert('Night Allowance (FI, RM 20) can only be claimed when OT continues until 1:00 AM or later. It will not be included in this claim.');
             }
-            if (mealCheck.checked && !mealEligible) {
-                alert('Meal Allowance can only be claimed on weekdays with at least 3 hrs of OT. It will not be included in this claim.');
-            }
-
             const payload = {
                 employee_id: currentEmpId,
                 employee_name: currentEmpName,
@@ -1148,6 +1153,9 @@
                 ot_allowance: calc.otPayment.toFixed(2),
                 ot_rate: cleanOtRate,
                 night_allowance_check: nightEligible ? 1 : 0,
+                night_allowance_amount: nightEligible ? '20.00' : '0.00',
+                inari_night_allowance_check: inariEligible ? 1 : 0,
+                inari_night_allowance_amount: inariEligible ? '50.00' : '0.00',
                 meal_allowance_check: mealEligible ? 1 : 0,
                 total_claim: calc.totalClaim.toFixed(2),
                 reason: document.getElementById('reason').value

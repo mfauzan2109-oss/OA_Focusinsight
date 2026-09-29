@@ -585,8 +585,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Period <span class="required">*</span></label>
-                            <input type="text" id="period" name="period" readonly class="form-control" placeholder="0.0 hrs">
+                            <label>End Time <span class="required">*</span></label>
+                            <input type="time" id="endTime" name="end_time" required class="form-control">
                         </div>
 
                         <div class="form-group">
@@ -615,19 +615,24 @@
                         </div>
 
                         <div class="form-group">
-                            <label>End Time <span class="required">*</span></label>
-                            <input type="time" id="endTime" name="end_time" required class="form-control">
+                            <label>Period <span class="required">*</span></label>
+                            <input type="text" id="period" name="period" readonly class="form-control" placeholder="0.0 hrs">
                         </div>
 
                         <div class="form-group">
                             <label class="checkbox-label">
-                                <input type="checkbox" id="nightCheck" name="night_allowance_check"> Night Allowance
+                                <input type="checkbox" id="nightCheck" name="night_allowance_check"> Night Allowance (FI) (RM 20)
                             </label>
-                            <small id="nightWarning" style="display:none; color:#dc2626; font-size:11px;">Only for full night shift (≥ 12 hrs)</small>
+                            <small style="display:block; color:#64748b; font-size:11px; margin:-4px 0 4px 26px;">FI: applied for OT continuing until 1:00 AM</small>
+                            <small id="nightWarning" style="display:none; color:#dc2626; font-size:11px;">Only when OT continues until 1:00 AM or later</small>
                             <label class="checkbox-label">
-                                <input type="checkbox" id="mealCheck" name="meal_allowance_check"> Meal Allowance
+                                <input type="checkbox" id="inariCheck" name="inari_night_allowance_check"> Night Allowance (Inari) (RM 50)
                             </label>
-                            <small id="mealWarning" style="display:none; color:#dc2626; font-size:11px;">Requires ≥ 3 hrs of OT on a weekday</small>
+                            <small style="display:block; color:#64748b; font-size:11px; margin:-4px 0 4px 26px;">Inari: RM 50 per day</small>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="mealCheck" name="meal_allowance_check" disabled> Meal Allowance (RM 5)
+                            </label>
+                            <small style="display:block; color:#64748b; font-size:11px; margin:-4px 0 4px 26px;">Applied automatically for 3 hrs or more of OT</small>
                         </div>
 
                         <div class="form-group" style="margin-bottom:0;">
@@ -853,9 +858,9 @@
         const periodInput = document.getElementById('period');
         const dayTypeSelect = document.getElementById('dayType');
         const nightCheck = document.getElementById('nightCheck');
+        const inariCheck = document.getElementById('inariCheck');
         const mealCheck = document.getElementById('mealCheck');
         const nightWarning = document.getElementById('nightWarning');
-        const mealWarning = document.getElementById('mealWarning');
 
         const otAllowanceInput = document.getElementById('otAllowanceInput');
         const otRateInput = document.getElementById('otRateInput');
@@ -865,6 +870,7 @@
             const endVal = endTimeInput.value;
 
             let hours = 0;
+            let crossesMidnight = false;
             if (startVal && endVal) {
                 const [sH, sM] = startVal.split(':').map(Number);
                 const [eH, eM] = endVal.split(':').map(Number);
@@ -874,6 +880,7 @@
 
                 if (endMins < startMins) {
                     endMins += 24 * 60;
+                    crossesMidnight = true;
                 }
 
                 hours = (endMins - startMins) / 60;
@@ -903,34 +910,25 @@
                 ? `RM ${effectiveRate.toFixed(2)}/hr (Fixed)`
                 : `RM ${effectiveRate.toFixed(2)}/hr`;
 
-            // Business rule: meal allowance only applies on weekdays with OT of 3 hours or more
-            const isWeekday = dayTypeSelect.value === 'Weekdays & Saturday';
-            const mealEligible = hours >= 3 && isWeekday;
-            if (mealCheck.checked && !mealEligible) {
-                mealCheck.checked = false;
-            }
-            mealCheck.disabled = !mealEligible;
-            if (hours > 0 && !mealEligible) {
-                mealWarning.textContent = !isWeekday
-                    ? 'Meal allowance is for weekdays only'
-                    : 'Requires ≥ 3 hrs of OT';
-                mealWarning.style.display = 'block';
-            } else {
-                mealWarning.style.display = 'none';
-            }
+            // Business rule: RM 5.00 meal allowance is applied automatically for 3 hours or more of OT
+            const mealEligible = hours >= 3;
+            mealCheck.checked = mealEligible;
 
-            // Business rule: night allowance only applies for a full night shift (OT of 12 hours or more)
-            const nightEligible = hours >= 12;
+            // Business rule: Night Allowance (FI, RM 20) applies when OT continues past midnight until 1:00 AM or later
+            const nightEligible = crossesMidnight && endVal >= '01:00';
             if (nightCheck.checked && !nightEligible) {
                 nightCheck.checked = false;
             }
             nightCheck.disabled = !nightEligible;
             nightWarning.style.display = (hours > 0 && !nightEligible) ? 'block' : 'none';
 
-            const mealAllow = mealCheck.checked ? 5.00 : 0.00;
-            const nightAllow = nightCheck.checked ? 50.00 : 0.00;
+            // Business rule: Night Allowance (Inari) is RM 50.00 per day, selected manually by the employee
 
-            const totalClaim = otPayment + mealAllow + nightAllow;
+            const mealAllow = mealCheck.checked ? 5.00 : 0.00;
+            const nightAllow = nightCheck.checked ? 20.00 : 0.00;
+            const inariAllow = inariCheck.checked ? 50.00 : 0.00;
+
+            const totalClaim = otPayment + mealAllow + nightAllow + inariAllow;
             currentTotalClaim = totalClaim;
 
             otAllowanceInput.value = otPayment.toFixed(2);
@@ -939,7 +937,15 @@
         startTimeInput.addEventListener('change', calculateOT);
         endTimeInput.addEventListener('change', calculateOT);
         dayTypeSelect.addEventListener('change', calculateOT);
-        nightCheck.addEventListener('change', calculateOT);
+        // The two night allowances are alternatives: ticking one clears the other
+        nightCheck.addEventListener('change', () => {
+            if (nightCheck.checked) inariCheck.checked = false;
+            calculateOT();
+        });
+        inariCheck.addEventListener('change', () => {
+            if (inariCheck.checked) nightCheck.checked = false;
+            calculateOT();
+        });
         mealCheck.addEventListener('change', calculateOT);
 
         document.getElementById('cancelBtn').addEventListener('click', () => {
@@ -986,6 +992,9 @@
                 ot_allowance: otAllowanceInput.value,
                 ot_rate: currentOtMultiplier,
                 night_allowance_check: nightCheck.checked ? 1 : 0,
+                night_allowance_amount: nightCheck.checked ? '20.00' : '0.00',
+                inari_night_allowance_check: inariCheck.checked ? 1 : 0,
+                inari_night_allowance_amount: inariCheck.checked ? '50.00' : '0.00',
                 meal_allowance_check: mealCheck.checked ? 1 : 0,
                 total_claim: currentTotalClaim.toFixed(2),
                 reason: document.getElementById('reason').value
