@@ -528,15 +528,16 @@
                         <div class="checkbox-group">
                             <div>
                                 <label for="nightAllowanceCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (FI) (RM 20)</label>
-                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">FI: applied for OT continuing until 1:00 AM</div>
-                                <div class="rule-warning" id="nightWarning" style="display: none;">Only when OT continues until 1:00 AM or later</div>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">FI: OT from 6:00 PM, continuing until 1:00 AM</div>
+                                <div class="rule-warning" id="nightWarning" style="display: none;">Only when OT starts at 6:00 PM or later and continues until 1:00 AM or later</div>
                             </div>
                             <input type="checkbox" id="nightAllowanceCheck" name="night_allowance_check">
                         </div>
                         <div class="checkbox-group">
                             <div>
                                 <label for="inariNightCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (Inari) (RM 50)</label>
-                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Inari: RM 50 per day</div>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Inari: RM 50 per day, OT from 7:00 PM</div>
+                                <div class="rule-warning" id="inariWarning" style="display: none;">Only when OT starts at 7:00 PM or later</div>
                             </div>
                             <input type="checkbox" id="inariNightCheck" name="inari_night_allowance_check">
                         </div>
@@ -892,6 +893,7 @@
         const inariCheck = document.getElementById('inariNightCheck');
         const mealCheck = document.getElementById('mealAllowanceCheck');
         const nightWarning = document.getElementById('nightWarning');
+        const inariWarning = document.getElementById('inariWarning');
 
         const periodInput = document.getElementById('period');
         const otRateInput = document.getElementById('otRate');
@@ -985,21 +987,23 @@
             mealCheck.checked = mealEligible;
             const mealAllowance = mealEligible ? 5.00 : 0.00;
 
-            // Night allowance (FI, RM 20): OT must continue past midnight until 1:00 AM or later
-            const otUntilOneAm = qualifiesOneAm(start, end);
-            let nightAllowance = 0.00;
-            if (nightCheck.checked) {
-                if (otUntilOneAm) {
-                    nightAllowance = 20.00;
-                    nightWarning.style.display = 'none';
-                } else {
-                    nightWarning.style.display = 'block';
-                }
-            } else {
-                nightWarning.style.display = 'none';
+            // Night allowance (FI, RM 20): OT starts at 6:00 PM or later AND continues past midnight until 1:00 AM or later.
+            // The box stays disabled until the times qualify (same as the HR page).
+            const fiEligible = start >= '18:00' && qualifiesOneAm(start, end);
+            if (nightCheck.checked && !fiEligible) {
+                nightCheck.checked = false;
             }
+            nightCheck.disabled = !fiEligible;
+            nightWarning.style.display = (totalHours > 0 && !fiEligible) ? 'block' : 'none';
+            const nightAllowance = nightCheck.checked ? 20.00 : 0.00;
 
-            // Night allowance (Inari, RM 50 per day): selected manually by the employee
+            // Night allowance (Inari, RM 50 per day): OT starts at 7:00 PM or later
+            const inariTimeEligible = start >= '19:00';
+            if (inariCheck.checked && !inariTimeEligible) {
+                inariCheck.checked = false;
+            }
+            inariCheck.disabled = !inariTimeEligible;
+            inariWarning.style.display = (totalHours > 0 && !inariTimeEligible) ? 'block' : 'none';
             const inariAllowance = inariCheck.checked ? 50.00 : 0.00;
 
             const totalClaim = otPayment + mealAllowance + nightAllowance + inariAllowance;
@@ -1131,12 +1135,15 @@
 
             const cleanOtRate = shortOtRateCode.substring(0, 10);
 
-            const nightEligible = nightCheck.checked && qualifiesOneAm(startTimeInput.value, endTimeInput.value);
-            const inariEligible = inariCheck.checked;
+            const nightEligible = nightCheck.checked && startTimeInput.value >= '18:00' && qualifiesOneAm(startTimeInput.value, endTimeInput.value);
+            const inariEligible = inariCheck.checked && startTimeInput.value >= '19:00';
             const mealEligible = calc.totalHours >= 3.0;
 
             if (nightCheck.checked && !nightEligible) {
-                alert('Night Allowance (FI, RM 20) can only be claimed when OT continues until 1:00 AM or later. It will not be included in this claim.');
+                alert('Night Allowance (FI, RM 20) can only be claimed when OT starts at 6:00 PM or later and continues until 1:00 AM or later. It will not be included in this claim.');
+            }
+            if (inariCheck.checked && !inariEligible) {
+                alert('Night Allowance (Inari, RM 50) can only be claimed when OT starts at 7:00 PM or later. It will not be included in this claim.');
             }
             const payload = {
                 employee_id: currentEmpId,
