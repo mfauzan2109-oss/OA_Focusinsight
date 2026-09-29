@@ -542,7 +542,7 @@
                     </div>
                     <div class="input-group">
                         <label for="loan-pic">Person in Charge</label>
-                        <input type="text" id="loan-pic" name="person_in_charge" placeholder="e.g. John Tan">
+                        <input type="text" id="loan-pic" name="person_in_charge" placeholder="e.g. Hamizan">
                     </div>
                 </div>
             </section>
@@ -558,7 +558,7 @@
                     </select>
                 </div>
 
-                <input type="hidden" id="monthly-salary" value="0.00">
+                
 
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
@@ -1218,7 +1218,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const empIdInput = document.getElementById('employee-id');
     const empNameInput = document.getElementById('employee-name');
     const deptInput = document.getElementById('department');
-    const salaryInput = document.getElementById('monthly-salary');
+    
 
     if (empIdInput) empIdInput.value = formattedUserId;
     if (empNameInput) empNameInput.value = username || '';
@@ -1366,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         formData.append('model_no', document.getElementById('loan-model-no')?.value?.trim() || '');
         formData.append('person_in_charge', document.getElementById('loan-pic')?.value?.trim() || '');
         formData.append('loan_type', document.getElementById('loan-type').value);
-        formData.append('monthly_salary', salaryInput.value || '0.00');
+        
         formData.append('amount_requested', document.getElementById('amount-requested').value);
         formData.append('disbursement_method', document.getElementById('disbursement-method').value);
         formData.append('account_holder', document.getElementById('account-holder').value);
