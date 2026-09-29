@@ -592,6 +592,77 @@
             font-size: 12px;
         }
 
+        /* ---- Loan-style detail view (mini summary cards + status pill) ---- */
+        .mini-card-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .mini-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+        .mini-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mini-card-row-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+        .mini-card-row-line span:first-child { color: #64748b; }
+        .status-pill-loan {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .status-pill-loan.pending { background: #fef3c7; color: #b45309; }
+        .status-pill-loan.approved { background: #dcfce7; color: #15803d; }
+        .status-pill-loan.rejected { background: #fee2e2; color: #b91c1c; }
+        .priority-pill-loan {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 2px 12px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        .loan-reject-reason {
+            width: 100%;
+            margin-top: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 70px;
+        }
+        .loan-reject-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            margin-top: 14px;
+            display: block;
+        }
+
         .table-custom th {
             background-color: #a5b4fc;
             color: #1e1b4b;
@@ -989,6 +1060,112 @@
                         <button class="btn-pill" style="background: #ef4444; color: white;"
                             onclick="submitDecision('Rejected')">Reject</button>
                     </div>
+                </div>
+
+                <!-- 2. LOAN APPLICATION VIEW -->
+                <div id="loanDetailsSection" style="display: none; flex-direction: column; gap: 4px;">
+
+                    <div class="mini-card-row">
+                        <div class="mini-card">
+                            <p class="mini-card-title"><i class="fa-regular fa-id-card"></i> Employee Information</p>
+                            <div class="mini-card-row-line"><span>Full Name</span><span id="loanFullName">—</span></div>
+                            <div class="mini-card-row-line"><span>Employee ID</span><span id="loanEmpIdMini">—</span></div>
+                            <div class="mini-card-row-line"><span>Department</span><span id="loanDeptMini">—</span></div>
+                        </div>
+                        <div class="mini-card">
+                            <p class="mini-card-title"><i class="fa-regular fa-file-lines"></i> Request Summary</p>
+                            <div class="mini-card-row-line"><span>Request Type</span><span id="loanReqType">Loan Application</span></div>
+                            <div class="mini-card-row-line"><span>Submitted</span><span id="loanSubmitted">—</span></div>
+                            <div class="mini-card-row-line"><span>Amount</span><span id="loanAmountMini">—</span></div>
+                        </div>
+                        <div class="mini-card" style="text-align:center;">
+                            <p class="mini-card-title" style="justify-content:center;"><i class="fa-regular fa-circle-dot"></i> Current Status</p>
+                            <span class="status-pill-loan pending" id="loanStatusBadge">PENDING</span>
+                            <br>
+                            <span class="priority-pill-loan" id="loanPriorityPill">Standard</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="section-header-title">EMPLOYEE INFORMATION</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Employee ID</label>
+                                <input type="text" class="form-input-pill" id="loanEmpId" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Employee Name</label>
+                                <input type="text" class="form-input-pill" id="loanEmpName" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Department</label>
+                                <input type="text" class="form-input-pill" id="loanDept" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="section-header-title">LOAN DETAILS</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Loan Type</label>
+                                <input type="text" class="form-input-pill" id="loanType" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Monthly Salary</label>
+                                <input type="text" class="form-input-pill" id="loanMonthlySalary" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Amount Requested (RM)</label>
+                                <input type="text" class="form-input-pill" id="loanAmountRequested" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Disbursement Method</label>
+                                <input type="text" class="form-input-pill" id="loanDisbursementMethod" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="section-header-title">BORROWER BANK DETAILS</h3>
+                        <div class="form-grid-row">
+                            <div class="field-group">
+                                <label class="field-label">Account Holder Name</label>
+                                <input type="text" class="form-input-pill" id="loanAccountHolder" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Account Number</label>
+                                <input type="text" class="form-input-pill" id="loanAccountNumber" readonly>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Bank Details</label>
+                                <input type="text" class="form-input-pill" id="loanBankDetails" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="middle-cards-grid" style="margin-top: 8px;">
+                        <div class="card-box">
+                            <div class="card-title"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments</div>
+                            <div class="attachment-item" id="loanAttachmentBox">
+                                <span class="pdf-icon-badge">DOC</span>
+                                <div style="font-size: 10px; font-weight:700;" id="loanAttachmentName">No Attachment</div>
+                            </div>
+                        </div>
+
+                        <div class="card-box">
+                            <div class="card-title"><i class="fa-regular fa-clock"></i> Approval Timeline</div>
+                            <div class="timeline-wrapper" id="loanTimelineContainer"></div>
+                        </div>
+                    </div>
+
+                    <div class="bottom-action-buttons" style="margin-top: 20px;">
+                        <button class="btn-pill btn-save-draft" onclick="submitLoanDecision('Approved')">Approve</button>
+                        <button class="btn-pill" style="background: #ef4444; color: white;" onclick="submitLoanDecision('Rejected')">Reject</button>
+                    </div>
+
+                    <label class="loan-reject-label">If <strong>Reject</strong>, please state your reason/ comment</label>
+                    <textarea class="loan-reject-reason" id="loanRejectReason" placeholder="Reason (required for Reject)"></textarea>
                 </div>
 
                 <!-- 2. DYNAMIC TRAVEL APPLICATION VIEW -->
@@ -1576,7 +1753,8 @@
                 isP1,
                 isTravelBooking:
                     isBookingList ||
-                    type.toLowerCase().includes('travel')
+                    type.toLowerCase().includes('travel'),
+                isLoan: type.toLowerCase().includes('loan')
             };
             document.querySelectorAll('.request-item').forEach(e => e.classList.remove('selected'));
             if (el) el.classList.add('selected');
@@ -1589,7 +1767,71 @@
                     const req = result.data;
                     document.getElementById('detailViewContainer').style.display = 'flex';
 
-                    if (selectedItem.isTravelBooking) {
+                    document.getElementById('loanDetailsSection').style.display = 'none';
+
+                    if (selectedItem.isLoan) {
+                        document.getElementById('standardDetailsSection').style.display = 'none';
+                        document.getElementById('travelDetailsSection').style.display = 'none';
+                        document.getElementById('loanDetailsSection').style.display = 'flex';
+
+                        const fmtMoney = v => `RM ${parseFloat(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+                        const fmtDate = v => {
+                            if (!v) return '—';
+                            const d = new Date(v);
+                            return isNaN(d) ? v : d.toISOString().split('T')[0];
+                        };
+
+                        document.getElementById('loanFullName').innerText = req.employee_name || '—';
+                        document.getElementById('loanEmpIdMini').innerText = req.employee_id || '—';
+                        document.getElementById('loanDeptMini').innerText = req.department || '—';
+
+                        document.getElementById('loanReqType').innerText = req.loan_type ? `Loan Application (${req.loan_type})` : 'Loan Application';
+                        document.getElementById('loanSubmitted').innerText = fmtDate(req.date_submitted || req.created_at);
+                        document.getElementById('loanAmountMini').innerText = fmtMoney(req.amount_requested);
+
+                        const statusVal = (req.status || 'Pending');
+                        const statusBadge = document.getElementById('loanStatusBadge');
+                        statusBadge.innerText = statusVal.toUpperCase();
+                        statusBadge.className = 'status-pill-loan ' + (
+                            statusVal.toLowerCase().includes('reject') ? 'rejected' :
+                            statusVal.toLowerCase().includes('approve') ? 'approved' : 'pending'
+                        );
+                        document.getElementById('loanPriorityPill').innerText = req.priority || 'Standard';
+
+                        document.getElementById('loanEmpId').value = req.employee_id || '—';
+                        document.getElementById('loanEmpName').value = req.employee_name || '—';
+                        document.getElementById('loanDept').value = req.department || '—';
+
+                        document.getElementById('loanType').value = req.loan_type || '—';
+                        document.getElementById('loanMonthlySalary').value = req.monthly_salary ? fmtMoney(req.monthly_salary) : '—';
+                        document.getElementById('loanAmountRequested').value = req.amount_requested ? fmtMoney(req.amount_requested) : '—';
+                        document.getElementById('loanDisbursementMethod').value = req.disbursement_method || '—';
+
+                        document.getElementById('loanAccountHolder').value = req.account_holder || '—';
+                        document.getElementById('loanAccountNumber').value = req.account_number || '—';
+                        document.getElementById('loanBankDetails').value = req.bank_details || '—';
+
+                        const loanAttName = document.getElementById('loanAttachmentName');
+                        if (req.supporting_document) {
+                            loanAttName.innerHTML = `<a href="/${req.supporting_document}" target="_blank" style="color:#0284c7;">📄 View Uploaded Document</a>`;
+                        } else {
+                            loanAttName.innerText = 'No Attachment';
+                        }
+
+                        document.getElementById('loanTimelineContainer').innerHTML = `
+                            <div class="timeline-step">
+                                <div class="step-icon-circle ${statusVal !== 'Pending' ? 'done' : 'pending'}"><i class="fa-solid fa-${statusVal !== 'Pending' ? 'check' : 'user'}"></i></div>
+                                <div class="step-info">
+                                    <h5>HR Processing</h5>
+                                    <p>Stage 1</p>
+                                </div>
+                                <div class="step-time">${statusVal}</div>
+                            </div>
+                        `;
+
+                        document.getElementById('loanRejectReason').value = '';
+
+                    } else if (selectedItem.isTravelBooking) {
                         document.getElementById('standardDetailsSection').style.display = 'none';
                         document.getElementById('travelDetailsSection').style.display = 'flex';
 
@@ -1714,6 +1956,7 @@
                     } else {
                         document.getElementById('standardDetailsSection').style.display = 'block';
                         document.getElementById('travelDetailsSection').style.display = 'none';
+                        document.getElementById('loanDetailsSection').style.display = 'none';
 
                         const tbody = document.getElementById('itemsTableBody');
                         if (req.items && req.items.length > 0) {
@@ -1742,7 +1985,7 @@
             }
         }
 
-        async function submitDecision(action) {
+        async function submitDecision(action, reason) {
             if (!selectedItem.id || !selectedItem.table) {
                 alert('Please select a request from the list first.');
                 return;
@@ -1767,7 +2010,8 @@
                         `${selectedItem.id}`;
 
                     body = {
-                        status: action
+                        status: action,
+                        reason: reason || undefined
                     };
                 } else {
                     // Keep existing legacy HR Processing behaviour.
@@ -1779,7 +2023,8 @@
                         user_id: userId,
                         id: selectedItem.id,
                         table: selectedItem.table,
-                        action: action
+                        action: action,
+                        reason: reason || undefined
                     };
                 }
 
@@ -1827,6 +2072,17 @@
                 console.error("Error submitting action:", err);
                 alert('Could not reach the server: ' + err.message);
             }
+        }
+
+        function submitLoanDecision(action) {
+            const reasonBox = document.getElementById('loanRejectReason');
+            const reason = reasonBox ? reasonBox.value.trim() : '';
+            if (action === 'Rejected' && !reason) {
+                alert('Please state your reason/comment before rejecting.');
+                if (reasonBox) reasonBox.focus();
+                return;
+            }
+            submitDecision(action, reason);
         }
 
         async function submitToCEO() {
