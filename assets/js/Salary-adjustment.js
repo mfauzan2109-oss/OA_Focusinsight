@@ -64,6 +64,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 setSafeValue('requesterDept', department || '—');
             }
             setSafeValue('requestDate', new Date().toISOString().split('T')[0]);
+            loadEmployeeIdOptions();
+        }
+
+        // -------- Employee ID suggestions: same department as the requester only --------
+        async function loadEmployeeIdOptions() {
+            const datalist = document.getElementById('employeeIdList');
+            if (!datalist) return;
+            const requesterDept = (document.getElementById('requesterDept').value || department || '').trim().toLowerCase();
+            if (!requesterDept || requesterDept === '—') return;
+            try {
+                const res = await fetch('/api/users');
+                const result = await res.json();
+                if (!result.success || !Array.isArray(result.data)) return;
+                datalist.innerHTML = result.data
+                    .filter(u => (u.department || '').trim().toLowerCase() === requesterDept)
+                    .map(u => `<option value="${u.user_id}">${u.name || ''} - ${u.position || ''}</option>`)
+                    .join('');
+            } catch (err) {
+                console.error('Failed to load employee ID suggestions:', err);
+            }
         }
 
         // -------- Employee Information: auto-filled once Employee ID is entered --------
@@ -74,9 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
             setSafeValue('employeePosition', '');
             setSafeValue('employmentType', '');
             setSafeValue('employmentDate', '');
-            setSafeValue('currentSalary', '');
-            currentSalaryValue = 0;
-            recalcAdjustment();
         }
 
         async function lookupEmployee(rawId) {
@@ -101,12 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     setSafeValue('employmentType', data.employment_type || '');
                     setSafeValue('employmentDate', data.join_date || '—');
 
-                    currentSalaryValue = parseFloat(data.salary) || 0;
-                    setSafeValue('currentSalary', formatMoney(currentSalaryValue));
-
                     statusEl.textContent = 'Employee found.';
                     statusEl.style.color = '#16a34a';
-                    recalcAdjustment();
                 } else {
                     statusEl.textContent = 'Employee ID not found.';
                     statusEl.style.color = '#ef4444';
@@ -118,14 +131,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // -------- Adjustment Amount / Percentage auto-calculate --------
+        // -------- Adjustment Percentage / Proposed Salary auto-calculate --------
         function recalcAdjustment() {
-            const proposed = parseFloat(document.getElementById('proposedSalary').value) || 0;
-            const amount = proposed - currentSalaryValue;
-            const percentage = currentSalaryValue > 0 ? (amount / currentSalaryValue) * 100 : 0;
+            const current = parseFloat(document.getElementById('currentSalary').value) || 0;
+            const amount = parseFloat(document.getElementById('adjustmentAmount').value) || 0;
+            const proposed = current + amount;
+            const percentage = current > 0 ? (amount / current) * 100 : 0;
+            const hasInput = document.getElementById('currentSalary').value || document.getElementById('adjustmentAmount').value;
 
-            setSafeValue('adjustmentAmount', proposed ? formatMoney(amount) : '');
-            setSafeValue('adjustmentPercentage', proposed ? `${percentage.toFixed(2)}%` : '');
+            currentSalaryValue = current;
+            setSafeValue('adjustmentPercentage', hasInput ? `${percentage.toFixed(2)}%` : '');
+            setSafeValue('proposedSalary', hasInput ? formatMoney(proposed) : '');
+            setSafeValue('proposedSalaryValue', hasInput ? proposed.toFixed(2) : '');
+        }
+
+        // -------- Adjustment Type: "Others" reveals the Please Specify field --------
+        function setupAdjustmentTypeOthers() {
+            const select = document.getElementById('adjustmentType');
+            const group = document.getElementById('adjustmentTypeOthersGroup');
+            const othersInput = document.getElementById('adjustmentTypeOthers');
+            select.addEventListener('change', () => {
+                const isOthers = select.value === 'Others';
+                group.style.display = isOthers ? 'flex' : 'none';
+                if (!isOthers) othersInput.value = '';
+            });
         }
 
         // -------- Drag & drop / file picker --------
@@ -173,14 +202,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const employeeId = document.getElementById('employeeId').value.trim();
             const employeeName = document.getElementById('employeeName').value.trim();
-            const adjustmentType = document.getElementById('adjustmentType').value;
-            const proposedSalary = document.getElementById('proposedSalary').value;
+            const currentSalary = document.getElementById('currentSalary').value;
+            let adjustmentType = document.getElementById('adjustmentType').value;
+            const adjustmentTypeOthers = document.getElementById('adjustmentTypeOthers').value.trim();
+            const proposedSalary = document.getElementById('proposedSalaryValue').value;
             const effectiveDate = document.getElementById('effectiveDate').value;
             const justification = document.getElementById('justification').value.trim();
 
             if (!employeeId || !employeeName) { alert('Please enter a valid Employee ID and wait for it to auto-fill.'); return; }
+            if (!currentSalary || parseFloat(currentSalary) <= 0) { alert('Please enter a valid Current Basic Salary.'); return; }
             if (!adjustmentType) { alert('Please select an Adjustment Type.'); return; }
-            if (!proposedSalary || parseFloat(proposedSalary) <= 0) { alert('Please enter a valid Proposed Basic Salary.'); return; }
+            if (adjustmentType === 'Others') {
+                if (!adjustmentTypeOthers) { alert('Please specify the Adjustment Type.'); return; }
+                adjustmentType = adjustmentTypeOthers;
+            }
+            if (!proposedSalary || parseFloat(proposedSalary) <= 0) { alert('Please enter a valid Current Basic Salary and Adjustment Amount so the Proposed Basic Salary can be calculated.'); return; }
             if (!effectiveDate) { alert('Please select an Effective Date.'); return; }
             if (!justification) { alert('Please provide a justification for this request.'); return; }
 
@@ -198,7 +234,8 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('position', document.getElementById('employeePosition').value);
             formData.append('employment_type', document.getElementById('employmentType').value);
             formData.append('employment_date', document.getElementById('employmentDate').value);
-            formData.append('current_basic_salary', currentSalaryValue);
+            formData.append('next_position', document.getElementById('nextPosition').value.trim());
+            formData.append('current_basic_salary', currentSalary);
             formData.append('adjustment_type', adjustmentType);
             formData.append('proposed_basic_salary', proposedSalary);
             formData.append('effective_date', effectiveDate);
@@ -231,7 +268,9 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(lookupTimer);
             lookupTimer = setTimeout(() => lookupEmployee(e.target.value), 500);
         });
-        document.getElementById('proposedSalary').addEventListener('input', recalcAdjustment);
+        document.getElementById('currentSalary').addEventListener('input', recalcAdjustment);
+        document.getElementById('adjustmentAmount').addEventListener('input', recalcAdjustment);
+        setupAdjustmentTypeOthers();
         document.getElementById('salaryAdjustmentForm').addEventListener('submit', handleSubmit);
         document.getElementById('btnCancel').addEventListener('click', () => { window.location.href = 'dashboard.html'; });
     });
