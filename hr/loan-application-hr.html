@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Application - FocusInsight</title>
+    <title>Travel Loan Application - FocusInsight</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -33,6 +33,93 @@
             letter-spacing: 0.5px;
             padding: 12px 14px 4px 14px;
             margin-top: 6px;
+        }
+
+        /* Full-width white top bar (flush to the top/edges of the content area).
+           Scoped + !important so ../style.css cannot override it. */
+        .main-content {
+            padding-top: 0 !important;
+        }
+
+        .main-content > .top-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 500;
+            background-color: #ffffff !important;
+            height: 64px !important;
+            min-height: 0 !important;
+            margin: 0 -32px 24px -32px !important;
+            padding: 0 32px 0 40px !important;
+            border-radius: 0 !important;
+            border: none !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            box-sizing: border-box;
+        }
+
+        .main-content > .top-header .header-title h1 {
+            margin: 0 !important;
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            color: #0f172a;
+        }
+
+        .main-content > .top-header .header-actions {
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px !important;
+        }
+
+        .main-content > .top-header .search-box {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px;
+            width: 300px !important;
+            height: 40px !important;
+            box-sizing: border-box;
+            padding: 0 16px !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 999px !important;
+            background: #ffffff !important;
+        }
+
+        .main-content > .top-header .search-box i {
+            color: #64748b;
+            font-size: 14px !important;
+            position: static !important;
+        }
+
+        .main-content > .top-header .search-box input {
+            border: none !important;
+            outline: none;
+            background: transparent !important;
+            width: 100%;
+            padding: 0 !important;
+            font-size: 14px !important;
+            color: #0f172a;
+        }
+
+        .main-content > .top-header .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #475569;
+        }
+
+        .main-content > .top-header .avatar-circle {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px !important;
+            overflow: hidden;
         }
 
         .top-bar-divider {
@@ -457,7 +544,7 @@
         <!-- HEADER TOP BAR -->
         <header class="top-header">
             <div class="header-title">
-                <h1>Loan Application</h1>
+                <h1>Travel Loan Application</h1>
             </div>
             <div class="header-actions">
                 <div class="search-box">
@@ -486,10 +573,9 @@
                     </div>
                 </div>
 
-                <div class="top-bar-divider"></div>
-
-                <a href="profile-hr.html" style="text-decoration: none;">
+                <a href="profile-hr.html" class="profile-link">
                     <div class="avatar-circle" id="topAvatar">--</div>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 12px;"></i>
                 </a>
             </div>
         </header>
@@ -540,13 +626,6 @@
                         <option value="" disabled selected>Select loan type</option>
                         <option value="Travel">Travel</option>
                     </select>
-                </div>
-
-                <div class="form-grid-2">
-                    <div class="form-group">
-                        <label>Monthly Salary <span class="required">*</span></label>
-                        <input type="text" id="monthlySalary" name="monthly_salary" readonly required placeholder="Auto-filled from profile" class="form-control">
-                    </div>
                 </div>
 
                 <div class="form-grid-2">
@@ -770,16 +849,6 @@
         fetchNotifications();
         setInterval(fetchNotifications, 5000);
 
-        try {
-            const res = await fetch(`/api/profile/${userId}`);
-            const resData = await res.json();
-            if (resData.success && resData.data && resData.data.salary) {
-                document.getElementById('monthlySalary').value = parseFloat(resData.data.salary).toFixed(2);
-            }
-        } catch (e) {
-            console.warn('Salary auto-fetch fallback active.');
-        }
-
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('attachment');
         const browseBtn = document.getElementById('browseBtn');
@@ -854,14 +923,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Loan Application submitted successfully!');
+                    alert('Travel Loan Application submitted successfully!');
                     window.location.href = '/hr/my-request-hr.html';
                 } else {
                     errorBanner.textContent = 'Submission error: ' + (result.message || 'Server error.');
                     errorBanner.style.display = 'block';
                 }
             } catch (err) {
-                console.error('Error submitting loan application:', err);
+                console.error('Error submitting Travel loan application:', err);
                 errorBanner.textContent = 'Failed to submit form. Please verify server connection.';
                 errorBanner.style.display = 'block';
             } finally {

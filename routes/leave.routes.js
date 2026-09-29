@@ -316,9 +316,10 @@ const BALANCE_TYPES = [
     { key: 'sick', label: 'Sick Leave' },
     { key: 'hospitalization', label: 'Hospitalization' },
     { key: 'maternity', label: 'Maternity' },
-    { key: 'paternity', label: 'Paternity' }
+    { key: 'paternity', label: 'Paternity' },
+    { key: 'compassionate', label: 'Compassionate' }
 ];
-const BALANCE_DEFAULTS = { hospitalization: 60, maternity: 98, paternity: 7 };
+const BALANCE_DEFAULTS = { hospitalization: 60, maternity: 98, paternity: 7, compassionate: 7 };
 
 function balanceKeyFor(rawType) {
     const t = String(rawType || '').trim().toLowerCase();
@@ -327,6 +328,7 @@ function balanceKeyFor(rawType) {
     if (t === 'hospitalization' || t === 'medical leave') return 'hospitalization';
     if (t === 'maternity') return 'maternity';
     if (t === 'paternity') return 'paternity';
+    if (t === 'compassionate') return 'compassionate';
     return null;
 }
 
@@ -343,7 +345,8 @@ router.get('/api/leave-balance', requireLogin, (req, res) => {
         }
 
         const balQuery = `
-            SELECT leave_type, entitlement, carried_forward, carried_forward_expires
+            SELECT leave_type, entitlement, carried_forward,
+                   DATE_FORMAT(carried_forward_expires, '%Y-%m-%d') AS carried_forward_expires
             FROM leave_balances
             WHERE LOWER(employee_id) = LOWER(?) AND year = ?
         `;
@@ -408,6 +411,7 @@ router.get('/api/leave-balance', requireLogin, (req, res) => {
                         leave_type: t.label,
                         entitlement: entitlement,
                         carried_forward: carried,
+                        carried_forward_expires: (carried > 0 && row) ? row.carried_forward_expires : null,
                         used: used,
                         remaining: Math.max(0, entitlement + carried - used)
                     };

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indian E-Business Visa Application</title>
+    <title>Visa Application</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -192,6 +192,11 @@
                 <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
             </a>
 
+            <a href="approval-history.html" class="nav-item" id="approvalHistoryItem" style="display: none;">
+                <i class='bx bx-history'></i>
+                <span>Approval History</span>
+            </a>
+
             <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
             <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
             <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
@@ -205,7 +210,7 @@
     <main class="main-content">
         <header class="top-header">
             <div class="header-title">
-                <h1>Indian E-Business Visa Application</h1>
+                <h1>Visa Application</h1>
             </div>
 
             <div class="header-actions">
@@ -836,7 +841,7 @@
                 const result = await res.json();
 
                 if (result.success) {
-                    alert('Indian E-Business Visa Application submitted successfully!');
+                    alert('Visa Application submitted successfully!');
                     window.location.href = 'my-request.html';
                 } else {
                     alert(result.message || 'Failed to submit form. Please try again.');
@@ -854,5 +859,21 @@
     </script>
 
 <script src="/assets/js/session-guard.js"></script>
+<script>
+// Approval History link: visible to VGM and Managers only
+(function () {
+    function showApprovalHistory() {
+        var link = document.getElementById('approvalHistoryItem');
+        if (!link) return;
+        var pos = (sessionStorage.getItem('position') || '').toLowerCase();
+        var id = (sessionStorage.getItem('userId') || '').toUpperCase();
+        if (pos.indexOf('vgm') !== -1 || pos.indexOf('manager') !== -1 || id.indexOf('MGR') === 0) {
+            link.style.display = 'flex';
+        }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showApprovalHistory);
+    else showApprovalHistory();
+})();
+</script>
 </body>
 </html>

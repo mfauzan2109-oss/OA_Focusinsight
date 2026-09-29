@@ -448,7 +448,10 @@
                 <span>Approval Queue</span>
                 <span class="nav-badge" id="approvalQueueBadge" style="display: none;">0</span>
             </a>
-
+            <a href="approval-history.html" class="nav-item" id="approvalHistoryItem" style="display: none;">
+                <i class='bx bx-history'></i>
+                <span>Approval History</span>
+            </a>
             <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
             <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
             <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
@@ -539,7 +542,7 @@
                     </div>
                     <div class="input-group">
                         <label for="loan-pic">Person in Charge</label>
-                        <input type="text" id="loan-pic" name="person_in_charge" placeholder="e.g. John Tan">
+                        <input type="text" id="loan-pic" name="person_in_charge" placeholder="e.g. Hamizan">
                     </div>
                 </div>
             </section>
@@ -555,7 +558,7 @@
                     </select>
                 </div>
 
-                <input type="hidden" id="monthly-salary" value="0.00">
+                
 
                 <div class="form-grid form-grid-2">
                     <div class="input-group">
@@ -1215,7 +1218,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const empIdInput = document.getElementById('employee-id');
     const empNameInput = document.getElementById('employee-name');
     const deptInput = document.getElementById('department');
-    const salaryInput = document.getElementById('monthly-salary');
+    
 
     if (empIdInput) empIdInput.value = formattedUserId;
     if (empNameInput) empNameInput.value = username || '';
@@ -1363,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         formData.append('model_no', document.getElementById('loan-model-no')?.value?.trim() || '');
         formData.append('person_in_charge', document.getElementById('loan-pic')?.value?.trim() || '');
         formData.append('loan_type', document.getElementById('loan-type').value);
-        formData.append('monthly_salary', salaryInput.value || '0.00');
+        
         formData.append('amount_requested', document.getElementById('amount-requested').value);
         formData.append('disbursement_method', document.getElementById('disbursement-method').value);
         formData.append('account_holder', document.getElementById('account-holder').value);
@@ -1452,5 +1455,21 @@ async function checkApprovalQueueAccess(userId, department, position) {
 }
     </script>
 <script src="/assets/js/session-guard.js"></script>
+<script>
+// Approval History link: visible to VGM and Managers only
+(function () {
+    function showApprovalHistory() {
+        var link = document.getElementById('approvalHistoryItem');
+        if (!link) return;
+        var pos = (sessionStorage.getItem('position') || '').toLowerCase();
+        var id = (sessionStorage.getItem('userId') || '').toUpperCase();
+        if (pos.indexOf('vgm') !== -1 || pos.indexOf('manager') !== -1 || id.indexOf('MGR') === 0) {
+            link.style.display = 'flex';
+        }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showApprovalHistory);
+    else showApprovalHistory();
+})();
+</script>
 </body>
 </html>
