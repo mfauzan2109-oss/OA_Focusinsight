@@ -292,7 +292,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const empIdInput = document.getElementById('employee-id');
     const empNameInput = document.getElementById('employee-name');
     const deptInput = document.getElementById('department');
-    const salaryInput = document.getElementById('monthly-salary');
 
     if (empIdInput) empIdInput.value = formattedUserId;
     if (empNameInput) empNameInput.value = username || '';
@@ -313,27 +312,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.error('Failed to fetch user profile salary:', err);
     }
 
-    // ==========================================
-    // 3. DYNAMIC INSTALLMENT CALCULATOR
-    // ==========================================
-    const repaymentPeriodSelect = document.getElementById('repayment-period');
     const amountRequestedInput = document.getElementById('amount-requested');
-    const installmentDisplay = document.getElementById('estimatedInstallmentDisplay');
-
-    function calculateInstallment() {
-        const months = parseInt(repaymentPeriodSelect.value, 10) || 0;
-        const amount = parseFloat(amountRequestedInput.value) || 0;
-
-        if (months > 0 && amount > 0) {
-            const monthlyPayment = amount / months;
-            installmentDisplay.textContent = `RM ${monthlyPayment.toFixed(2)}`;
-        } else {
-            installmentDisplay.textContent = 'RM 0.00';
-        }
-    }
-
-    if (repaymentPeriodSelect) repaymentPeriodSelect.addEventListener('change', calculateInstallment);
-    if (amountRequestedInput) amountRequestedInput.addEventListener('input', calculateInstallment);
 
     // ==========================================
     // 4. FILE UPLOAD DROPZONE LOGIC
@@ -390,7 +369,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     function saveDraft() {
         const draftData = {
             loanType: document.getElementById('loan-type').value,
-            repaymentPeriod: document.getElementById('repayment-period').value,
             amountRequested: document.getElementById('amount-requested').value,
             disbursementMethod: document.getElementById('disbursement-method').value,
             accountHolder: document.getElementById('account-holder').value,
@@ -406,14 +384,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             try {
                 const draft = JSON.parse(savedDraft);
                 if (draft.loanType) document.getElementById('loan-type').value = draft.loanType;
-                if (draft.repaymentPeriod) document.getElementById('repayment-period').value = draft.repaymentPeriod;
                 if (draft.amountRequested) document.getElementById('amount-requested').value = draft.amountRequested;
                 if (draft.disbursementMethod) document.getElementById('disbursement-method').value = draft.disbursementMethod;
                 if (draft.accountHolder) document.getElementById('account-holder').value = draft.accountHolder;
                 if (draft.accountNumber) document.getElementById('account-number').value = draft.accountNumber;
                 if (draft.bankDetails) document.getElementById('bank-details').value = draft.bankDetails;
 
-                calculateInstallment();
                 if (draftNotice) draftNotice.style.display = 'block';
             } catch (e) {
                 console.error('Error parsing draft data:', e);
@@ -444,8 +420,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         formData.append('employee_name', username || '');
         formData.append('department', department || '');
         formData.append('loan_type', document.getElementById('loan-type').value);
-        formData.append('repayment_period', document.getElementById('repayment-period').value);
-        formData.append('monthly_salary', salaryInput.value || '0.00');
         formData.append('amount_requested', document.getElementById('amount-requested').value);
         formData.append('disbursement_method', document.getElementById('disbursement-method').value);
         formData.append('account_holder', document.getElementById('account-holder').value);
