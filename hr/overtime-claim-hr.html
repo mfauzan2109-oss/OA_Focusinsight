@@ -259,6 +259,15 @@
             cursor: pointer;
         }
 
+        .draft-indicator {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #16a34a;
+            margin-bottom: 12px;
+        }
+
         .error-banner {
             background-color: #fef2f2;
             border-left: 4px solid #ef4444;
@@ -540,6 +549,10 @@
         <section class="form-card">
             <div id="errorBanner" class="error-banner"></div>
 
+            <div id="draftNotice" class="draft-indicator">
+                <i class="fa-regular fa-circle-check"></i> Draft restored &amp; autosaved automatically
+            </div>
+
             <form id="hrOvertimeForm">
 
                 <!-- 1. EMPLOYEE INFORMATION -->
@@ -619,20 +632,28 @@
                             <input type="text" id="period" name="period" readonly class="form-control" placeholder="0.0 hrs">
                         </div>
 
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="nightCheck" name="night_allowance_check"> Night Allowance (FI) (RM 20)
-                            </label>
-                            <small style="display:block; color:#64748b; font-size:11px; margin:-4px 0 4px 26px;">FI: applied for OT continuing until 1:00 AM</small>
-                            <small id="nightWarning" style="display:none; color:#dc2626; font-size:11px;">Only when OT continues until 1:00 AM or later</small>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="inariCheck" name="inari_night_allowance_check"> Night Allowance (Inari) (RM 50)
-                            </label>
-                            <small style="display:block; color:#64748b; font-size:11px; margin:-4px 0 4px 26px;">Inari: RM 50 per day</small>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="mealCheck" name="meal_allowance_check" disabled> Meal Allowance (RM 5)
-                            </label>
-                            <small style="display:block; color:#64748b; font-size:11px; margin:-4px 0 4px 26px;">Applied automatically for 3 hrs or more of OT</small>
+                        <div class="checkbox-group">
+                            <div>
+                                <label for="nightCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (FI) (RM 20)</label>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">FI: OT from 6:00 PM, continuing until 1:00 AM</div>
+                                <div class="rule-warning" id="nightWarning" style="display: none;">Only when OT starts at 6:00 PM or later and continues until 1:00 AM or later</div>
+                            </div>
+                            <input type="checkbox" id="nightCheck" name="night_allowance_check">
+                        </div>
+                        <div class="checkbox-group">
+                            <div>
+                                <label for="inariCheck" style="font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;">Night Allowance (Inari) (RM 50)</label>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Inari: RM 50 per day, OT from 7:00 PM</div>
+                                <div class="rule-warning" id="inariWarning" style="display: none;">Only when OT starts at 7:00 PM or later</div>
+                            </div>
+                            <input type="checkbox" id="inariCheck" name="inari_night_allowance_check">
+                        </div>
+                        <div class="checkbox-group">
+                            <div>
+                                <label for="mealCheck" style="font-size: 13px; font-weight: 600; color: #475569;">Meal Allowance (RM 5)</label>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Applied automatically for 3 hrs or more of OT</div>
+                            </div>
+                            <input type="checkbox" id="mealCheck" name="meal_allowance_check" disabled>
                         </div>
 
                         <div class="form-group" style="margin-bottom:0;">
@@ -861,6 +882,7 @@
         const inariCheck = document.getElementById('inariCheck');
         const mealCheck = document.getElementById('mealCheck');
         const nightWarning = document.getElementById('nightWarning');
+        const inariWarning = document.getElementById('inariWarning');
 
         const otAllowanceInput = document.getElementById('otAllowanceInput');
         const otRateInput = document.getElementById('otRateInput');
@@ -914,15 +936,22 @@
             const mealEligible = hours >= 3;
             mealCheck.checked = mealEligible;
 
-            // Business rule: Night Allowance (FI, RM 20) applies when OT continues past midnight until 1:00 AM or later
-            const nightEligible = crossesMidnight && endVal >= '01:00';
+            // Business rule: Night Allowance (FI, RM 20) applies when OT starts at 6:00 PM or later
+            // and continues past midnight until 1:00 AM or later
+            const nightEligible = startVal >= '18:00' && crossesMidnight && endVal >= '01:00';
             if (nightCheck.checked && !nightEligible) {
                 nightCheck.checked = false;
             }
             nightCheck.disabled = !nightEligible;
             nightWarning.style.display = (hours > 0 && !nightEligible) ? 'block' : 'none';
 
-            // Business rule: Night Allowance (Inari) is RM 50.00 per day, selected manually by the employee
+            // Business rule: Night Allowance (Inari) is RM 50.00 per day, available when OT starts at 7:00 PM or later
+            const inariEligible = startVal >= '19:00';
+            if (inariCheck.checked && !inariEligible) {
+                inariCheck.checked = false;
+            }
+            inariCheck.disabled = !inariEligible;
+            inariWarning.style.display = (hours > 0 && !inariEligible) ? 'block' : 'none';
 
             const mealAllow = mealCheck.checked ? 5.00 : 0.00;
             const nightAllow = nightCheck.checked ? 20.00 : 0.00;
@@ -948,13 +977,72 @@
         });
         mealCheck.addEventListener('change', calculateOT);
 
-        document.getElementById('cancelBtn').addEventListener('click', () => {
-            window.location.href = 'hr-dashboard.html';
-        });
-
         const form = document.getElementById('hrOvertimeForm');
         const submitBtn = document.getElementById('submitBtn');
         const errorBanner = document.getElementById('errorBanner');
+
+        // ---------- Draft autosave ----------
+        const draftKey = `draft_${userId}_hrOvertimeForm`;
+        const draftNotice = document.getElementById('draftNotice');
+
+        function saveFormDraft() {
+            const draftData = {};
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                const key = input.id || input.name;
+                if (key && input.type !== 'file' && input.type !== 'password' && !input.readOnly) {
+                    draftData[key] = (input.type === 'checkbox') ? input.checked : input.value;
+                }
+            });
+            try {
+                localStorage.setItem(draftKey, JSON.stringify(draftData));
+                draftNotice.style.display = 'flex';
+            } catch (e) {
+                console.warn('Could not autosave draft:', e);
+            }
+        }
+
+        function loadFormDraft() {
+            const raw = localStorage.getItem(draftKey);
+            if (!raw) return false;
+            try {
+                const draftData = JSON.parse(raw);
+                let restored = false;
+                Object.keys(draftData).forEach(key => {
+                    const el = document.getElementById(key) || form.querySelector(`[name="${key}"]`);
+                    if (el && !el.readOnly) {
+                        if (el.type === 'checkbox') {
+                            el.checked = draftData[key];
+                        } else {
+                            el.value = draftData[key];
+                        }
+                        if (draftData[key] !== '' && draftData[key] !== false) restored = true;
+                    }
+                });
+                return restored;
+            } catch (e) {
+                console.error('Failed to load form draft:', e);
+                return false;
+            }
+        }
+
+        function clearFormDraft() {
+            localStorage.removeItem(draftKey);
+        }
+
+        if (loadFormDraft()) {
+            draftNotice.style.display = 'flex';
+        }
+        calculateOT();
+
+        // 'input' catches typing; 'change' catches selects/checkboxes/time pickers.
+        // Element-level handlers (calculateOT, night-box exclusion) run first, then this saves.
+        form.addEventListener('input', saveFormDraft);
+        form.addEventListener('change', saveFormDraft);
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            clearFormDraft();
+            window.location.href = 'hr-dashboard.html';
+        });
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1010,6 +1098,7 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    clearFormDraft();
                     alert('Overtime Claim submitted successfully!');
                     window.location.href = '/hr/my-request-hr.html';
                 } else {
