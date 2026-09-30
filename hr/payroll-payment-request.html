@@ -123,13 +123,18 @@
                                 <input type="text" id="payeeName" placeholder="Full name" required>
                             </div>
                             <div class="input-group">
-                                <label for="employeeId">Employee ID<span class="req">*</span></label>
-                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <label for="employeeId">Employee ID</label>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891 (leave blank if none)">
                                 <span class="helper-text" id="employeeLookupStatus"></span>
                             </div>
                             <div class="input-group">
                                 <label for="grossAmount">Amount (RM)<span class="req">*</span></label>
                                 <input type="number" id="grossAmount" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="icNumber">IC No.</label>
+                                <input type="text" id="icNumber" placeholder="e.g. 900101-14-5678" inputmode="numeric" maxlength="14" autocomplete="off">
+                                <span class="helper-text" id="identifierHint">Enter an Employee ID or an IC No. (for interns without an Employee ID)</span>
                             </div>
                             <div class="input-group form-full">
                                 <label for="paymentDescription">Payment Description<span class="req">*</span></label>
@@ -154,10 +159,7 @@
                                 <label for="requestedPaymentDate">Requested Payment Date<span class="req">*</span></label>
                                 <input type="date" id="requestedPaymentDate" required>
                             </div>
-                            <div class="input-group">
-                                <label for="costCenter">Cost Center<span class="req">*</span></label>
-                                <input type="text" id="costCenter" placeholder="e.g. HR-OPS" required>
-                            </div>
+                
                         </div>
                     </div>
 
