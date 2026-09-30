@@ -264,7 +264,8 @@
                         <div class="sa-grid">
                             <div class="sa-input-group sa-full">
                                 <label for="employeeId">Employee ID<span class="req">*</span></label>
-                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891" list="employeeIdList" required autocomplete="off">
+                                <datalist id="employeeIdList"></datalist>
                                 <span class="sa-helper" id="employeeLookupStatus"></span>
                             </div>
                             <div class="sa-input-group sa-full">
@@ -287,6 +288,10 @@
                                 <label for="employmentDate">Employment Date</label>
                                 <input type="text" id="employmentDate" disabled>
                             </div>
+                            <div class="sa-input-group sa-full">
+                                <label for="nextPosition">Next Position</label>
+                                <input type="text" id="nextPosition" placeholder="e.g. Senior Engineer">
+                            </div>
                         </div>
                     </div>
 
@@ -295,27 +300,27 @@
                         <h3 class="sa-section-title"><i class='bx bx-trending-up'></i> Salary Adjustment</h3>
                         <div class="sa-grid">
                             <div class="sa-input-group">
-                                <label for="currentSalary">Current Basic Salary</label>
-                                <input type="text" id="currentSalary" disabled placeholder="RM 0.00">
+                                <label for="currentSalary">Current Basic Salary<span class="req">*</span></label>
+                                <input type="number" id="currentSalary" min="0" step="0.01" placeholder="Enter current basic salary" required>
                             </div>
                             <div class="sa-input-group">
                                 <label for="adjustmentType">Adjustment Type<span class="req">*</span></label>
                                 <select id="adjustmentType" required>
                                     <option value="">Select type</option>
-                                    <option value="Annual Increment">Annual Increment</option>
+                                    <option value="Performance">Performance</option>
                                     <option value="Promotion">Promotion</option>
-                                    <option value="Market Adjustment">Market Adjustment</option>
-                                    <option value="Performance-Based">Performance-Based</option>
-                                    <option value="Other">Other</option>
+                                    <option value="Market">Market</option>
+                                    <option value="Job Scope">Job Scope</option>
+                                    <option value="Others">Others</option>
                                 </select>
                             </div>
-                            <div class="sa-input-group">
-                                <label for="proposedSalary">Proposed Basic Salary<span class="req">*</span></label>
-                                <input type="number" id="proposedSalary" min="0" step="0.01" placeholder="0.00" required>
+                            <div class="sa-input-group sa-full" id="adjustmentTypeOthersGroup" style="display: none;">
+                                <label for="adjustmentTypeOthers">Please Specify<span class="req">*</span></label>
+                                <input type="text" id="adjustmentTypeOthers" placeholder="Enter the adjustment type">
                             </div>
                             <div class="sa-input-group">
                                 <label for="adjustmentAmount">Adjustment Amount</label>
-                                <input type="text" id="adjustmentAmount" disabled placeholder="Auto-calculated">
+                                <input type="number" id="adjustmentAmount" step="0.01" placeholder="e.g. 300.00">
                             </div>
                             <div class="sa-input-group">
                                 <label for="adjustmentPercentage">Adjustment Percentage (%)</label>
@@ -324,6 +329,11 @@
                             <div class="sa-input-group">
                                 <label for="effectiveDate">Effective Date<span class="req">*</span></label>
                                 <input type="date" id="effectiveDate" required>
+                            </div>
+                            <div class="sa-input-group">
+                                <label for="proposedSalary">Proposed Basic Salary<span class="req">*</span></label>
+                                <input type="text" id="proposedSalary" disabled placeholder="Auto-calculated">
+                                <input type="hidden" id="proposedSalaryValue">
                             </div>
                         </div>
                     </div>
@@ -434,6 +444,23 @@
                 setSafeValue('requesterDept', department || '—');
             }
             setSafeValue('requestDate', new Date().toISOString().split('T')[0]);
+            loadEmployeeIdOptions();
+        }
+
+        // -------- Employee ID suggestions: every employee, since HR handles all departments --------
+        async function loadEmployeeIdOptions() {
+            const datalist = document.getElementById('employeeIdList');
+            if (!datalist) return;
+            try {
+                const res = await fetch('/api/users');
+                const result = await res.json();
+                if (!result.success || !Array.isArray(result.data)) return;
+                datalist.innerHTML = result.data
+                    .map(u => `<option value="${u.user_id}">${u.name || ''} - ${u.department || ''}</option>`)
+                    .join('');
+            } catch (err) {
+                console.error('Failed to load employee ID suggestions:', err);
+            }
         }
 
         // -------- Employee Information: auto-filled once Employee ID is entered --------
@@ -444,9 +471,6 @@
             setSafeValue('employeePosition', '');
             setSafeValue('employmentType', '');
             setSafeValue('employmentDate', '');
-            setSafeValue('currentSalary', '');
-            currentSalaryValue = 0;
-            recalcAdjustment();
         }
 
         async function lookupEmployee(rawId) {
@@ -471,12 +495,8 @@
                     setSafeValue('employmentType', data.employment_type || '');
                     setSafeValue('employmentDate', data.join_date || '—');
 
-                    currentSalaryValue = parseFloat(data.salary) || 0;
-                    setSafeValue('currentSalary', formatMoney(currentSalaryValue));
-
                     statusEl.textContent = 'Employee found.';
                     statusEl.style.color = '#16a34a';
-                    recalcAdjustment();
                 } else {
                     statusEl.textContent = 'Employee ID not found.';
                     statusEl.style.color = '#ef4444';
@@ -488,14 +508,30 @@
             }
         }
 
-        // -------- Adjustment Amount / Percentage auto-calculate --------
+        // -------- Adjustment Percentage / Proposed Salary auto-calculate --------
         function recalcAdjustment() {
-            const proposed = parseFloat(document.getElementById('proposedSalary').value) || 0;
-            const amount = proposed - currentSalaryValue;
-            const percentage = currentSalaryValue > 0 ? (amount / currentSalaryValue) * 100 : 0;
+            const current = parseFloat(document.getElementById('currentSalary').value) || 0;
+            const amount = parseFloat(document.getElementById('adjustmentAmount').value) || 0;
+            const proposed = current + amount;
+            const percentage = current > 0 ? (amount / current) * 100 : 0;
+            const hasInput = document.getElementById('currentSalary').value || document.getElementById('adjustmentAmount').value;
 
-            setSafeValue('adjustmentAmount', proposed ? formatMoney(amount) : '');
-            setSafeValue('adjustmentPercentage', proposed ? `${percentage.toFixed(2)}%` : '');
+            currentSalaryValue = current;
+            setSafeValue('adjustmentPercentage', hasInput ? `${percentage.toFixed(2)}%` : '');
+            setSafeValue('proposedSalary', hasInput ? formatMoney(proposed) : '');
+            setSafeValue('proposedSalaryValue', hasInput ? proposed.toFixed(2) : '');
+        }
+
+        // -------- Adjustment Type: "Others" reveals the Please Specify field --------
+        function setupAdjustmentTypeOthers() {
+            const select = document.getElementById('adjustmentType');
+            const group = document.getElementById('adjustmentTypeOthersGroup');
+            const othersInput = document.getElementById('adjustmentTypeOthers');
+            select.addEventListener('change', () => {
+                const isOthers = select.value === 'Others';
+                group.style.display = isOthers ? 'flex' : 'none';
+                if (!isOthers) othersInput.value = '';
+            });
         }
 
         // -------- Drag & drop / file picker --------
@@ -543,14 +579,21 @@
 
             const employeeId = document.getElementById('employeeId').value.trim();
             const employeeName = document.getElementById('employeeName').value.trim();
-            const adjustmentType = document.getElementById('adjustmentType').value;
-            const proposedSalary = document.getElementById('proposedSalary').value;
+            const currentSalary = document.getElementById('currentSalary').value;
+            let adjustmentType = document.getElementById('adjustmentType').value;
+            const adjustmentTypeOthers = document.getElementById('adjustmentTypeOthers').value.trim();
+            const proposedSalary = document.getElementById('proposedSalaryValue').value;
             const effectiveDate = document.getElementById('effectiveDate').value;
             const justification = document.getElementById('justification').value.trim();
 
             if (!employeeId || !employeeName) { alert('Please enter a valid Employee ID and wait for it to auto-fill.'); return; }
+            if (!currentSalary || parseFloat(currentSalary) <= 0) { alert('Please enter a valid Current Basic Salary.'); return; }
             if (!adjustmentType) { alert('Please select an Adjustment Type.'); return; }
-            if (!proposedSalary || parseFloat(proposedSalary) <= 0) { alert('Please enter a valid Proposed Basic Salary.'); return; }
+            if (adjustmentType === 'Others') {
+                if (!adjustmentTypeOthers) { alert('Please specify the Adjustment Type.'); return; }
+                adjustmentType = adjustmentTypeOthers;
+            }
+            if (!proposedSalary || parseFloat(proposedSalary) <= 0) { alert('Please enter a valid Current Basic Salary and Adjustment Amount so the Proposed Basic Salary can be calculated.'); return; }
             if (!effectiveDate) { alert('Please select an Effective Date.'); return; }
             if (!justification) { alert('Please provide a justification for this request.'); return; }
 
@@ -568,7 +611,8 @@
             formData.append('position', document.getElementById('employeePosition').value);
             formData.append('employment_type', document.getElementById('employmentType').value);
             formData.append('employment_date', document.getElementById('employmentDate').value);
-            formData.append('current_basic_salary', currentSalaryValue);
+            formData.append('next_position', document.getElementById('nextPosition').value.trim());
+            formData.append('current_basic_salary', currentSalary);
             formData.append('adjustment_type', adjustmentType);
             formData.append('proposed_basic_salary', proposedSalary);
             formData.append('effective_date', effectiveDate);
@@ -601,7 +645,9 @@
             clearTimeout(lookupTimer);
             lookupTimer = setTimeout(() => lookupEmployee(e.target.value), 500);
         });
-        document.getElementById('proposedSalary').addEventListener('input', recalcAdjustment);
+        document.getElementById('currentSalary').addEventListener('input', recalcAdjustment);
+        document.getElementById('adjustmentAmount').addEventListener('input', recalcAdjustment);
+        setupAdjustmentTypeOthers();
         document.getElementById('salaryAdjustmentForm').addEventListener('submit', handleSubmit);
         document.getElementById('btnCancel').addEventListener('click', () => { window.location.href = 'dashboard.html'; });
     });
