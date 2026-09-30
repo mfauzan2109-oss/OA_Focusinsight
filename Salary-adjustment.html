@@ -119,7 +119,8 @@
                         <div class="sa-grid">
                             <div class="sa-input-group sa-full">
                                 <label for="employeeId">Employee ID<span class="req">*</span></label>
-                                <input type="text" id="employeeId" placeholder="e.g. EMP891" required>
+                                <input type="text" id="employeeId" placeholder="e.g. EMP891" list="employeeIdList" required autocomplete="off">
+                                <datalist id="employeeIdList"></datalist>
                                 <span class="sa-helper" id="employeeLookupStatus"></span>
                             </div>
                             <div class="sa-input-group sa-full">
@@ -142,6 +143,10 @@
                                 <label for="employmentDate">Employment Date</label>
                                 <input type="text" id="employmentDate" disabled>
                             </div>
+                            <div class="sa-input-group sa-full">
+                                <label for="nextPosition">Next Position</label>
+                                <input type="text" id="nextPosition" placeholder="e.g. Senior Engineer">
+                            </div>
                         </div>
                     </div>
 
@@ -150,27 +155,27 @@
                         <h3 class="sa-section-title"><i class='bx bx-trending-up'></i> Salary Adjustment</h3>
                         <div class="sa-grid">
                             <div class="sa-input-group">
-                                <label for="currentSalary">Current Basic Salary</label>
-                                <input type="text" id="currentSalary" disabled placeholder="RM 0.00">
+                                <label for="currentSalary">Current Basic Salary<span class="req">*</span></label>
+                                <input type="number" id="currentSalary" min="0" step="0.01" placeholder="Enter current basic salary" required>
                             </div>
                             <div class="sa-input-group">
                                 <label for="adjustmentType">Adjustment Type<span class="req">*</span></label>
                                 <select id="adjustmentType" required>
                                     <option value="">Select type</option>
-                                    <option value="Annual Increment">Annual Increment</option>
+                                    <option value="Performance">Performance</option>
                                     <option value="Promotion">Promotion</option>
-                                    <option value="Market Adjustment">Market Adjustment</option>
-                                    <option value="Performance-Based">Performance-Based</option>
-                                    <option value="Other">Other</option>
+                                    <option value="Market">Market</option>
+                                    <option value="Job Scope">Job Scope</option>
+                                    <option value="Others">Others</option>
                                 </select>
                             </div>
-                            <div class="sa-input-group">
-                                <label for="proposedSalary">Proposed Basic Salary<span class="req">*</span></label>
-                                <input type="number" id="proposedSalary" min="0" step="0.01" placeholder="0.00" required>
+                            <div class="sa-input-group sa-full" id="adjustmentTypeOthersGroup" style="display: none;">
+                                <label for="adjustmentTypeOthers">Please Specify<span class="req">*</span></label>
+                                <input type="text" id="adjustmentTypeOthers" placeholder="Enter the adjustment type">
                             </div>
                             <div class="sa-input-group">
                                 <label for="adjustmentAmount">Adjustment Amount</label>
-                                <input type="text" id="adjustmentAmount" disabled placeholder="Auto-calculated">
+                                <input type="number" id="adjustmentAmount" step="0.01" placeholder="e.g. 300.00">
                             </div>
                             <div class="sa-input-group">
                                 <label for="adjustmentPercentage">Adjustment Percentage (%)</label>
@@ -180,10 +185,15 @@
                                 <label for="effectiveDate">Effective Date<span class="req">*</span></label>
                                 <input type="date" id="effectiveDate" required>
                             </div>
+                            <div class="sa-input-group">
+                                <label for="proposedSalary">Proposed Basic Salary<span class="req">*</span></label>
+                                <input type="text" id="proposedSalary" disabled placeholder="Auto-calculated">
+                                <input type="hidden" id="proposedSalaryValue">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- JUSTIFICATION -->
+                                        <!-- JUSTIFICATION -->
                     <div class="sa-section">
                         <h3 class="sa-section-title"><i class='bx bx-comment-detail'></i> Justification</h3>
                         <div class="sa-input-group">

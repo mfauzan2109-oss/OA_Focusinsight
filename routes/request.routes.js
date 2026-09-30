@@ -355,7 +355,7 @@ router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, 
     const {
         requested_by, request_date, department,
         employee_id, employee_name, employee_department, position,
-        employment_type, employment_date,
+        employment_type, employment_date, next_position,
         current_basic_salary, adjustment_type, proposed_basic_salary,
         effective_date, justification
     } = req.body;
@@ -375,11 +375,11 @@ router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, 
         INSERT INTO \`salary_adjustments\`
         (\`requested_by\`, \`requested_by_name\`, \`request_date\`, \`department\`,
          \`employee_id\`, \`employee_name\`, \`employee_department\`, \`position\`,
-         \`employment_type\`, \`employment_date\`,
+         \`employment_type\`, \`employment_date\`, \`next_position\`,
          \`current_basic_salary\`, \`adjustment_type\`, \`proposed_basic_salary\`,
          \`adjustment_amount\`, \`adjustment_percentage\`, \`effective_date\`,
          \`justification\`, \`supporting_document\`, \`status\`, \`created_at\`)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
     `;
 
     db.query(query, [
@@ -393,6 +393,7 @@ router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, 
         safeVal(position, 100),
         safeVal(employment_type, 50),
         safeVal(employment_date, 50),
+        safeVal(next_position, 100),
         currentSalaryNum,
         safeVal(adjustment_type, 50),
         proposedSalaryNum,
