@@ -599,14 +599,12 @@
             gap: 14px;
             margin-bottom: 20px;
         }
-
         .mini-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
             padding: 14px 16px;
         }
-
         .mini-card-title {
             font-size: 11px;
             font-weight: 700;
@@ -618,7 +616,6 @@
             align-items: center;
             gap: 6px;
         }
-
         .mini-card-row-line {
             display: flex;
             justify-content: space-between;
@@ -626,11 +623,7 @@
             color: #0f172a;
             margin-bottom: 6px;
         }
-
-        .mini-card-row-line span:first-child {
-            color: #64748b;
-        }
-
+        .mini-card-row-line span:first-child { color: #64748b; }
         .status-pill-loan {
             display: inline-block;
             padding: 3px 14px;
@@ -638,22 +631,9 @@
             font-size: 11px;
             font-weight: 700;
         }
-
-        .status-pill-loan.pending {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .status-pill-loan.approved {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .status-pill-loan.rejected {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
+        .status-pill-loan.pending { background: #fef3c7; color: #b45309; }
+        .status-pill-loan.approved { background: #dcfce7; color: #15803d; }
+        .status-pill-loan.rejected { background: #fee2e2; color: #b91c1c; }
         .priority-pill-loan {
             display: inline-block;
             margin-top: 8px;
@@ -664,7 +644,6 @@
             background: #e0e7ff;
             color: #4338ca;
         }
-
         .loan-reject-reason {
             width: 100%;
             margin-top: 12px;
@@ -676,7 +655,6 @@
             resize: vertical;
             min-height: 70px;
         }
-
         .loan-reject-label {
             font-size: 12px;
             font-weight: 600;
@@ -953,6 +931,404 @@
         .view-all-link:hover {
             text-decoration: underline;
         }
+    
+        /* ---- Request view shared with request-details.html ---- */
+        .edit-input {
+            width: 100%;
+            padding: 9px 13px;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--text-dark);
+            background-color: #eff6ff;
+            box-sizing: border-box;
+        }
+        .submitted-by-note {
+            text-align: right;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: -8px;
+        }
+        .travel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .travel-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .travel-subtitle {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .file-chip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: #f8fafc;
+            text-decoration: none;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+        .file-chip:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        .file-ext {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 6px 8px;
+            border-radius: 6px;
+            min-width: 38px;
+            text-align: center;
+        }
+        .file-name {
+            font-size: 13px;
+            font-weight: 600;
+            word-break: break-all;
+        }
+        .file-size {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .remarks-box {
+            min-height: 150px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #1f2937;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #ffffff;
+        }
+        .tl-list {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+            padding-left: 4px;
+        }
+        .tl-list::before {
+            content: '';
+            position: absolute;
+            left: 13px;
+            top: 14px;
+            bottom: 14px;
+            width: 2px;
+            background: #cbd5e1;
+        }
+        .tl-item {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+        .tl-dot {
+            position: relative;
+            z-index: 1;
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            border-radius: 50%;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .tl-main {
+            flex: 1;
+            min-width: 0;
+        }
+        .tl-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .tl-role {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .tl-state {
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .tl-remarks {
+            font-size: 12px;
+            color: #475569;
+            white-space: pre-wrap;
+            margin-top: 2px;
+        }
+        .tl-time {
+            text-align: right;
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        @media (max-width: 900px) {
+            .travel-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .ot-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .tv-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 28px;
+            margin-bottom: 16px;
+        }
+        .tv-col {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .tv-value.tall {
+            min-height: 84px;
+            align-items: flex-start;
+        }
+        .tv-checks {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 6px;
+        }
+        .tv-check-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 2px 4px;
+        }
+        .tv-check-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+        .tv-check-hint {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .tv-check-box {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            border: 1.5px solid #94a3b8;
+            border-radius: 5px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #ffffff;
+        }
+        .tv-check-box.on {
+            background: #16a34a;
+            border-color: #16a34a;
+        }
+        .tv-section {
+            margin-bottom: 22px;
+        }
+        .tv-section:last-child {
+            margin-bottom: 0;
+        }
+        .tv-section-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .tv-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 20px;
+        }
+        .tv-field.full {
+            grid-column: 1 / -1;
+        }
+        .tv-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 5px;
+        }
+        .tv-label small {
+            font-weight: 400;
+            color: #94a3b8;
+        }
+        .tv-value {
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #f8fafc;
+            font-size: 13px;
+            color: #1f2937;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+        .tv-value.empty {
+            color: #94a3b8;
+        }
+        .tv-value a {
+            color: #2563eb;
+            font-size: 12px;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        .tv-value a:hover {
+            text-decoration: underline;
+        }
+        .tv-pair {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 10px;
+        }
+        .tv-emp-box {
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+        .tv-table-wrap {
+            overflow-x: auto;
+        }
+        .tv-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .tv-table th {
+            background: #dcf5ea;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            padding: 12px 10px;
+            border: 1px solid #b7e4cf;
+            border-top: none;
+            line-height: 1.3;
+        }
+        .tv-table th:first-child {
+            border-left: none;
+        }
+        .tv-table th:last-child {
+            border-right: none;
+        }
+        .tv-table th small {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .tv-table td {
+            text-align: center;
+            padding: 16px 10px;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            overflow-wrap: anywhere;
+        }
+        .tv-table td:first-child {
+            border-left: none;
+        }
+        .tv-table td:last-child {
+            border-right: none;
+        }
+        .tv-table tbody tr:last-child td {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .tv-table tbody tr:hover td {
+            background: #f8fafc;
+        }
+        .tv-table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 18px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .tv-pager {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tv-page-btn {
+            min-width: 24px;
+            height: 24px;
+            padding: 0 6px;
+            border: 1px solid #dbe3ee;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .tv-page-btn:hover:not(:disabled) {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .tv-page-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+        .tv-page-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        @media (max-width: 700px) {
+            .tv-fields,
+            .tv-two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+        .tv-table td .edit-input { min-width: 110px; }
+        .lv-total td { font-weight: 700; border-top: 2px solid #b7e4cf; }
+        .rd-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .rd-mini-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+        .rd-mini { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
+        .rd-mini-title { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+        .rd-mini-line { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 3px 0; }
+        .rd-mini-line span:first-child { color: #64748b; }
+        .rd-mini-line span:last-child { font-weight: 600; color: #0f172a; text-align: right; overflow-wrap: anywhere; }
+        .rd-pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 14px; border-radius: 20px; text-transform: uppercase; }
+        @media (max-width: 900px) { .rd-mini-row { grid-template-columns: 1fr; } }
     </style>
 </head>
 
@@ -1055,453 +1431,50 @@
             </div>
 
             <!-- Detailed Request View Container -->
-            <div class="detail-view-card" id="detailViewContainer" style="display: none;">
+            <div class="detail-view-card" id="detailViewContainer" style="display: none; flex-direction: column; gap: 20px;">
+                <div class="rd-card">
+                    <div class="ot-card-head">
+                        <div class="section-header-title" style="margin: 0;">REQUEST INFORMATION</div>
+                        <span class="submitted-by-note" style="margin: 0;">As submitted by employee</span>
+                    </div>
+                    <div class="rd-mini-row" id="rdSummary"></div>
+                    <div id="rdForm">
+                        <div id="leave-form-content" style="display:none;"></div>
+                        <div id="overtime-form-content" style="display:none;"></div>
+                        <div id="travel-form-content" style="display:none;"></div>
+                        <div id="disb-form-content" style="display:none;"></div>
+                        <div id="loan-form-content" style="display:none;"></div>
+                        <div id="generic-form-content" style="display:none;"></div>
+                    </div>
+                    <div id="rdCost"></div>
+                </div>
 
-                <!-- 1. STANDARD FORM VIEW (For Disbursements, Loans, etc.) -->
-                <div id="standardDetailsSection">
-                    <h3 class="section-header-title">REQUEST DETAILS</h3>
-                    <table class="table-custom">
-                        <thead>
-                            <tr>
-                                <th>Invoice Date</th>
-                                <th>Invoice No.</th>
-                                <th>Supplier Name</th>
-                                <th>Description</th>
-                                <th>Amount</th>
-                                <th>Remark</th>
-                            </tr>
-                        </thead>
-                        <tbody id="itemsTableBody"></tbody>
-                    </table>
-                    <div style="text-align: right; margin-top: 12px; font-weight: 800; font-size: 13px;"
-                        id="totalClaimAmount">TOTAL: RM 0.00</div>
-
-                    <div class="bottom-action-buttons" style="margin-top: 20px;">
-                        <button class="btn-pill btn-save-draft" onclick="submitDecision('Approved')">Approve</button>
-                        <button class="btn-pill btn-back" onclick="submitDecision('Revision')">Revision</button>
-                        <button class="btn-pill" style="background: #ef4444; color: white;"
-                            onclick="submitDecision('Rejected')">Reject</button>
+                <div class="travel-grid">
+                    <div class="rd-card">
+                        <div class="travel-card-title" id="rdFilesTitle">Supporting Documents</div>
+                        <div class="travel-subtitle"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments</div>
+                        <div id="rdAttachments"></div>
+                        <div id="rdRemarksWrap" style="display:none;">
+                            <div class="travel-subtitle" style="margin-top: 18px;">Remarks</div>
+                            <div class="remarks-box" id="rdRemarks"></div>
+                        </div>
+                        <div id="rdUploadWrap" style="display:none; margin-top: 18px;">
+                            <div class="travel-subtitle"><i class="fa-solid fa-paperclip"></i> Upload Attachment</div>
+                            <div class="dropzone-box" onclick="document.getElementById('fileUpload').click()">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 16px; margin-bottom: 4px;"></i>
+                                <div>Drag &amp; Drop or <span style="color:#2563eb; text-decoration:underline;">Browse Files</span></div>
+                                <div style="font-size: 8px; color:#94a3b8; margin-top:2px;">PDF, PNG, JPG up to 10MB</div>
+                                <input type="file" id="fileUpload" style="display:none;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rd-card">
+                        <div class="travel-card-title"><i class="fa-regular fa-circle-check"></i> Approval Timeline</div>
+                        <div class="tl-list" id="rdTimeline"></div>
                     </div>
                 </div>
 
-
-                <!-- PROBATION CONFIRMATION FINAL REVIEW -->
-                <div id="probationDetailsSection" style="display:none; flex-direction:column; gap:16px;">
-                </div>
-                <!-- 2. LOAN APPLICATION VIEW -->
-                <div id="loanDetailsSection" style="display: none; flex-direction: column; gap: 4px;">
-
-                    <div class="mini-card-row">
-                        <div class="mini-card">
-                            <p class="mini-card-title"><i class="fa-regular fa-id-card"></i> Employee Information</p>
-                            <div class="mini-card-row-line"><span>Full Name</span><span id="loanFullName">—</span></div>
-                            <div class="mini-card-row-line"><span>Employee ID</span><span id="loanEmpIdMini">—</span>
-                            </div>
-                            <div class="mini-card-row-line"><span>Department</span><span id="loanDeptMini">—</span>
-                            </div>
-                        </div>
-                        <div class="mini-card">
-                            <p class="mini-card-title"><i class="fa-regular fa-file-lines"></i> Request Summary</p>
-                            <div class="mini-card-row-line"><span>Request Type</span><span id="loanReqType">Loan
-                                    Application</span></div>
-                            <div class="mini-card-row-line"><span>Submitted</span><span id="loanSubmitted">—</span>
-                            </div>
-                            <div class="mini-card-row-line"><span>Amount</span><span id="loanAmountMini">—</span></div>
-                        </div>
-                        <div class="mini-card" style="text-align:center;">
-                            <p class="mini-card-title" style="justify-content:center;"><i
-                                    class="fa-regular fa-circle-dot"></i> Current Status</p>
-                            <span class="status-pill-loan pending" id="loanStatusBadge">PENDING</span>
-                            <br>
-                            <span class="priority-pill-loan" id="loanPriorityPill">Standard</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="section-header-title">EMPLOYEE INFORMATION</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Employee ID</label>
-                                <input type="text" class="form-input-pill" id="loanEmpId" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Employee Name</label>
-                                <input type="text" class="form-input-pill" id="loanEmpName" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Department</label>
-                                <input type="text" class="form-input-pill" id="loanDept" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="section-header-title">LOAN DETAILS</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Loan Type</label>
-                                <input type="text" class="form-input-pill" id="loanType" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Amount Requested (RM)</label>
-                                <input type="text" class="form-input-pill" id="loanAmountRequested" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Disbursement Method</label>
-                                <input type="text" class="form-input-pill" id="loanDisbursementMethod" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="section-header-title">BORROWER BANK DETAILS</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Account Holder Name</label>
-                                <input type="text" class="form-input-pill" id="loanAccountHolder" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Account Number</label>
-                                <input type="text" class="form-input-pill" id="loanAccountNumber" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Bank Details</label>
-                                <input type="text" class="form-input-pill" id="loanBankDetails" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="middle-cards-grid" style="margin-top: 8px;">
-                        <div class="card-box">
-                            <div class="card-title"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments</div>
-                            <div class="attachment-item" id="loanAttachmentBox">
-                                <span class="pdf-icon-badge">DOC</span>
-                                <div style="font-size: 10px; font-weight:700;" id="loanAttachmentName">No Attachment
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-box">
-                            <div class="card-title"><i class="fa-regular fa-clock"></i> Approval Timeline</div>
-                            <div class="timeline-wrapper" id="loanTimelineContainer"></div>
-                        </div>
-                    </div>
-
-                    <div class="bottom-action-buttons" style="margin-top: 20px;">
-                        <button class="btn-pill btn-save-draft"
-                            onclick="submitLoanDecision('Approved')">Approve</button>
-                        <button class="btn-pill" style="background: #ef4444; color: white;"
-                            onclick="submitLoanDecision('Rejected')">Reject</button>
-                    </div>
-
-                    <label class="loan-reject-label">If <strong>Reject</strong>, please state your reason/
-                        comment</label>
-                    <textarea class="loan-reject-reason" id="loanRejectReason"
-                        placeholder="Reason (required for Reject)"></textarea>
-
-                </div>
-
-                <!-- 2. DYNAMIC TRAVEL APPLICATION VIEW -->
-                <div id="travelDetailsSection" style="display: none; flex-direction: column; gap: 24px;">
-
-                    <!-- EMPLOYEE LISTS TABLE (POPULATED FROM REQUEST JSON / DATABASE) -->
-                    <div>
-                        <h3 class="section-header-title">EMPLOYEE LISTS</h3>
-                        <div class="table-card">
-                            <table class="emp-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>NAME</th>
-                                        <th>CONTACT NO</th>
-                                        <th>EMAIL ADDRESS</th>
-                                        <th>PURPOSE OF TRAVEL</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="empTableBody">
-                                    <!-- Dynamic rows inserted by JS -->
-                                </tbody>
-                            </table>
-                            <div class="table-footer">
-                                <span id="empTableCount">showing 0 records</span>
-                                <div style="display:flex; gap:4px;" id="empPagination">
-                                    <span
-                                        style="padding:2px 8px; background:#2563eb; color:white; border-radius:4px; font-weight:bold;">1</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TRIP DETAILS (DYNAMICALLY BOUND) -->
-                    <div>
-                        <h3 class="section-header-title">TRIP DETAILS</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Travel Destination* <br><small
-                                        style="color: #64748b; font-weight: normal;">(Please specify the company
-                                        name)</small></label>
-                                <input type="text" class="form-input-pill" id="trvDestination" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Travel mode*</label>
-                                <input type="text" class="form-input-pill" id="trvMode" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Departure Destination*</label>
-                                <input type="text" class="form-input-pill" id="trvDepDest" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Arrival Destination*</label>
-                                <input type="text" class="form-input-pill" id="trvArrDest" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Expected Date Departure*</label>
-                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text"
-                                        class="form-input-pill" id="trvDepDate" readonly></div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Expected Date Arrival*</label>
-                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text"
-                                        class="form-input-pill" id="trvArrDate" readonly></div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Estimated Return Date*</label>
-                                <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input type="text"
-                                        class="form-input-pill" id="trvRetDate" readonly></div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Mileage <br><small
-                                        style="color: #64748b; font-weight: normal;">(For Domestic Travel
-                                        Only)</small></label>
-                                <input type="text" class="form-input-pill" id="trvMileage" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Required Accommodation*</label>
-                                <input type="text" class="form-input-pill" id="trvAccommodation" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- OVERSEA CONTACT DETAILS (DYNAMICALLY BOUND) -->
-                    <div>
-                        <h3 class="section-header-title">OVERSEA CONTACT DETAILS</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Primary Contact*</label>
-                                <input type="text" class="form-input-pill" id="trvContactName" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Phone Number*</label>
-                                <input type="text" class="form-input-pill" id="trvContactPhone" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Venue & Address*</label>
-                                <input type="text" class="form-input-pill" id="trvVenueAddress" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FLIGHT (Departure) -->
-                    <div>
-                        <h3 class="section-header-title">FLIGHT (Departure)</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Channel*</label>
-                                <input type="text" class="form-input-pill" id="fltDepChannel" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Departure Destination*</label>
-                                <input type="text" class="form-input-pill" id="fltDepFrom" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Arrival Destination*</label>
-                                <input type="text" class="form-input-pill" id="fltDepTo" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Departure Date & Time*</label>
-                                <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
-                                            type="text" class="form-input-pill" id="fltDepDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
-                                            class="form-input-pill" id="fltDepTime" readonly></div>
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Arrival Date & Time*</label>
-                                <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
-                                            type="text" class="form-input-pill" id="fltArrDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
-                                            class="form-input-pill" id="fltArrTime" readonly></div>
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Airline*</label>
-                                <div class="form-input-group">
-                                    <input type="text" class="form-input-pill" id="fltAirline" readonly>
-                                    <input type="text" class="form-input-pill" id="fltType" readonly>
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Checked Baggage*</label>
-                                <input type="text" class="form-input-pill" id="fltBaggage" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Estimated Price*</label>
-                                <input type="text" class="form-input-pill" id="fltEstPrice" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FLIGHT (Return) -->
-                    <div>
-                        <h3 class="section-header-title">FLIGHT (Return)</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Channel*</label>
-                                <input type="text" class="form-input-pill" id="fltRetChannel" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Departure Destination*</label>
-                                <input type="text" class="form-input-pill" id="fltRetFrom" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Arrival Destination*</label>
-                                <input type="text" class="form-input-pill" id="fltRetTo" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Departure Date & Time*</label>
-                                <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
-                                            type="text" class="form-input-pill" id="fltRetDepDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
-                                            class="form-input-pill" id="fltRetDepTime" readonly></div>
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Arrival Date & Time*</label>
-                                <div class="form-input-group">
-                                    <div class="date-input-icon"><i class="fa-regular fa-calendar"></i><input
-                                            type="text" class="form-input-pill" id="fltRetArrDate" readonly></div>
-                                    <div class="date-input-icon"><i class="fa-regular fa-clock"></i><input type="text"
-                                            class="form-input-pill" id="fltRetArrTime" readonly></div>
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Airline*</label>
-                                <div class="form-input-group">
-                                    <input type="text" class="form-input-pill" id="fltRetAirline" readonly>
-                                    <input type="text" class="form-input-pill" id="fltRetType" readonly>
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Checked Baggage*</label>
-                                <input type="text" class="form-input-pill" id="fltRetBaggage" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Estimated Price*</label>
-                                <input type="text" class="form-input-pill" id="fltRetEstPrice" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- HOTEL -->
-                    <div>
-                        <h3 class="section-header-title">HOTEL</h3>
-                        <div class="form-grid-row">
-                            <div class="field-group">
-                                <label class="field-label">Channel*</label>
-                                <input type="text" class="form-input-pill" id="htlChannel" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Hotel Name*</label>
-                                <input type="text" class="form-input-pill" id="htlName" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Duration*</label>
-                                <input type="text" class="form-input-pill" id="htlDuration" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Total Nights*</label>
-                                <input type="text" class="form-input-pill" id="htlNights" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Estimated Price*</label>
-                                <input type="text" class="form-input-pill" id="htlPrice" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ATTACHMENTS & APPROVAL TIMELINE -->
-                    <div class="middle-cards-grid">
-                        <div style="display:flex; flex-direction:column; gap:12px;">
-                            <div class="card-box">
-                                <div class="card-title"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments (by
-                                    employee)</div>
-                                <div class="attachment-item" id="empAttachmentBox">
-                                    <span class="pdf-icon-badge">DOC</span>
-                                    <div style="font-size: 10px; font-weight:700;" id="empAttachmentName">No Attachment
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="card-box">
-                                <div class="card-title"><i class="fa-solid fa-paperclip"></i> Upload Attachment</div>
-                                <div class="dropzone-box" onclick="document.getElementById('fileUpload').click()">
-                                    <i class="fa-solid fa-cloud-arrow-up"
-                                        style="font-size: 16px; margin-bottom: 4px;"></i>
-                                    <div>Drag & Drop or <span style="color:#2563eb; text-decoration:underline;">Browse
-                                            Files</span></div>
-                                    <div style="font-size: 8px; color:#94a3b8; margin-top:2px;">PDF, PNG, JPG up to 10MB
-                                    </div>
-                                    <input type="file" id="fileUpload" style="display:none;">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-box">
-                            <div class="card-title"><i class="fa-regular fa-clock"></i> Approval Timeline</div>
-                            <div class="timeline-wrapper" id="timelineContainer">
-                                <!-- Dynamic steps appended via JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TRAVEL COST SUMMARY (DYNAMICALLY CALCULATED) -->
-                    <div class="cost-summary-card">
-                        <div>
-                            <h3 class="section-header-title" style="margin-bottom: 6px;">Travel Cost Summary</h3>
-                            <div class="cost-item-row">
-                                <span>Flight Cost</span>
-                                <span id="summaryFlightCost">RM 0.00</span>
-                            </div>
-                            <div class="cost-item-row">
-                                <span>Accommodation Cost</span>
-                                <span id="summaryHotelCost">RM 0.00</span>
-                            </div>
-                            <div class="cost-item-row">
-                                <span>Travel Allowance</span>
-                                <span id="summaryAllowance">RM 0.00</span>
-                            </div>
-                        </div>
-
-                        <div class="total-cost-blue-box">
-                            <h4>TOTAL ESTIMATED COST</h4>
-                            <h2 id="totalEstimatedCost">RM 0.00</h2>
-                            <p id="summaryDurationText">-</p>
-                        </div>
-                    </div>
-
-                    <!-- BOTTOM BUTTONS -->
-                    <div class="bottom-action-buttons">
-                        <button type="button" class="btn-pill btn-back"
-                            onclick="document.getElementById('detailViewContainer').style.display='none'">Back</button>
-                        <button type="button" class="btn-pill btn-save-draft">Save draft</button>
-                        <button type="button" class="btn-pill btn-submit-ceo" onclick="submitToCEO()">Submit to
-                            CEO</button>
-                    </div>
-
-                </div>
+                <div id="rdActions"></div>
             </div>
         </main>
     </div>
@@ -1709,10 +1682,11 @@
                             })
                         : [];
 
-                const approvals = [
+                const approvalsRaw = [
                     ...(legacyData.pending_approvals || []),
                     ...p1Items
                 ];
+            const approvals = await hrpFilterLeave(approvalsRaw);
 
                 renderItems(
                     'approvalListContainer',
@@ -1734,6 +1708,43 @@
         }
 
         // Render request cards with Bell Icon & Reminder subtext if present
+
+        // Leave in HR Processing: only leave applied by HR employees, matched by who their HOD is.
+        // Department / HOD come from the request record (department, hod_id / hod_name or the HOD entry in approval_steps).
+        const HRP_LEAVE_CACHE = {};
+        async function hrpFilterLeave(items) {
+            const uid = (sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '').trim().toLowerCase();
+            const uname = (sessionStorage.getItem('username') || '').trim().toLowerCase();
+            const isHrDept = d => /human resources|(^|\W)hr(\W|$)/i.test(String(d || ''));
+            const result = await Promise.all(items.map(async item => {
+                if (!/leave/i.test(String(item.request_type || ''))) return item;
+                let d = HRP_LEAVE_CACHE[item.id];
+                if (!d) {
+                    try {
+                        const r = await fetch(`${API_BASE_URL}/request-details?id=${item.id}&type=${encodeURIComponent(item.request_type)}`);
+                        const j = await r.json();
+                        if (j.success && j.data) d = HRP_LEAVE_CACHE[item.id] = j.data;
+                    } catch (e) { /* fall through */ }
+                }
+                if (!d) return item; // could not verify, so do not hide it
+
+                const dept = d.department || d.Department || item.department || '';
+                if (dept && !isHrDept(dept)) return null; // not an HR employee
+
+                const steps = Array.isArray(d.approval_steps) ? d.approval_steps : [];
+                const hodStep = steps.find(x => /head of department|\bhod\b/i.test(String(x.approver_role || x.step_label || '')));
+                const hodId = String(d.hod_id || d.hod_employee_id || (hodStep && (hodStep.approver_id || hodStep.approver_employee_id)) || '').trim().toLowerCase();
+                const hodShown = String(d.hod_name || d.hod || (hodStep && (hodStep.approver_name || hodStep.acted_by)) || '').trim();
+                const hodName = hodShown.toLowerCase();
+                if (hodId || hodName) {
+                    const mine = (hodId && hodId === uid) || (hodName && hodName === uname);
+                    if (!mine) return null; // this employee's HOD is someone else
+                }
+                return Object.assign({}, item, { hod_name: hodShown });
+            }));
+            return result.filter(Boolean);
+        }
+
         function renderItems(containerId, items, countId, isBookingList) {
             document.getElementById(countId).innerText = `${items.length} Request awaiting action`;
             const container = document.getElementById(containerId);
@@ -1759,6 +1770,7 @@
                         <div>
                             <h4 style="font-size: 13px; font-weight: 700; color: #1e293b;">${item.employee_name}</h4>
                             <p style="font-size: 11px; color:#64748b;">${item.request_type} | ${item.formatted_id}</p>
+                            ${item.hod_name ? `<p style="font-size: 11px; color:#64748b;">HOD: ${item.hod_name}</p>` : ''}
                             ${reminderHTML}
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px;">
@@ -1771,6 +1783,984 @@
         }
 
         // 2. Select Request & Dynamically Bind Database Payload
+        function tvEl(tag, className, text) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined && text !== null) node.textContent = text;
+            return node;
+        }
+
+        function tvStatusIcon(color, mood) {
+            // Document with folded corner and a face (smile / neutral / frown)
+            const mouth = mood === 'happy' ? 'M20 33 Q28 41 36 33'
+                : mood === 'sad' ? 'M20 38 Q28 31 36 38'
+                    : 'M21 36 L35 36';
+            return `<svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M10 6 H34 L46 18 V46 a4 4 0 0 1 -4 4 H14 a4 4 0 0 1 -4 -4 Z" fill="${color}"/>
+                <path d="M34 6 V16 a2 2 0 0 0 2 2 H46 Z" fill="#000" opacity="0.18"/>
+                <circle cx="22" cy="27" r="2" fill="#0f172a"/><circle cx="34" cy="27" r="2" fill="#0f172a"/>
+                <path d="${mouth}" stroke="#0f172a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        function tvFormatDate(value) {
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return { date: '', time: '' };
+            return {
+                date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+                time: d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+            };
+        }
+
+        function tvParseAttachments(data, docPath) {
+            let raw = data.attachments || data.travel_attachments || null;
+            const splitList = str => String(str).split(/[;|\n]+/).map(x => x.trim()).filter(Boolean);
+
+            if (typeof raw === 'string') {
+                try { raw = JSON.parse(raw); } catch (e) { raw = splitList(raw); }
+            }
+            if (!Array.isArray(raw)) raw = [];
+
+            if (!raw.length && docPath && String(docPath).trim() !== '' && docPath !== 'null') {
+                const text = String(docPath).trim();
+                if (text.startsWith('[')) {
+                    try { raw = JSON.parse(text); } catch (e) { raw = [text]; }
+                } else {
+                    raw = splitList(text);
+                }
+            }
+
+            return raw.map(item => {
+                if (typeof item === 'string') item = { path: item };
+                const path = item.path || item.url || item.file_path || item.filename || item.name || '';
+                const base = String(path).split('/').pop().split('\\').pop();
+                return { path: String(path), name: item.name || item.original_name || base, size: item.size };
+            }).filter(item => item.path);
+        }
+
+        function tvFormatSize(size) {
+            if (size == null || size === '') return '';
+            if (typeof size === 'string' && isNaN(Number(size))) return size;
+            const bytes = Number(size);
+            if (!Number.isFinite(bytes) || bytes <= 0) return '';
+            if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        // ---- Read-only copy of the travel request form the initiator submitted ----
+        function tvPick(data, ...keys) {
+            for (const key of keys) {
+                const v = data[key];
+                if (v !== undefined && v !== null && String(v).trim() !== '' && String(v) !== 'null') return v;
+            }
+            return '';
+        }
+
+        function tvDateText(value) {
+            if (!value) return '';
+            const text = String(value);
+            const m = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            const d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : new Date(text);
+            if (Number.isNaN(d.getTime())) return text;
+            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+        }
+
+        function tvTimeText(value) {
+            if (!value) return '';
+            const m = String(value).match(/^(\d{1,2}):(\d{2})/);
+            if (!m) return String(value);
+            let h = +m[1];
+            const suffix = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${String(h).padStart(2, '0')}:${m[2]} ${suffix}`;
+        }
+
+        function tvMoney(value) {
+            if (value === '' || value === null || value === undefined) return '';
+            const n = Number(value);
+            return Number.isFinite(n) ? `RM ${n.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : String(value);
+        }
+
+        function tvValueBox(value) {
+            const box = tvEl('div', 'tv-value');
+            const text = value === undefined || value === null || String(value).trim() === '' ? '' : String(value);
+            if (!text) {
+                box.classList.add('empty');
+                box.textContent = '—';
+            } else if (/^https?:\/\//i.test(text)) {
+                const a = tvEl('a', '', text);
+                a.href = text;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                box.appendChild(a);
+            } else {
+                box.textContent = text;
+            }
+            return box;
+        }
+
+        function tvField(label, value, full, hint) {
+            const wrap = tvEl('div', 'tv-field' + (full ? ' full' : ''));
+            const lab = tvEl('label', 'tv-label', label);
+            if (hint) { lab.append(' ', tvEl('small', '', hint)); }
+            wrap.append(lab, tvValueBox(value));
+            return wrap;
+        }
+
+        function tvDateTimeField(label, dateValue, timeValue) {
+            const wrap = tvEl('div', 'tv-field');
+            wrap.appendChild(tvEl('label', 'tv-label', label));
+            const pair = tvEl('div', 'tv-pair');
+            pair.append(tvValueBox(tvDateText(dateValue)), tvValueBox(tvTimeText(timeValue)));
+            wrap.appendChild(pair);
+            return wrap;
+        }
+
+        function tvSection(title, fieldNodes) {
+            const sec = tvEl('div', 'tv-section');
+            sec.appendChild(tvEl('div', 'tv-section-title', title));
+            const grid = tvEl('div', 'tv-fields');
+            fieldNodes.forEach(n => grid.appendChild(n));
+            sec.appendChild(grid);
+            return sec;
+        }
+
+        function tvParseEmployees(data) {
+            let raw = tvPick(data, 'assigned_employees', 'employees', 'travellers', 'travelers');
+            if (typeof raw === 'string') {
+                try { raw = JSON.parse(raw); } catch (e) { raw = []; }
+            }
+            return Array.isArray(raw) ? raw : [];
+        }
+
+        function renderTravelForm(data) {
+            const root = document.getElementById('travel-form-content');
+            if (!root) return;
+            root.replaceChildren();
+            const flightTypeText = v => {
+                const t = String(v || '').toLowerCase();
+                return t === 'direct' ? 'Direct flight' : t === 'transfer' ? 'Flight with transfers' : (v || '');
+            };
+
+            // ---- Project information ----
+            const proj = [
+                tvPick(data, 'company'),
+                tvPick(data, 'proj_name', 'project_name'),
+                tvPick(data, 'model_no', 'model_number'),
+                tvPick(data, 'person_in_charge')
+            ];
+            if (proj.some(Boolean)) {
+                root.appendChild(tvSection('Project Information', [
+                    tvField('Company', proj[0], true),
+                    tvField('Project Name', proj[1]),
+                    tvField('Model Number', proj[2]),
+                    tvField('Person in Charge', proj[3])
+                ]));
+            }
+
+            // ---- Employee lists (styled table with paging) ----
+            const employees = tvParseEmployees(data);
+            if (employees.length) {
+                const PAGE_SIZE = 6;
+                const totalPages = Math.ceil(employees.length / PAGE_SIZE);
+                let page = 1;
+
+                const sec = tvEl('div', 'tv-section');
+                sec.appendChild(tvEl('div', 'tv-section-title', 'Employee Lists'));
+
+                const box = tvEl('div', 'tv-emp-box');
+                const wrap = tvEl('div', 'tv-table-wrap');
+                const table = tvEl('table', 'tv-table');
+
+                const headRow = tvEl('tr');
+                ['ID', 'Name', 'Contact No', 'Email Address'].forEach(h => headRow.appendChild(tvEl('th', '', h)));
+                const purposeTh = tvEl('th', '', 'Purpose of Travel');
+                purposeTh.appendChild(tvEl('small', '', '(Business/Training)'));
+                headRow.appendChild(purposeTh);
+                const thead = tvEl('thead');
+                thead.appendChild(headRow);
+                const tbody = tvEl('tbody');
+                table.append(thead, tbody);
+                wrap.appendChild(table);
+
+                const footer = tvEl('div', 'tv-table-footer');
+                const countText = tvEl('span');
+                const pager = tvEl('div', 'tv-pager');
+                footer.append(countText, pager);
+                box.append(wrap, footer);
+                sec.appendChild(box);
+
+                const draw = () => {
+                    tbody.replaceChildren();
+                    const slice = employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+                    slice.forEach(emp => {
+                        const tr = tvEl('tr');
+                        [emp.employee_id || emp.id, emp.name || emp.employee_name, emp.contact || emp.phone || emp.phone_no, emp.email, emp.purpose || emp.purpose_of_travel]
+                            .forEach(v => tr.appendChild(tvEl('td', '', v || '—')));
+                        tbody.appendChild(tr);
+                    });
+                    countText.textContent = `showing ${slice.length} of ${employees.length} records`;
+
+                    pager.replaceChildren();
+                    if (totalPages > 1) {
+                        const mk = (label, target, opts = {}) => {
+                            const b = tvEl('button', 'tv-page-btn' + (opts.active ? ' active' : ''), label);
+                            b.type = 'button';
+                            b.disabled = !!opts.disabled;
+                            b.addEventListener('click', () => { page = target; draw(); });
+                            return b;
+                        };
+                        pager.appendChild(mk('‹', page - 1, { disabled: page === 1 }));
+                        for (let i = 1; i <= totalPages; i++) pager.appendChild(mk(String(i), i, { active: i === page }));
+                        pager.appendChild(mk('›', page + 1, { disabled: page === totalPages }));
+                    }
+                };
+                draw();
+                root.appendChild(sec);
+            }
+
+            // ---- Trip details ----
+            const modeRaw = String(tvPick(data, 'travel_mode') || '');
+            const modeText = modeRaw.toLowerCase() === 'others'
+                ? (tvPick(data, 'travel_mode_others') || 'Others')
+                : modeRaw ? modeRaw.charAt(0).toUpperCase() + modeRaw.slice(1) : '';
+            const mileage = tvPick(data, 'mileage');
+            const accom = String(tvPick(data, 'accommodation') || '');
+            root.appendChild(tvSection('Trip Details', [
+                tvField('Travel Destination', tvPick(data, 'travel_destination', 'destination'), true),
+                tvField('Travel Mode', modeText),
+                tvField('Departure Destination', tvPick(data, 'departure_destination')),
+                tvField('Arrival Destination', tvPick(data, 'arrival_destination')),
+                tvField('Expected Date Departure', tvDateText(tvPick(data, 'expected_departure'))),
+                tvField('Expected Date Arrival', tvDateText(tvPick(data, 'expected_arrival'))),
+                tvField('Estimated Return Date', tvDateText(tvPick(data, 'return_date'))),
+                tvField('Mileage', mileage !== '' ? `${mileage} km` : '', false, '(For Domestic Travel Only)'),
+                tvField('Required Accommodation', accom ? accom.charAt(0).toUpperCase() + accom.slice(1) : '')
+            ]));
+
+            // ---- Oversea contact ----
+            const contact = [tvPick(data, 'primary_contact'), tvPick(data, 'phone_number'), tvPick(data, 'venue_address')];
+            if (contact.some(Boolean)) {
+                root.appendChild(tvSection('Oversea Contact Details', [
+                    tvField('Primary Contact', contact[0]),
+                    tvField('Phone Number', contact[1]),
+                    tvField('Venue & Address', contact[2], true)
+                ]));
+            }
+
+            // ---- Flights ----
+            [['dep', 'Flight (Departure)'], ['ret', 'Flight (Return)']].forEach(([p, title]) => {
+                const v = k => tvPick(data, `${p}_${k}`);
+                const keys = ['channel', 'departure_dest', 'arrival_dest', 'date', 'time', 'arr_date', 'arr_time', 'airline', 'airline_type', 'baggage', 'price'];
+                if (!keys.some(k => v(k) !== '')) return;
+                root.appendChild(tvSection(title, [
+                    tvField('Channel', v('channel'), true),
+                    tvField('Departure Destination', v('departure_dest')),
+                    tvField('Arrival Destination', v('arrival_dest')),
+                    tvDateTimeField('Departure Date & Time', v('date'), v('time')),
+                    tvDateTimeField('Arrival Date & Time', v('arr_date'), v('arr_time')),
+                    tvField('Airline', v('airline')),
+                    tvField('Flight Type', flightTypeText(v('airline_type'))),
+                    tvField('Checked Baggage', v('baggage')),
+                    tvField('Estimated Price', tvMoney(v('price')))
+                ]));
+            });
+
+            // ---- Hotel ----
+            const h = k => tvPick(data, `hotel_${k}`);
+            if (['channel', 'name', 'duration', 'nights', 'price'].some(k => h(k) !== '')) {
+                const nights = h('nights');
+                root.appendChild(tvSection('Hotel', [
+                    tvField('Channel', h('channel'), true),
+                    tvField('Hotel Name', h('name'), true),
+                    tvField('Duration', h('duration')),
+                    tvField('Total Nights', nights !== '' ? `${nights} nights` : ''),
+                    tvField('Estimated Price', tvMoney(h('price')), true)
+                ]));
+            }
+        }
+
+        // ---- Approval routes (roles only - NO approver names are hardcoded here) ----
+        // The backend's `approval_steps` is always the source of truth. This route is only used to
+        // show the expected path when a request has no per-stage history yet.
+        //   nameFrom  : request field(s) that hold the approver's name (e.g. the PM the initiator filled in)
+        //   minAmount : stage only applies when the claim amount is greater than this value (RM)
+        const APPROVAL_ROUTES = {
+            disbursement: {
+                // nameFrom: the Project Manager is whoever the initiator typed into "Person in Charge"
+                stages: [
+                    { role: 'Project Manager', nameFrom: ['person_in_charge', 'project_manager'] },
+                    { role: 'Head of Department' },
+                    { role: 'VGM' },
+                    { role: 'CEO', minAmount: 3000 },
+                    { role: 'Chairman', minAmount: 3000 }
+                ],
+                cc: ['HR Specialist', 'Initiator']
+            },
+            leave: {
+                // minDays: stage only applies when total leave days is greater than this value
+                stages: [
+                    { role: 'Head of Department' },
+                    { role: 'VGM', minDays: 3 },
+                    { role: 'CEO', minDays: 5 },
+                    { role: 'Chairman', minDays: 5 },
+                    { role: 'HR' }
+                ],
+                cc: ['Relevant HR', 'Initiator']
+            },
+            overtime: {
+                stages: [
+                    { role: 'Project Manager', nameFrom: ['person_in_charge', 'project_manager'] },
+                    { role: 'Head of Department' },
+                    { role: 'VGM' },
+                    { role: 'CEO', minAmount: 3000 },
+                    { role: 'Chairman', minAmount: 3000 }
+                ],
+                cc: ['HR Specialist', 'Initiator']
+            }
+        };
+
+        function tvExpectedSteps(routeKey, data, statusRaw) {
+            const route = APPROVAL_ROUTES[routeKey === 'loan' ? 'disbursement' : routeKey];
+            if (!route) return [];
+
+            const amount = Number(tvPick(data, 'total_claim', 'total_amount', 'amount_requested'));
+            const overall = statusRaw.startsWith('APPROVE') ? 'approved'
+                : statusRaw.startsWith('REJECT') ? 'rejected' : 'pending';
+            const days = routeKey === 'leave' ? lvParse(data).reduce((a, e) => a + e.duration, 0) : NaN;
+            const stages = route.stages.filter(st =>
+                (st.minAmount === undefined || (Number.isFinite(amount) && amount > st.minAmount)) &&
+                (st.minDays === undefined || (Number.isFinite(days) && days > st.minDays)));
+
+            const out = [{
+                approver_role: 'Initiator',
+                acted_by: data.employee_name || data['Employee Name'] || 'Initiator',
+                status: 'approved',
+                acted_at: data.created_at || data['Created At'],
+                _sub: 'Initiator · Submitted',
+                _meta: true
+            }];
+
+            let pendingMarked = false;
+            stages.forEach((st, i) => {
+                let status = 'waiting';
+                if (overall === 'approved') status = 'approved';
+                else if (overall === 'pending' && !pendingMarked) { status = 'pending'; pendingMarked = true; }
+                out.push({
+                    approver_role: st.role,
+                    approver_name: st.nameFrom ? tvPick(data, ...st.nameFrom) : '',
+                    status,
+                    _sub: `${st.role} · Stage ${i + 1}`
+                });
+            });
+
+            out.push({
+                approver_role: 'CC',
+                acted_by: `CC: ${route.cc.join(', ')}`,
+                status: overall === 'approved' ? 'approved' : 'waiting',
+                _sub: 'End of workflow',
+                _stateLabel: 'Notified',
+                _meta: true
+            });
+            return out;
+        }
+
+        // ---- Shared: approval timeline (used by Travel and Overtime) ----
+        function tvRenderTimeline(timeline, steps, data, statusRaw) {
+            timeline.replaceChildren();
+            const dot = {
+                approved: ['fa-solid fa-circle-check', '#16a34a'],
+                rejected: ['fa-solid fa-circle-xmark', '#dc2626'],
+                pending: ['fa-solid fa-circle-half-stroke', '#d97706'],
+                waiting: ['fa-regular fa-circle', '#94a3b8'],
+                cancelled: ['fa-regular fa-circle-xmark', '#94a3b8']
+            };
+
+            // When the backend sends no per-stage history, fall back to Submitted + overall status
+            if (!steps.length) {
+                const created = data.created_at || data['Created At'];
+                const overall = statusRaw.startsWith('APPROVE') ? 'approved'
+                    : statusRaw.startsWith('REJECT') ? 'rejected' : 'pending';
+                steps = [
+                    { approver_role: 'Submitted', acted_by: data.employee_name || data['Employee Name'], status: 'approved', acted_at: created, _submitted: true },
+                    { approver_role: 'Approval', acted_by: 'Stage 1 Approval', status: overall, acted_at: data.updated_at && overall !== 'pending' ? data.updated_at : null }
+                ];
+            }
+
+            steps.forEach((step, index) => {
+                const state = String(step.status || 'waiting').toLowerCase();
+                const role = step.approver_role || step.step_label || 'Approver';
+                const [iconClass, iconColor] = dot[state] || dot.waiting;
+
+                const item = tvEl('div', 'tl-item');
+                const dotEl = tvEl('div', 'tl-dot');
+                const icon = tvEl('i', iconClass);
+                icon.style.color = iconColor;
+                dotEl.appendChild(icon);
+
+                const main = tvEl('div', 'tl-main');
+                main.appendChild(tvEl('div', 'tl-name', step.acted_by || step.approver_name || role));
+                main.appendChild(tvEl('div', 'tl-role', step._sub || (step._submitted ? 'Submitted' : `${role} · Stage ${index + 1}`)));
+
+                const isHr = /human resources|^hr\b/i.test(role);
+                if (state === 'approved' && step._stateLabel) {
+                    const done = tvEl('div', 'tl-state', step._stateLabel);
+                    done.style.color = '#16a34a';
+                    main.appendChild(done);
+                } else if (state === 'approved' && isHr && data._bookedLabel) {
+                    const booked = tvEl('div', 'tl-state', data._bookedLabel);
+                    booked.style.color = '#16a34a';
+                    main.appendChild(booked);
+                } else if (state !== 'approved') {
+                    const stateLabel = tvEl('div', 'tl-state', state.charAt(0).toUpperCase() + state.slice(1));
+                    stateLabel.style.color = iconColor;
+                    main.appendChild(stateLabel);
+                }
+                if (step.remarks) main.appendChild(tvEl('div', 'tl-remarks', step.remarks));
+
+                const when = step.acted_at ? tvFormatDate(step.acted_at) : { date: '', time: '' };
+                const time = tvEl('div', 'tl-time');
+                if (when.date) { time.appendChild(tvEl('div', '', when.date)); time.appendChild(tvEl('div', '', when.time)); }
+
+                item.append(dotEl, main, time);
+                timeline.appendChild(item);
+            });
+        }
+
+        // ---- Overtime: read-only copy of the overtime claim form ----
+        function tvCheckRow(title, hint, on) {
+            const row = tvEl('div', 'tv-check-row');
+            const text = tvEl('div');
+            text.appendChild(tvEl('div', 'tv-check-title', title));
+            if (hint) text.appendChild(tvEl('div', 'tv-check-hint', hint));
+            const box = tvEl('div', 'tv-check-box' + (on ? ' on' : ''));
+            if (on) box.innerHTML = '<i class="fa-solid fa-check"></i>';
+            box.setAttribute('aria-label', on ? 'Yes' : 'No');
+            row.append(text, box);
+            return row;
+        }
+
+        function tvTruthy(v) {
+            if (v === true) return true;
+            const t = String(v === undefined || v === null ? '' : v).trim().toLowerCase();
+            return t === '1' || t === 'true' || t === 'yes' || t === 'y';
+        }
+
+        function renderOvertimeForm(data) {
+            const root = document.getElementById('overtime-form-content');
+            root.replaceChildren();
+
+            // Project info (only when the initiator filled any of it)
+            const proj = [tvPick(data, 'proj_name', 'project_name'), tvPick(data, 'model_no', 'model_number'), tvPick(data, 'person_in_charge')];
+            if (proj.some(Boolean)) {
+                const grid = tvEl('div', 'tv-fields');
+                grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                grid.style.marginBottom = '18px';
+                grid.append(tvField('Project Name', proj[0]), tvField('Model Number', proj[1]), tvField('Person in Charge', proj[2]));
+                root.appendChild(grid);
+            }
+
+            const dayRaw = String(tvPick(data, 'day_type') || '');
+            const dayLabels = { weekdays: 'Weekday & Saturday', weekday: 'Weekday & Saturday', saturday: 'Weekday & Saturday', sunday: 'Sunday & Public Holiday', 'public holiday': 'Sunday & Public Holiday', publicholiday: 'Sunday & Public Holiday' };
+            const dayText = dayLabels[dayRaw.toLowerCase().replace(/\s+/g, ' ')] || dayRaw;
+
+            const allowance = tvPick(data, 'ot_allowance', 'ot_payment');
+            const rate = String(tvPick(data, 'ot_rate') || '');
+            const period = String(tvPick(data, 'period') || '');
+            const periodText = period && /^[\d.]+$/.test(period) ? `${period} hrs` : period;
+
+            const night = tvTruthy(tvPick(data, 'night_allowance_check', 'night_allowance')) || Number(tvPick(data, 'night_allowance_amount')) > 0;
+            const inari = tvTruthy(tvPick(data, 'inari_night_allowance_check', 'inari_night_allowance')) || Number(tvPick(data, 'inari_night_allowance_amount')) > 0;
+            const meal = tvTruthy(tvPick(data, 'meal_allowance_check', 'meal_allowance')) || Number(tvPick(data, 'meal_allowance_amount')) > 0;
+
+            // Left column: Date, Period, Day Type, OT Allowance, OT rate
+            const left = tvEl('div', 'tv-col');
+            left.append(
+                tvField('Date', tvDateText(tvPick(data, 'ot_date'))),
+                tvField('Period', periodText),
+                tvField('Day Type', dayText),
+                tvField('OT Allowance', /^[\d.,\s]+$/.test(String(allowance)) ? tvMoney(String(allowance).replace(/,/g, '')) : allowance),
+                tvField('OT Rate', rate)
+            );
+
+            // Right column: Start Time, End Time, allowance tick boxes
+            const right = tvEl('div', 'tv-col');
+            const checks = tvEl('div', 'tv-checks');
+            checks.append(
+                tvCheckRow('Night Allowance (FI) (RM 20)', 'FI: OT from 6:00 PM, continuing until 1:00 AM', night),
+                tvCheckRow('Night Allowance (Inari) (RM 50)', 'Inari: RM 50 per day, OT from 7:00 PM', inari),
+                tvCheckRow('Meal Allowance (RM 5)', 'Applied automatically for 3 hrs or more of OT', meal)
+            );
+            right.append(
+                tvField('Start Time', tvTimeText(tvPick(data, 'start_time'))),
+                tvField('End Time', tvTimeText(tvPick(data, 'end_time'))),
+                checks
+            );
+
+            const cols = tvEl('div', 'tv-two-col');
+            cols.append(left, right);
+            root.appendChild(cols);
+
+            // Reason / description (full width)
+            const reason = tvField('Reason / Description', tvPick(data, 'reason', 'Reason') || 'No description provided.', true);
+            reason.querySelector('.tv-value').classList.add('tall');
+            root.appendChild(reason);
+        }
+
+
+        // ================= LEAVE REQUEST DETAIL VIEW =================
+        const LV_TYPES = ['annual', 'unpaid', 'sick', 'hospitalization', 'marriage', 'maternity', 'paternity', 'compassionate', 'replacement'];
+        const LV_DAY = [['full', 'Full Day'], ['half-am', 'Half Day (AM)'], ['half-pm', 'Half Day (PM)'], ['24hr', '24 Hours (MC)'], ['48hr', '48 Hours (MC)']];
+
+        function lvNormDay(v) {
+            const t = String(v || '').toLowerCase();
+            if (LV_DAY.some(d => d[0] === t)) return t;
+            if (t.includes('half')) return /pm|afternoon/.test(t) ? 'half-pm' : 'half-am';
+            if (t.includes('24')) return '24hr';
+            if (t.includes('48')) return '48hr';
+            return t.includes('full') || !t ? 'full' : t;
+        }
+        function lvDayLabel(v) { const f = LV_DAY.find(d => d[0] === v); return f ? f[1] : (v === 'mixed' ? 'Mixed' : v); }
+        function lvTypeLabel(v) { v = String(v || ''); return !v ? '' : /leave/i.test(v) ? v : v.charAt(0).toUpperCase() + v.slice(1) + ' Leave'; }
+        function lvDate(v) { const m = String(v || '').match(/^\d{4}-\d{2}-\d{2}/); return m ? m[0] : ''; }
+        function lvDuration(start, end, t) {
+            if (!start || !t) return null;
+            if (t === '24hr') return 1;
+            if (t === '48hr') return 2;
+            if (!end) return null;
+            const s = new Date(start), e = new Date(end);
+            if (e < s) return 0;
+            if (t === 'half-am' || t === 'half-pm') return start === end ? 0.5 : 0;
+            let n = 0;
+            for (const c = new Date(s); c <= e; c.setDate(c.getDate() + 1)) { if (c.getDay() !== 0 && c.getDay() !== 6) n++; }
+            return n;
+        }
+        function lvParse(data) {
+            let raw = data.leave_entries;
+            if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = null; } }
+            if (Array.isArray(raw) && raw.length) {
+                return raw.map(e => {
+                    const start = lvDate(e.start || e.start_date), end = lvDate(e.end || e.end_date), dayType = lvNormDay(e.dayType || e.day_type);
+                    const dur = Number(e.duration);
+                    return { start, end, dayType, duration: Number.isFinite(dur) && e.duration !== '' ? dur : (lvDuration(start, end, dayType) || 0) };
+                });
+            }
+            const start = lvDate(tvPick(data, 'start_date', 'Start Date')), end = lvDate(tvPick(data, 'end_date', 'End Date'));
+            const rawDay = String(tvPick(data, 'day_type', 'Day type'));
+            const dayType = rawDay.toLowerCase() === 'mixed' ? 'mixed' : lvNormDay(rawDay);
+            const dur = Number(tvPick(data, 'num_days', 'No of Days', 'total_days'));
+            if (!start && !end) return [];
+            return [{ start, end, dayType, duration: Number.isFinite(dur) && dur > 0 ? dur : (lvDuration(start, end, dayType) || 0) }];
+        }
+
+        function renderLeaveForm(data, editing) {
+            const root = document.getElementById('leave-form-content');
+            if (!window._lv) {
+                window._lv = { type: String(tvPick(data, 'leave_type', 'Leave Type')), entries: lvParse(data), reason: String(tvPick(data, 'reason', 'Reason')) };
+            }
+            const st = window._lv;
+            root.replaceChildren();
+            root.appendChild(tvEl('div', 'tv-section-title', 'Leave Details'));
+
+            // Leave type
+            if (editing) {
+                const wrap = tvEl('div', 'tv-field'); wrap.style.marginBottom = '16px';
+                wrap.appendChild(tvEl('label', 'tv-label', 'Leave Type'));
+                const sel = tvEl('select', 'edit-input');
+                const cur = st.type.toLowerCase().replace(/\s*leave$/, '').trim();
+                const useLabel = /\s|[A-Z]/.test(st.type);
+                const keys = LV_TYPES.includes(cur) || !cur ? LV_TYPES : LV_TYPES.concat(cur);
+                keys.forEach(k => { const o = tvEl('option', '', lvTypeLabel(k)); o.value = useLabel ? lvTypeLabel(k) : k; o.selected = k === cur; sel.appendChild(o); });
+                sel.addEventListener('change', () => { st.type = sel.value; });
+                if (!cur) st.type = sel.value;
+                wrap.appendChild(sel); root.appendChild(wrap);
+            } else {
+                const f = tvField('Leave Type', lvTypeLabel(st.type), true); f.style.marginBottom = '16px'; root.appendChild(f);
+            }
+
+            // Entries table
+            const box = tvEl('div', 'tv-emp-box'), wrapT = tvEl('div', 'tv-table-wrap'), table = tvEl('table', 'tv-table');
+            const hr = tvEl('tr');
+            ['Start Date', 'End Date', 'Day Type', 'Duration'].concat(editing ? ['Action'] : []).forEach(h => hr.appendChild(tvEl('th', '', h)));
+            const thead = tvEl('thead'); thead.appendChild(hr);
+            const tbody = tvEl('tbody'), tfoot = tvEl('tfoot');
+            table.append(thead, tbody, tfoot); wrapT.appendChild(table); box.appendChild(wrapT); root.appendChild(box);
+
+            const durText = d => d === null || d === undefined ? '–' : d === 0 ? 'Invalid' : d.toFixed(1);
+            const totalCell = tvEl('td');
+            const refreshTotal = () => { totalCell.textContent = st.entries.reduce((a, e) => a + (e.duration || 0), 0).toFixed(1); };
+
+            st.entries.forEach((e, i) => {
+                const tr = tvEl('tr');
+                const durTd = tvEl('td', '', durText(e.duration));
+                if (!editing) {
+                    tr.append(tvEl('td', '', tvDateText(e.start) || '—'), tvEl('td', '', tvDateText(e.end) || '—'), tvEl('td', '', lvDayLabel(e.dayType)), durTd);
+                } else {
+                    const recalc = () => { e.duration = lvDuration(e.start, e.end, e.dayType) || 0; durTd.textContent = durText(e.duration === 0 && !(e.start && e.end) ? null : e.duration); refreshTotal(); };
+                    const dIn = (key, other) => {
+                        const inp = tvEl('input', 'edit-input'); inp.type = 'date'; inp.value = e[key];
+                        inp.addEventListener('change', () => {
+                            e[key] = inp.value;
+                            if (e.dayType.startsWith('half')) { e.end = e.start; if (endIn) endIn.value = e.end; }
+                            recalc();
+                        });
+                        return inp;
+                    };
+                    const startIn = dIn('start'), endIn = dIn('end');
+                    const sel = tvEl('select', 'edit-input');
+                    LV_DAY.forEach(([v, l]) => { const o = tvEl('option', '', l); o.value = v; o.selected = v === e.dayType; sel.appendChild(o); });
+                    sel.addEventListener('change', () => { e.dayType = sel.value; if (e.dayType.startsWith('half')) { e.end = e.start; endIn.value = e.end; } recalc(); });
+                    const del = tvEl('button', 'btn btn-secondary', 'Remove'); del.type = 'button';
+                    del.addEventListener('click', () => { st.entries.splice(i, 1); if (!st.entries.length) st.entries.push({ start: '', end: '', dayType: 'full', duration: 0 }); renderLeaveForm(data, true); });
+                    const cell = n => { const td = tvEl('td'); td.appendChild(n); return td; };
+                    tr.append(cell(startIn), cell(endIn), cell(sel), durTd, cell(del));
+                }
+                tbody.appendChild(tr);
+            });
+
+            const trT = tvEl('tr', 'lv-total');
+            const lab = tvEl('td', '', 'Total Days');
+            const pad = tvEl('td'); pad.colSpan = 2;
+            trT.append(pad, lab, totalCell); if (editing) trT.appendChild(tvEl('td'));
+            tfoot.appendChild(trT); refreshTotal();
+
+            if (editing && st.entries.length < 10) {
+                const add = tvEl('button', 'btn btn-secondary', '+ Add Row'); add.type = 'button'; add.style.margin = '12px 0 0';
+                add.addEventListener('click', () => { st.entries.push({ start: '', end: '', dayType: 'full', duration: 0 }); renderLeaveForm(data, true); });
+                root.appendChild(add);
+            }
+
+            // Reason
+            const rWrap = tvEl('div', 'tv-field full'); rWrap.style.marginTop = '18px';
+            rWrap.appendChild(tvEl('label', 'tv-label', 'Reason / Description'));
+            if (editing) {
+                const ta = tvEl('textarea', 'edit-input'); ta.value = st.reason;
+                ta.addEventListener('input', () => { st.reason = ta.value; });
+                rWrap.appendChild(ta);
+            } else {
+                const v = tvValueBox(st.reason || 'No description provided.'); v.classList.add('tall'); rWrap.appendChild(v);
+            }
+            root.appendChild(rWrap);
+        }
+
+        window._leaveRender = editing => renderLeaveForm(window._reqData, editing);
+        window._leaveGetPayload = function () {
+            const st = window._lv; if (!st) return null;
+            if (!st.entries.length || st.entries.some(e => !(e.duration > 0))) {
+                return { error: 'Please complete each row in the Leave Details table (valid dates and day type) before resubmitting.' };
+            }
+            if (!st.reason.trim()) return { error: 'Please fill in the Reason / Description.' };
+            const starts = st.entries.map(e => e.start).sort(), ends = st.entries.map(e => e.end).sort();
+            return {
+                data: {
+                    leave_type: st.type, reason: st.reason,
+                    start_date: starts[0], end_date: ends[ends.length - 1],
+                    day_type: st.entries.length === 1 ? st.entries[0].dayType : 'mixed',
+                    num_days: st.entries.reduce((a, e) => a + e.duration, 0),
+                    leave_entries: JSON.stringify(st.entries.map(({ start, end, dayType, duration }) => ({ start, end, dayType, duration })))
+                }
+            };
+        };
+
+
+        // ================= DISBURSEMENT REQUEST DETAIL VIEW =================
+        const DB_COLS = [['invoice_date', 'Invoice Date', 'date'], ['invoice_no', 'Invoice No.', 'text'], ['supplier_name', 'Supplier Name', 'text'],
+                         ['description', 'Description', 'text'], ['amount', 'Amount', 'number'], ['remark', 'Reason / Remark', 'text']];
+
+        function dbParseItems(data) {
+            let raw = tvPick(data, 'items', 'disbursement_items', 'expenses');
+            if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = []; } }
+            return (Array.isArray(raw) ? raw : []).map(r => ({
+                invoice_date: lvDate(r.invoice_date), invoice_no: r.invoice_no || '', supplier_name: r.supplier_name || '',
+                description: r.description || '', amount: r.amount === undefined || r.amount === null ? '' : String(r.amount), remark: r.remark || ''
+            }));
+        }
+
+        function renderDisbForm(data, editing) {
+            const root = document.getElementById('disb-form-content');
+            if (!window._db) {
+                window._db = { proj_name: String(tvPick(data, 'proj_name', 'project_name')), model_no: String(tvPick(data, 'model_no', 'model_number')),
+                               person_in_charge: String(tvPick(data, 'person_in_charge')), items: dbParseItems(data) };
+            }
+            const st = window._db;
+            root.replaceChildren();
+
+            // Project info
+            const grid = tvEl('div', 'tv-fields');
+            grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; grid.style.marginBottom = '18px';
+            [['Project Name', 'proj_name'], ['Model Number', 'model_no'], ['Person in Charge', 'person_in_charge']].forEach(([label, key]) => {
+                if (!editing) { grid.appendChild(tvField(label, st[key])); return; }
+                const w = tvEl('div', 'tv-field'); w.appendChild(tvEl('label', 'tv-label', label));
+                const inp = tvEl('input', 'edit-input'); inp.type = 'text'; inp.value = st[key];
+                inp.addEventListener('input', () => { st[key] = inp.value; });
+                w.appendChild(inp); grid.appendChild(w);
+            });
+            root.appendChild(grid);
+
+            // Expenses table
+            root.appendChild(tvEl('div', 'tv-section-title', 'Expenses'));
+            const box = tvEl('div', 'tv-emp-box'), wrap = tvEl('div', 'tv-table-wrap'), table = tvEl('table', 'tv-table');
+            const hr = tvEl('tr');
+            ['No.'].concat(DB_COLS.map(c => c[1]), editing ? ['Action'] : []).forEach(h => hr.appendChild(tvEl('th', '', h)));
+            const thead = tvEl('thead'); thead.appendChild(hr);
+            const tbody = tvEl('tbody');
+            table.append(thead, tbody); wrap.appendChild(table); box.appendChild(wrap); root.appendChild(box);
+
+            const totalVal = tvEl('span');
+            const total = () => st.items.reduce((a, r) => a + (parseFloat(r.amount) || 0), 0);
+            const refresh = () => { totalVal.textContent = tvMoney(total().toFixed(2)); };
+
+            if (!st.items.length && !editing) {
+                const tr = tvEl('tr'); const td = tvEl('td', '', 'No expense items.'); td.colSpan = 7; tr.appendChild(td); tbody.appendChild(tr);
+            }
+            st.items.forEach((r, i) => {
+                const tr = tvEl('tr'); tr.appendChild(tvEl('td', '', String(i + 1)));
+                DB_COLS.forEach(([key, , type]) => {
+                    const td = tvEl('td');
+                    if (!editing) {
+                        td.textContent = key === 'invoice_date' ? (tvDateText(r[key]) || '—') : key === 'amount' ? (tvMoney(r[key]) || '—') : (r[key] || '—');
+                    } else {
+                        const inp = tvEl('input', 'edit-input'); inp.type = type; inp.value = r[key];
+                        if (type === 'number') { inp.step = '0.01'; inp.min = '0'; }
+                        inp.addEventListener('input', () => { r[key] = inp.value; if (key === 'amount') refresh(); });
+                        td.appendChild(inp);
+                    }
+                    tr.appendChild(td);
+                });
+                if (editing) {
+                    const td = tvEl('td'); const del = tvEl('button', 'btn btn-secondary', 'Remove'); del.type = 'button';
+                    del.addEventListener('click', () => { st.items.splice(i, 1); renderDisbForm(data, true); });
+                    td.appendChild(del); tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+
+            if (editing) {
+                const add = tvEl('button', 'btn btn-secondary', '+ Add Row'); add.type = 'button'; add.style.marginTop = '12px';
+                add.addEventListener('click', () => { st.items.push({ invoice_date: '', invoice_no: '', supplier_name: '', description: '', amount: '', remark: '' }); renderDisbForm(data, true); });
+                root.appendChild(add);
+            }
+
+            const tot = tvEl('div'); tot.style.cssText = 'display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:16px;font-weight:800;color:#0f172a;';
+            tot.append(tvEl('span', '', 'TOTAL CLAIM AMOUNT'), totalVal);
+            totalVal.style.cssText = 'padding:8px 16px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;';
+            root.appendChild(tot);
+            if (!editing && !st.items.length) totalVal.textContent = tvMoney(tvPick(data, 'total_amount', 'total_claim')) || 'RM 0.00';
+            else refresh();
+        }
+
+        window._disbRender = editing => renderDisbForm(window._reqData, editing);
+        window._disbGetPayload = function () {
+            const st = window._db; if (!st) return null;
+            if (!st.items.length) return { error: 'Please add at least one expense row before resubmitting.' };
+            const bad = st.items.some(r => !r.invoice_date || !r.invoice_no.trim() || !r.supplier_name.trim() || !r.description.trim() || !(parseFloat(r.amount) > 0));
+            if (bad) return { error: 'Please complete Invoice Date, Invoice No., Supplier, Description and Amount for every row.' };
+            return { data: {
+                proj_name: st.proj_name, model_no: st.model_no, person_in_charge: st.person_in_charge,
+                total_amount: st.items.reduce((a, r) => a + (parseFloat(r.amount) || 0), 0).toFixed(2),
+                items: JSON.stringify(st.items)
+            } };
+        };
+
+
+        // ================= LOAN REQUEST DETAIL VIEW =================
+        const LN_MAX = 4500;
+        const LN_SECTIONS = [
+            ['Project Information', [['Project Name', 'proj_name'], ['Model Number', 'model_no'], ['Person in Charge', 'person_in_charge']]],
+            ['Loan Details', [['Loan Type', 'loan_type', 'select', [['Travel', 'Travel Loan']]],
+                              ['Amount Requested (RM)', 'amount_requested', 'number'],
+                              ['Disbursement Method', 'disbursement_method', 'select', [['Bank Transfer', 'Bank Transfer']]]]],
+            ['Borrower Bank Details', [['Account Holder Name', 'account_holder', 'text', null, true],
+                                       ['Account Number', 'account_number'], ['Bank Details', 'bank_details']]]
+        ];
+
+        function renderLoanForm(data, editing) {
+            const root = document.getElementById('loan-form-content');
+            if (!window._ln) {
+                window._ln = {};
+                LN_SECTIONS.forEach(([, fs]) => fs.forEach(f => { window._ln[f[1]] = String(tvPick(data, f[1])); }));
+            }
+            const st = window._ln;
+            root.replaceChildren();
+            LN_SECTIONS.forEach(([title, fields]) => {
+                const nodes = fields.map(([label, key, type = 'text', options, full]) => {
+                    if (!editing) {
+                        let v = st[key];
+                        if (key === 'loan_type' && v && !/loan/i.test(v)) v = `${v} Loan`;
+                        if (key === 'amount_requested') v = tvMoney(v);
+                        return tvField(label, v, full);
+                    }
+                    const w = tvEl('div', 'tv-field' + (full ? ' full' : ''));
+                    w.appendChild(tvEl('label', 'tv-label', label));
+                    let inp;
+                    if (type === 'select') {
+                        inp = tvEl('select', 'edit-input');
+                        const opts = options.slice();
+                        if (st[key] && !opts.some(o => o[0] === st[key])) opts.push([st[key], st[key]]);
+                        opts.forEach(([v, l]) => { const o = tvEl('option', '', l); o.value = v; o.selected = v === st[key]; inp.appendChild(o); });
+                        if (!st[key]) st[key] = inp.value;
+                    } else {
+                        inp = tvEl('input', 'edit-input'); inp.type = type; inp.value = st[key];
+                        if (type === 'number') { inp.min = '0'; inp.max = String(LN_MAX); inp.step = '0.01'; }
+                    }
+                    const sync = () => { st[key] = inp.value; };
+                    inp.addEventListener('input', sync); inp.addEventListener('change', sync);
+                    w.appendChild(inp);
+                    return w;
+                });
+                root.appendChild(tvSection(title, nodes));
+            });
+        }
+
+        window._loanRender = editing => renderLoanForm(window._reqData, editing);
+        window._loanGetPayload = function () {
+            const st = window._ln; if (!st) return null;
+            const amt = parseFloat(st.amount_requested);
+            if (!st.loan_type || !st.disbursement_method || !st.account_holder.trim() || !st.account_number.trim() || !st.bank_details.trim()) {
+                return { error: 'Please fill in Loan Type, Disbursement Method and all Borrower Bank Details.' };
+            }
+            if (!(amt > 0) || amt > LN_MAX) return { error: `Amount Requested must be more than 0 and not exceed RM ${LN_MAX}.` };
+            return { data: Object.assign({}, st, { amount_requested: amt.toFixed(2) }) };
+        };
+
+
+        // ================= REQUEST VIEW (same as request-details.html) =================
+        function hrpTitle(key) { return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+
+        function hrpFiles(box, files) {
+            box.replaceChildren();
+            if (!files.length) box.appendChild(tvEl('div', 'file-size', 'No attachments uploaded.'));
+            files.forEach(file => {
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                const link = tvEl('a', 'file-chip');
+                link.href = file.path.startsWith('http') ? file.path : `/${file.path.replace(/^\/+/, '')}`;
+                link.target = '_blank'; link.rel = 'noopener';
+                const tag = tvEl('span', 'file-ext', (ext || 'FILE').toUpperCase().slice(0, 4));
+                tag.style.background = ext === 'pdf' ? '#fee2e2' : '#e0e7ff';
+                tag.style.color = ext === 'pdf' ? '#dc2626' : '#4338ca';
+                const info = tvEl('div'); info.appendChild(tvEl('div', 'file-name', file.name));
+                const sz = tvFormatSize(file.size); if (sz) info.appendChild(tvEl('div', 'file-size', sz));
+                link.append(tag, info); box.appendChild(link);
+            });
+        }
+
+        // Any other request type: show every value the initiator filled in (labels come from the field names)
+        function hrpGeneric(data, root) {
+            const SKIP = /^(id|status|created_at|updated_at|approval_steps|attachments|supporting_document|attachment_path|attachment|items|employee_name|employee_id|department|position|last_reminder_sent|resubmission_count|resubmitted_at|rejected_by|rejected_at|rejection_reason|comment|priority|table_source|source_table|request_type|type)$/i;
+            root.replaceChildren();
+            const nodes = [];
+            Object.keys(data).forEach(k => {
+                let v = data[k];
+                if (SKIP.test(k) || v === null || v === undefined || String(v).trim() === '') return;
+                if (typeof v === 'object') v = JSON.stringify(v);
+                v = String(v);
+                if (/^\d{4}-\d{2}-\d{2}T/.test(v)) v = tvDateText(v);
+                nodes.push(tvField(hrpTitle(k), v, v.length > 60 || v.includes('\n')));
+            });
+            root.appendChild(tvSection('Request Details', nodes.length ? nodes : [tvField('Details', 'No details provided.', true)]));
+        }
+
+        function hrpCost(data) {
+            const box = document.getElementById('rdCost'); box.replaceChildren();
+            const num = (...k) => { const v = Number(tvPick(data, ...k)); return Number.isFinite(v) && v !== 0 ? v : null; };
+            const flight = (num('dep_price') || 0) + (num('ret_price') || 0) || num('flight_cost');
+            const hotel = num('hotel_price', 'hotel_cost');
+            const total = num('total_amount', 'total_claim');
+            if (flight === null && hotel === null && total === null) return;
+            const money = v => v === null ? '—' : tvMoney(v.toFixed(2));
+            const allowance = total !== null ? Math.max(0, total - (flight || 0) - (hotel || 0)) : null;
+            const wrap = tvEl('div', 'cost-summary-card');
+            const left = tvEl('div');
+            left.appendChild(tvEl('h3', 'section-header-title', 'Travel Cost Summary'));
+            [['Flight Cost', flight], ['Accommodation Cost', hotel], ['Travel Allowance', allowance]].forEach(([l, v]) => {
+                const r = tvEl('div', 'cost-item-row'); r.append(tvEl('span', '', l), tvEl('span', '', money(v))); left.appendChild(r);
+            });
+            const right = tvEl('div', 'total-cost-blue-box');
+            right.append(tvEl('h4', '', 'TOTAL ESTIMATED COST'), tvEl('h2', '', money(total)),
+                tvEl('p', '', [tvPick(data, 'hotel_duration'), tvPick(data, 'travel_mode')].filter(Boolean).join(' . ')));
+            wrap.append(left, right); box.appendChild(wrap);
+        }
+
+        function hrpActions() {
+            const box = document.getElementById('rdActions');
+            if (selectedItem.isLoan) {
+                box.innerHTML = `
+                    <div class="bottom-action-buttons">
+                        <button class="btn-pill btn-save-draft" onclick="submitLoanDecision('Approved')">Approve</button>
+                        <button class="btn-pill" style="background: #ef4444; color: white;" onclick="submitLoanDecision('Rejected')">Reject</button>
+                    </div>
+                    <label class="loan-reject-label">If <strong>Reject</strong>, please state your reason/ comment</label>
+                    <textarea class="loan-reject-reason" id="loanRejectReason" placeholder="Reason (required for Reject)"></textarea>`;
+            } else if (selectedItem.isTravelBooking) {
+                box.innerHTML = `
+                    <div class="bottom-action-buttons">
+                        <button type="button" class="btn-pill btn-back" onclick="document.getElementById('detailViewContainer').style.display='none'">Back</button>
+                        <button type="button" class="btn-pill btn-save-draft">Save draft</button>
+                        <button type="button" class="btn-pill btn-submit-ceo" onclick="submitToCEO()">Submit to CEO</button>
+                    </div>`;
+            } else {
+                box.innerHTML = `
+                    <div class="bottom-action-buttons">
+                        <button class="btn-pill btn-save-draft" onclick="submitDecision('Approved')">Approve</button>
+                        <button class="btn-pill btn-back" onclick="submitDecision('Revision')">Revision</button>
+                        <button class="btn-pill" style="background: #ef4444; color: white;" onclick="submitDecision('Rejected')">Reject</button>
+                    </div>`;
+            }
+        }
+
+        function renderHrpDetail(req, type) {
+            const lower = String(type || '').toLowerCase();
+            const kind = lower.includes('travel') ? 'travel' : lower.includes('overtime') ? 'overtime' : lower.includes('leave') ? 'leave'
+                : lower.includes('disbursement') ? 'disb' : lower.includes('loan') ? 'loan' : 'generic';
+            const roots = { leave: 'leave-form-content', overtime: 'overtime-form-content', travel: 'travel-form-content', disb: 'disb-form-content', loan: 'loan-form-content', generic: 'generic-form-content' };
+            Object.values(roots).forEach(id => { document.getElementById(id).style.display = id === roots[kind] ? 'block' : 'none'; });
+            window._reqData = req; window._lv = null; window._db = null; window._ln = null;
+            const statusRaw = String(req.status || req.Status || 'PENDING').trim().toUpperCase();
+
+            // Summary cards
+            const created = tvPick(req, 'date_submitted', 'created_at', 'Created At');
+            const amt = tvPick(req, 'total_amount', 'total_claim', 'amount_requested');
+            const key = statusRaw.startsWith('APPROVE') ? ['#d1fae5', '#16a34a'] : statusRaw.startsWith('REJECT') ? ['#fee2e2', '#dc2626'] : ['#fef3c7', '#d97706'];
+            const sum = document.getElementById('rdSummary'); sum.replaceChildren();
+            const mini = (title, rows) => {
+                const c = tvEl('div', 'rd-mini'); c.appendChild(tvEl('div', 'rd-mini-title', title));
+                rows.forEach(([l, v]) => { const r = tvEl('div', 'rd-mini-line'); r.append(tvEl('span', '', l), tvEl('span', '', v || '—')); c.appendChild(r); });
+                return c;
+            };
+            const stCard = mini('Current Status', []);
+            const pill = tvEl('span', 'rd-pill', statusRaw); pill.style.background = key[0]; pill.style.color = key[1]; stCard.appendChild(pill);
+            sum.append(
+                mini('Employee Information', [['Full Name', req.employee_name || req['Employee Name']], ['Employee ID', req.employee_id || req['Employee ID']], ['Department', req.department || req.Department]]),
+                mini('Request Summary', [['Request Type', type], ['Submitted', created ? tvDateText(created) : ''], ['Amount', amt !== '' ? tvMoney(amt) : '']]),
+                stCard);
+
+            // Form (what the initiator filled in)
+            if (kind === 'leave') renderLeaveForm(req, false);
+            else if (kind === 'overtime') renderOvertimeForm(req);
+            else if (kind === 'travel') renderTravelForm(req);
+            else if (kind === 'disb') renderDisbForm(req, false);
+            else if (kind === 'loan') renderLoanForm(req, false);
+            else hrpGeneric(req, document.getElementById(roots.generic));
+            if (kind === 'travel') hrpCost(req); else document.getElementById('rdCost').replaceChildren();
+
+            // Booking details / attachments
+            const docPath = req.supporting_document || req['Supporting Documen'] || req.attachment_path || req.attachment;
+            hrpFiles(document.getElementById('rdAttachments'), tvParseAttachments(req, docPath));
+            document.getElementById('rdFilesTitle').textContent = kind === 'travel' ? 'Booking Details' : 'Supporting Documents';
+            document.getElementById('rdRemarksWrap').style.display = kind === 'travel' ? 'block' : 'none';
+            document.getElementById('rdRemarks').textContent = req.remarks || req.reason || req['Reason'] || 'No remarks provided.';
+            document.getElementById('rdUploadWrap').style.display = selectedItem.isTravelBooking && !selectedItem.isLoan ? 'block' : 'none';
+
+            // Approval timeline (roles/thresholds only; names come from the backend's approval_steps)
+            const routeKey = { leave: 'leave', overtime: 'overtime', disb: 'disbursement', loan: 'loan' }[kind];
+            const api = Array.isArray(req.approval_steps) ? req.approval_steps : [];
+            const steps = api.length ? api : (routeKey ? tvExpectedSteps(routeKey, req, statusRaw) : []);
+            tvRenderTimeline(document.getElementById('rdTimeline'), steps, Object.assign({}, req, kind === 'travel' ? { _bookedLabel: 'Booked' } : {}), statusRaw);
+
+            hrpActions();
+            document.getElementById('detailViewContainer').style.display = 'flex';
+        }
+
         async function selectRequest(
             table,
             type,
@@ -1798,401 +2788,8 @@
 
                 if (result.success) {
                     const req = result.data;
-                    document.getElementById('detailViewContainer').style.display = 'flex';
-
-                    const isProbation =
-                        type.toLowerCase().includes('probation');
-
-                    const probationSection =
-                        document.getElementById('probationDetailsSection');
-
-                    document.getElementById('loanDetailsSection').style.display = 'none';
-
-                    if (isProbation) {
-                        document.getElementById('standardDetailsSection').style.display = 'none';
-                        document.getElementById('travelDetailsSection').style.display = 'none';
-                        probationSection.style.display = 'flex';
-
-                        const assessmentRows = [
-                            ['Job Knowledge & Understanding', req.assessment_job_knowledge],
-                            ['Quality of Work', req.assessment_quality_of_work],
-                            ['Work Productivity', req.assessment_work_productivity],
-                            ['Communication Skills', req.assessment_communication_skills],
-                            ['Teamwork & Collaboration', req.assessment_teamwork_collaboration],
-                            ['Problem Solving & Initiative', req.assessment_problem_solving_initiative],
-                            ['Attendance & Punctuality', req.assessment_attendance_punctuality],
-                            ['Adaptability & Learning Ability', req.assessment_adaptability_learning],
-                            ['Responsibility & Work Attitude', req.assessment_responsibility_attitude],
-                            ['Compliance with Company Policies', req.assessment_compliance_policies]
-                        ];
-
-                        const assessmentHtml = assessmentRows.map(([label, score]) => `
-                            <tr>
-                                <td>${label}</td>
-                                <td>${score ?? '—'}</td>
-                            </tr>
-                        `).join('');
-
-                        const steps = Array.isArray(result.steps)
-                            ? result.steps
-                            : [];
-
-                        const timelineHtml = steps.map(step => {
-                            const status = String(step.status || 'Waiting');
-                            return `
-                                <div style="
-                                    display:flex;
-                                    justify-content:space-between;
-                                    align-items:center;
-                                    padding:10px 0;
-                                    border-bottom:1px solid #e2e8f0;
-                                ">
-                                    <div>
-                                        <strong>${step.approver_role || '—'}</strong>
-                                        <div style="font-size:11px;color:#64748b;">
-                                            Stage ${step.step_order}
-                                        </div>
-                                    </div>
-
-                                    <div style="font-weight:700;">
-                                        ${status}
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
-
-                        probationSection.innerHTML = `
-                            <h3 class="section-header-title">
-                                PROBATION CONFIRMATION FINAL REVIEW
-                            </h3>
-
-                            <div style="
-                                display:grid;
-                                grid-template-columns:repeat(3,1fr);
-                                gap:12px;
-                            ">
-                                <div>
-                                    <strong>Employee</strong>
-                                    <p>${req.employee_name || '—'}</p>
-                                </div>
-
-                                <div>
-                                    <strong>Department</strong>
-                                    <p>${req.employee_department || req.department || '—'}</p>
-                                </div>
-
-                                <div>
-                                    <strong>Probation Period</strong>
-                                    <p>${req.probation_period || '—'}</p>
-                                </div>
-
-                                <div>
-                                    <strong>Probation End Date</strong>
-                                    <p>${req.probation_end_date || '—'}</p>
-                                </div>
-
-                                <div>
-                                    <strong>Total Points</strong>
-                                    <p>${req.total_points ?? '—'} / 50</p>
-                                </div>
-
-                                <div>
-                                    <strong>Passing Points</strong>
-                                    <p>${req.passing_points ?? '—'} / 50</p>
-                                </div>
-
-                                <div>
-                                    <strong>Recommendation</strong>
-                                    <p>${req.overall_recommendation || '—'}</p>
-                                </div>
-
-                                <div>
-                                    <strong>Proposed Confirmation Date</strong>
-                                    <p>${req.proposed_confirmation_date || '—'}</p>
-                                </div>
-
-                                <div>
-                                    <strong>Assessed By</strong>
-                                    <p>${req.assessed_by || '—'}</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 class="section-header-title">HOD ASSESSMENT</h3>
-
-                                <table class="table-custom">
-                                    <thead>
-                                        <tr>
-                                            <th>Assessment Item</th>
-                                            <th>Score</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${assessmentHtml}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div>
-                                <h3 class="section-header-title">
-                                    PERFORMANCE SUMMARY
-                                </h3>
-
-                                <div style="
-                                    padding:12px;
-                                    background:white;
-                                    border:1px solid #e2e8f0;
-                                    border-radius:8px;
-                                ">
-                                    ${req.performance_summary || '—'}
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 class="section-header-title">
-                                    APPROVAL TIMELINE
-                                </h3>
-
-                                <div style="
-                                    padding:12px 16px;
-                                    background:white;
-                                    border:1px solid #e2e8f0;
-                                    border-radius:8px;
-                                ">
-                                    ${timelineHtml || 'No workflow information available.'}
-                                </div>
-                            </div>
-
-                            <div class="bottom-action-buttons"
-                                style="margin-top:20px;">
-
-                                <button
-                                    class="btn-pill btn-save-draft"
-                                    onclick="submitDecision('Approved')">
-                                    Approve
-                                </button>
-
-                                <button
-                                    class="btn-pill"
-                                    style="background:#ef4444;color:white;"
-                                    onclick="submitDecision('Rejected')">
-                                    Reject
-                                </button>
-                            </div>
-                        `;
-                    }
-                    else if (selectedItem.isLoan) {
-                        document.getElementById('standardDetailsSection').style.display = 'none';
-                        document.getElementById('travelDetailsSection').style.display = 'none';
-                        probationSection.style.display = 'none';
-                        document.getElementById('loanDetailsSection').style.display = 'flex';
-
-                        const fmtMoney = v => `RM ${parseFloat(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-                        const fmtDate = v => {
-                            if (!v) return '—';
-                            const d = new Date(v);
-                            return isNaN(d) ? v : d.toISOString().split('T')[0];
-                        };
-
-                        document.getElementById('loanFullName').innerText = req.employee_name || '—';
-                        document.getElementById('loanEmpIdMini').innerText = req.employee_id || '—';
-                        document.getElementById('loanDeptMini').innerText = req.department || '—';
-
-                        document.getElementById('loanReqType').innerText = req.loan_type ? `Loan Application (${req.loan_type})` : 'Loan Application';
-                        document.getElementById('loanSubmitted').innerText = fmtDate(req.date_submitted || req.created_at);
-                        document.getElementById('loanAmountMini').innerText = fmtMoney(req.amount_requested);
-
-                        const statusVal = (req.status || 'Pending');
-                        const statusBadge = document.getElementById('loanStatusBadge');
-                        statusBadge.innerText = statusVal.toUpperCase();
-                        statusBadge.className = 'status-pill-loan ' + (
-                            statusVal.toLowerCase().includes('reject') ? 'rejected' :
-                                statusVal.toLowerCase().includes('approve') ? 'approved' : 'pending'
-                        );
-                        document.getElementById('loanPriorityPill').innerText = req.priority || 'Standard';
-
-                        document.getElementById('loanEmpId').value = req.employee_id || '—';
-                        document.getElementById('loanEmpName').value = req.employee_name || '—';
-                        document.getElementById('loanDept').value = req.department || '—';
-
-                        document.getElementById('loanType').value = req.loan_type || '—';
-                        document.getElementById('loanAmountRequested').value = req.amount_requested ? fmtMoney(req.amount_requested) : '—';
-                        document.getElementById('loanDisbursementMethod').value = req.disbursement_method || '—';
-
-                        document.getElementById('loanAccountHolder').value = req.account_holder || '—';
-                        document.getElementById('loanAccountNumber').value = req.account_number || '—';
-                        document.getElementById('loanBankDetails').value = req.bank_details || '—';
-
-                        const loanAttName = document.getElementById('loanAttachmentName');
-                        if (req.supporting_document) {
-                            loanAttName.innerHTML = `<a href="/${req.supporting_document}" target="_blank" style="color:#0284c7;">📄 View Uploaded Document</a>`;
-                        } else {
-                            loanAttName.innerText = 'No Attachment';
-                        }
-
-                        document.getElementById('loanTimelineContainer').innerHTML = `
-                            <div class="timeline-step">
-                                <div class="step-icon-circle ${statusVal !== 'Pending' ? 'done' : 'pending'}"><i class="fa-solid fa-${statusVal !== 'Pending' ? 'check' : 'user'}"></i></div>
-                                <div class="step-info">
-                                    <h5>HR Processing</h5>
-                                    <p>Stage 1</p>
-                                </div>
-                                <div class="step-time">${statusVal}</div>
-                            </div>
-                        `;
-
-                        document.getElementById('loanRejectReason').value = '';
-
-                    } else if (selectedItem.isTravelBooking) {
-                        document.getElementById('standardDetailsSection').style.display = 'none';
-                        document.getElementById('travelDetailsSection').style.display = 'flex';
-                        probationSection.style.display = 'none';
-
-                        // Render employee list dynamically from req.employees array
-                        const empList = req.employees || [];
-                        const empTbody = document.getElementById('empTableBody');
-
-                        if (empList.length > 0) {
-                            empTbody.innerHTML = empList.map(emp => `
-                                <tr>
-                                    <td>${emp.employee_id}</td>
-                                    <td>${emp.name}</td>
-                                    <td>${emp.phone_no || '—'}</td>
-                                    <td>${emp.email || '—'}</td>
-                                    <td>${emp.purpose_of_travel || 'Business trip'}</td>
-                                </tr>
-                            `).join('');
-                            document.getElementById('empTableCount').innerText = `showing ${empList.length} of ${empList.length} records`;
-                        } else {
-                            empTbody.innerHTML = `<tr><td colspan="5" style="padding: 12px; text-align: center;">No employees assigned to this trip</td></tr>`;
-                            document.getElementById('empTableCount').innerText = `showing 0 records`;
-                        }
-
-                        // Trip Details
-                        document.getElementById('trvDestination').value = req.travel_destination || req.allowance_type || req.reason || 'N/A';
-                        document.getElementById('trvMode').value = req.travel_mode || 'Flight';
-                        document.getElementById('trvDepDest').value = req.departure_destination || 'Penang International Airport (PEN), Malaysia';
-                        document.getElementById('trvArrDest').value = req.arrival_destination || 'Changzhou Benniu International Airport (CZX), China';
-                        document.getElementById('trvDepDate').value = req.expected_departure_date || req.claim_month || '—';
-                        document.getElementById('trvArrDate').value = req.expected_arrival_date || req.claim_month || '—';
-                        document.getElementById('trvRetDate').value = req.estimated_return_date || '—';
-                        document.getElementById('trvMileage').value = req.mileage || '-';
-                        document.getElementById('trvAccommodation').value = req.required_accommodation || 'Yes';
-
-                        // Oversea Contacts
-                        document.getElementById('trvContactName').value = req.primary_contact || req.employee_name || '—';
-                        document.getElementById('trvContactPhone').value = req.contact_phone || req.phone_no || '—';
-                        document.getElementById('trvVenueAddress').value = req.venue_address || req.reason || '—';
-
-                        // Flight (Departure)
-                        document.getElementById('fltDepChannel').value = req.departure_channel || 'N/A';
-                        document.getElementById('fltDepFrom').value = req.departure_destination || 'PEN, Malaysia';
-                        document.getElementById('fltDepTo').value = req.arrival_destination || 'CZX, China';
-                        document.getElementById('fltDepDate').value = req.departure_date || req.expected_departure_date || '—';
-                        document.getElementById('fltDepTime').value = req.departure_time || '08:45 AM';
-                        document.getElementById('fltArrDate').value = req.arrival_date || req.expected_arrival_date || '—';
-                        document.getElementById('fltArrTime').value = req.arrival_time || '02:15 PM';
-                        document.getElementById('fltAirline').value = req.airline || 'AirAsia';
-                        document.getElementById('fltType').value = req.flight_type || 'Direct flight';
-                        document.getElementById('fltBaggage').value = req.checked_baggage || '25kg';
-                        document.getElementById('fltEstPrice').value = req.flight_cost ? `RM ${parseFloat(req.flight_cost).toFixed(2)}` : 'RM 1,250.00';
-
-                        // Flight (Return)
-                        document.getElementById('fltRetChannel').value = req.return_channel || 'N/A';
-                        document.getElementById('fltRetFrom').value = req.arrival_destination || 'CZX, China';
-                        document.getElementById('fltRetTo').value = req.departure_destination || 'PEN, Malaysia';
-                        document.getElementById('fltRetDepDate').value = req.return_departure_date || req.estimated_return_date || '—';
-                        document.getElementById('fltRetDepTime').value = req.return_departure_time || '02:30 PM';
-                        document.getElementById('fltRetArrDate').value = req.return_arrival_date || req.estimated_return_date || '—';
-                        document.getElementById('fltRetArrTime').value = req.return_arrival_time || '09:05 PM';
-                        document.getElementById('fltRetAirline').value = req.return_airline || req.airline || 'AirAsia';
-                        document.getElementById('fltRetType').value = req.return_flight_type || 'Direct flight';
-                        document.getElementById('fltRetBaggage').value = req.return_checked_baggage || '25kg';
-                        document.getElementById('fltRetEstPrice').value = req.return_flight_cost ? `RM ${parseFloat(req.return_flight_cost).toFixed(2)}` : 'RM 1,250.00';
-
-                        // Hotel
-                        document.getElementById('htlChannel').value = req.hotel_channel || 'N/A';
-                        document.getElementById('htlName').value = req.hotel_name || 'Hilton Garden Inn';
-                        document.getElementById('htlDuration').value = req.hotel_duration || '14 days';
-                        document.getElementById('htlNights').value = req.hotel_nights || '13 days';
-                        document.getElementById('htlPrice').value = req.hotel_cost ? `RM ${parseFloat(req.hotel_cost).toFixed(2)}` : 'RM 1,250.00';
-
-                        // Attachment Box
-                        const attName = document.getElementById('empAttachmentName');
-                        if (req.supporting_document) {
-                            attName.innerHTML = `<a href="/${req.supporting_document}" target="_blank" style="color:#0284c7;">📄 View Uploaded Document</a>`;
-                        } else {
-                            attName.innerText = 'No File Uploaded';
-                        }
-
-                        // Approval Timeline
-                        const timeline = document.getElementById('timelineContainer');
-                        const statusVal = req.status || 'Pending';
-                        timeline.innerHTML = `
-                            <div class="timeline-step">
-                                <div class="step-icon-circle done"><i class="fa-solid fa-check"></i></div>
-                                <div class="step-info">
-                                    <h5>Dato Hj. Kamaruddin</h5>
-                                    <p>Head of Department - Stage 1</p>
-                                </div>
-                                <div class="step-time">Approved</div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="step-icon-circle ${statusVal !== 'Pending' ? 'done' : 'pending'}"><i class="fa-solid fa-${statusVal !== 'Pending' ? 'check' : 'user'}"></i></div>
-                                <div class="step-info">
-                                    <h5>Chen Jun</h5>
-                                    <p>Project Management / HR - Stage 2</p>
-                                </div>
-                                <div class="step-time">${statusVal}</div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="step-icon-circle pending"><i class="fa-solid fa-user"></i></div>
-                                <div class="step-info">
-                                    <h5 style="color: #ef4444;">Michael Cao</h5>
-                                    <p>Chief Executive Officer - Stage 3</p>
-                                </div>
-                            </div>
-                        `;
-
-                        // Cost Summary Calculations
-                        const fltVal = parseFloat(req.flight_cost || 1250);
-                        const htlVal = parseFloat(req.hotel_cost || 1250);
-                        const totalVal = parseFloat(req.total_amount || 4600);
-                        const allowanceVal = Math.max(0, totalVal - (fltVal + htlVal));
-
-                        document.getElementById('summaryFlightCost').innerText = `RM ${fltVal.toFixed(2)}`;
-                        document.getElementById('summaryHotelCost').innerText = `RM ${htlVal.toFixed(2)}`;
-                        document.getElementById('summaryAllowance').innerText = `RM ${allowanceVal.toFixed(2)}`;
-                        document.getElementById('totalEstimatedCost').innerText = `RM ${totalVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-                        document.getElementById('summaryDurationText').innerText = `${req.hotel_duration || '14 travel days'} . ${req.travel_mode || 'International'}`;
-
-                    } else {
-                        document.getElementById('standardDetailsSection').style.display = 'block';
-                        document.getElementById('travelDetailsSection').style.display = 'none';
-                        document.getElementById('probationDetailsSection').style.display = 'none';
-                        document.getElementById('loanDetailsSection').style.display = 'none';
-
-                        const tbody = document.getElementById('itemsTableBody');
-                        if (req.items && req.items.length > 0) {
-                            tbody.innerHTML = req.items.map(i => `
-                                <tr>
-                                    <td>${i.invoice_date}</td>
-                                    <td>${i.invoice_no}</td>
-                                    <td>${i.supplier_name}</td>
-                                    <td>${i.description}</td>
-                                    <td>RM ${parseFloat(i.amount).toFixed(2)}</td>
-                                    <td>${i.remark || '-'}</td>
-                                </tr>
-                            `).join('');
-                        } else {
-                            tbody.innerHTML = `<tr><td colspan="6" style="padding: 12px; text-align: center;">${req.reason || 'No itemized breakdown'}</td></tr>`;
-                        }
-
-                        const amountVal = req.total_amount || req.amount_requested || 0;
-                        document.getElementById('totalClaimAmount').innerText = `TOTAL: RM ${parseFloat(amountVal).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-                    }
-
-                    document.getElementById('detailViewContainer').scrollIntoView({ behavior: 'smooth' });
+                renderHrpDetail(req, type);
+                document.getElementById('detailViewContainer').scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) {
                 console.error("Error fetching request details:", err);
