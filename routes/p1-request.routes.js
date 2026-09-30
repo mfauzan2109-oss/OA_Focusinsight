@@ -670,7 +670,7 @@ router.post(
             });
         }
         const cleanAccountNumber =
-            cleanAccountNumber
+            String(account_number || '')
                 .replace(/\s+/g, '')
                 .trim();
 
@@ -736,7 +736,7 @@ router.post(
                         cleanAmount,
                         'Bank Transfer',
                         String(account_holder).trim(),
-                        String(account_number).trim(),
+                        cleanAccountNumber,
                         String(bank_details).trim(),
                         attachment_path
                     ],
