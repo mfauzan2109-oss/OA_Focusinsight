@@ -599,12 +599,14 @@
             gap: 14px;
             margin-bottom: 20px;
         }
+
         .mini-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
             padding: 14px 16px;
         }
+
         .mini-card-title {
             font-size: 11px;
             font-weight: 700;
@@ -616,6 +618,7 @@
             align-items: center;
             gap: 6px;
         }
+
         .mini-card-row-line {
             display: flex;
             justify-content: space-between;
@@ -623,7 +626,11 @@
             color: #0f172a;
             margin-bottom: 6px;
         }
-        .mini-card-row-line span:first-child { color: #64748b; }
+
+        .mini-card-row-line span:first-child {
+            color: #64748b;
+        }
+
         .status-pill-loan {
             display: inline-block;
             padding: 3px 14px;
@@ -631,9 +638,22 @@
             font-size: 11px;
             font-weight: 700;
         }
-        .status-pill-loan.pending { background: #fef3c7; color: #b45309; }
-        .status-pill-loan.approved { background: #dcfce7; color: #15803d; }
-        .status-pill-loan.rejected { background: #fee2e2; color: #b91c1c; }
+
+        .status-pill-loan.pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-pill-loan.approved {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-pill-loan.rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
         .priority-pill-loan {
             display: inline-block;
             margin-top: 8px;
@@ -644,6 +664,7 @@
             background: #e0e7ff;
             color: #4338ca;
         }
+
         .loan-reject-reason {
             width: 100%;
             margin-top: 12px;
@@ -655,6 +676,7 @@
             resize: vertical;
             min-height: 70px;
         }
+
         .loan-reject-label {
             font-size: 12px;
             font-weight: 600;
@@ -1062,6 +1084,10 @@
                     </div>
                 </div>
 
+
+                <!-- PROBATION CONFIRMATION FINAL REVIEW -->
+                <div id="probationDetailsSection" style="display:none; flex-direction:column; gap:16px;">
+                </div>
                 <!-- 2. LOAN APPLICATION VIEW -->
                 <div id="loanDetailsSection" style="display: none; flex-direction: column; gap: 4px;">
 
@@ -1069,17 +1095,22 @@
                         <div class="mini-card">
                             <p class="mini-card-title"><i class="fa-regular fa-id-card"></i> Employee Information</p>
                             <div class="mini-card-row-line"><span>Full Name</span><span id="loanFullName">—</span></div>
-                            <div class="mini-card-row-line"><span>Employee ID</span><span id="loanEmpIdMini">—</span></div>
-                            <div class="mini-card-row-line"><span>Department</span><span id="loanDeptMini">—</span></div>
+                            <div class="mini-card-row-line"><span>Employee ID</span><span id="loanEmpIdMini">—</span>
+                            </div>
+                            <div class="mini-card-row-line"><span>Department</span><span id="loanDeptMini">—</span>
+                            </div>
                         </div>
                         <div class="mini-card">
                             <p class="mini-card-title"><i class="fa-regular fa-file-lines"></i> Request Summary</p>
-                            <div class="mini-card-row-line"><span>Request Type</span><span id="loanReqType">Loan Application</span></div>
-                            <div class="mini-card-row-line"><span>Submitted</span><span id="loanSubmitted">—</span></div>
+                            <div class="mini-card-row-line"><span>Request Type</span><span id="loanReqType">Loan
+                                    Application</span></div>
+                            <div class="mini-card-row-line"><span>Submitted</span><span id="loanSubmitted">—</span>
+                            </div>
                             <div class="mini-card-row-line"><span>Amount</span><span id="loanAmountMini">—</span></div>
                         </div>
                         <div class="mini-card" style="text-align:center;">
-                            <p class="mini-card-title" style="justify-content:center;"><i class="fa-regular fa-circle-dot"></i> Current Status</p>
+                            <p class="mini-card-title" style="justify-content:center;"><i
+                                    class="fa-regular fa-circle-dot"></i> Current Status</p>
                             <span class="status-pill-loan pending" id="loanStatusBadge">PENDING</span>
                             <br>
                             <span class="priority-pill-loan" id="loanPriorityPill">Standard</span>
@@ -1110,10 +1141,6 @@
                             <div class="field-group">
                                 <label class="field-label">Loan Type</label>
                                 <input type="text" class="form-input-pill" id="loanType" readonly>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label">Monthly Salary</label>
-                                <input type="text" class="form-input-pill" id="loanMonthlySalary" readonly>
                             </div>
                             <div class="field-group">
                                 <label class="field-label">Amount Requested (RM)</label>
@@ -1149,7 +1176,8 @@
                             <div class="card-title"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments</div>
                             <div class="attachment-item" id="loanAttachmentBox">
                                 <span class="pdf-icon-badge">DOC</span>
-                                <div style="font-size: 10px; font-weight:700;" id="loanAttachmentName">No Attachment</div>
+                                <div style="font-size: 10px; font-weight:700;" id="loanAttachmentName">No Attachment
+                                </div>
                             </div>
                         </div>
 
@@ -1160,12 +1188,17 @@
                     </div>
 
                     <div class="bottom-action-buttons" style="margin-top: 20px;">
-                        <button class="btn-pill btn-save-draft" onclick="submitLoanDecision('Approved')">Approve</button>
-                        <button class="btn-pill" style="background: #ef4444; color: white;" onclick="submitLoanDecision('Rejected')">Reject</button>
+                        <button class="btn-pill btn-save-draft"
+                            onclick="submitLoanDecision('Approved')">Approve</button>
+                        <button class="btn-pill" style="background: #ef4444; color: white;"
+                            onclick="submitLoanDecision('Rejected')">Reject</button>
                     </div>
 
-                    <label class="loan-reject-label">If <strong>Reject</strong>, please state your reason/ comment</label>
-                    <textarea class="loan-reject-reason" id="loanRejectReason" placeholder="Reason (required for Reject)"></textarea>
+                    <label class="loan-reject-label">If <strong>Reject</strong>, please state your reason/
+                        comment</label>
+                    <textarea class="loan-reject-reason" id="loanRejectReason"
+                        placeholder="Reason (required for Reject)"></textarea>
+
                 </div>
 
                 <!-- 2. DYNAMIC TRAVEL APPLICATION VIEW -->
@@ -1767,11 +1800,191 @@
                     const req = result.data;
                     document.getElementById('detailViewContainer').style.display = 'flex';
 
+                    const isProbation =
+                        type.toLowerCase().includes('probation');
+
+                    const probationSection =
+                        document.getElementById('probationDetailsSection');
+
                     document.getElementById('loanDetailsSection').style.display = 'none';
 
-                    if (selectedItem.isLoan) {
+                    if (isProbation) {
                         document.getElementById('standardDetailsSection').style.display = 'none';
                         document.getElementById('travelDetailsSection').style.display = 'none';
+                        probationSection.style.display = 'flex';
+
+                        const assessmentRows = [
+                            ['Job Knowledge & Understanding', req.assessment_job_knowledge],
+                            ['Quality of Work', req.assessment_quality_of_work],
+                            ['Work Productivity', req.assessment_work_productivity],
+                            ['Communication Skills', req.assessment_communication_skills],
+                            ['Teamwork & Collaboration', req.assessment_teamwork_collaboration],
+                            ['Problem Solving & Initiative', req.assessment_problem_solving_initiative],
+                            ['Attendance & Punctuality', req.assessment_attendance_punctuality],
+                            ['Adaptability & Learning Ability', req.assessment_adaptability_learning],
+                            ['Responsibility & Work Attitude', req.assessment_responsibility_attitude],
+                            ['Compliance with Company Policies', req.assessment_compliance_policies]
+                        ];
+
+                        const assessmentHtml = assessmentRows.map(([label, score]) => `
+                            <tr>
+                                <td>${label}</td>
+                                <td>${score ?? '—'}</td>
+                            </tr>
+                        `).join('');
+
+                        const steps = Array.isArray(result.steps)
+                            ? result.steps
+                            : [];
+
+                        const timelineHtml = steps.map(step => {
+                            const status = String(step.status || 'Waiting');
+                            return `
+                                <div style="
+                                    display:flex;
+                                    justify-content:space-between;
+                                    align-items:center;
+                                    padding:10px 0;
+                                    border-bottom:1px solid #e2e8f0;
+                                ">
+                                    <div>
+                                        <strong>${step.approver_role || '—'}</strong>
+                                        <div style="font-size:11px;color:#64748b;">
+                                            Stage ${step.step_order}
+                                        </div>
+                                    </div>
+
+                                    <div style="font-weight:700;">
+                                        ${status}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        probationSection.innerHTML = `
+                            <h3 class="section-header-title">
+                                PROBATION CONFIRMATION FINAL REVIEW
+                            </h3>
+
+                            <div style="
+                                display:grid;
+                                grid-template-columns:repeat(3,1fr);
+                                gap:12px;
+                            ">
+                                <div>
+                                    <strong>Employee</strong>
+                                    <p>${req.employee_name || '—'}</p>
+                                </div>
+
+                                <div>
+                                    <strong>Department</strong>
+                                    <p>${req.employee_department || req.department || '—'}</p>
+                                </div>
+
+                                <div>
+                                    <strong>Probation Period</strong>
+                                    <p>${req.probation_period || '—'}</p>
+                                </div>
+
+                                <div>
+                                    <strong>Probation End Date</strong>
+                                    <p>${req.probation_end_date || '—'}</p>
+                                </div>
+
+                                <div>
+                                    <strong>Total Points</strong>
+                                    <p>${req.total_points ?? '—'} / 50</p>
+                                </div>
+
+                                <div>
+                                    <strong>Passing Points</strong>
+                                    <p>${req.passing_points ?? '—'} / 50</p>
+                                </div>
+
+                                <div>
+                                    <strong>Recommendation</strong>
+                                    <p>${req.overall_recommendation || '—'}</p>
+                                </div>
+
+                                <div>
+                                    <strong>Proposed Confirmation Date</strong>
+                                    <p>${req.proposed_confirmation_date || '—'}</p>
+                                </div>
+
+                                <div>
+                                    <strong>Assessed By</strong>
+                                    <p>${req.assessed_by || '—'}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="section-header-title">HOD ASSESSMENT</h3>
+
+                                <table class="table-custom">
+                                    <thead>
+                                        <tr>
+                                            <th>Assessment Item</th>
+                                            <th>Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${assessmentHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div>
+                                <h3 class="section-header-title">
+                                    PERFORMANCE SUMMARY
+                                </h3>
+
+                                <div style="
+                                    padding:12px;
+                                    background:white;
+                                    border:1px solid #e2e8f0;
+                                    border-radius:8px;
+                                ">
+                                    ${req.performance_summary || '—'}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="section-header-title">
+                                    APPROVAL TIMELINE
+                                </h3>
+
+                                <div style="
+                                    padding:12px 16px;
+                                    background:white;
+                                    border:1px solid #e2e8f0;
+                                    border-radius:8px;
+                                ">
+                                    ${timelineHtml || 'No workflow information available.'}
+                                </div>
+                            </div>
+
+                            <div class="bottom-action-buttons"
+                                style="margin-top:20px;">
+
+                                <button
+                                    class="btn-pill btn-save-draft"
+                                    onclick="submitDecision('Approved')">
+                                    Approve
+                                </button>
+
+                                <button
+                                    class="btn-pill"
+                                    style="background:#ef4444;color:white;"
+                                    onclick="submitDecision('Rejected')">
+                                    Reject
+                                </button>
+                            </div>
+                        `;
+                    }
+                    else if (selectedItem.isLoan) {
+                        document.getElementById('standardDetailsSection').style.display = 'none';
+                        document.getElementById('travelDetailsSection').style.display = 'none';
+                        probationSection.style.display = 'none';
                         document.getElementById('loanDetailsSection').style.display = 'flex';
 
                         const fmtMoney = v => `RM ${parseFloat(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
@@ -1794,7 +2007,7 @@
                         statusBadge.innerText = statusVal.toUpperCase();
                         statusBadge.className = 'status-pill-loan ' + (
                             statusVal.toLowerCase().includes('reject') ? 'rejected' :
-                            statusVal.toLowerCase().includes('approve') ? 'approved' : 'pending'
+                                statusVal.toLowerCase().includes('approve') ? 'approved' : 'pending'
                         );
                         document.getElementById('loanPriorityPill').innerText = req.priority || 'Standard';
 
@@ -1803,7 +2016,6 @@
                         document.getElementById('loanDept').value = req.department || '—';
 
                         document.getElementById('loanType').value = req.loan_type || '—';
-                        document.getElementById('loanMonthlySalary').value = req.monthly_salary ? fmtMoney(req.monthly_salary) : '—';
                         document.getElementById('loanAmountRequested').value = req.amount_requested ? fmtMoney(req.amount_requested) : '—';
                         document.getElementById('loanDisbursementMethod').value = req.disbursement_method || '—';
 
@@ -1834,6 +2046,7 @@
                     } else if (selectedItem.isTravelBooking) {
                         document.getElementById('standardDetailsSection').style.display = 'none';
                         document.getElementById('travelDetailsSection').style.display = 'flex';
+                        probationSection.style.display = 'none';
 
                         // Render employee list dynamically from req.employees array
                         const empList = req.employees || [];
@@ -1956,6 +2169,7 @@
                     } else {
                         document.getElementById('standardDetailsSection').style.display = 'block';
                         document.getElementById('travelDetailsSection').style.display = 'none';
+                        document.getElementById('probationDetailsSection').style.display = 'none';
                         document.getElementById('loanDetailsSection').style.display = 'none';
 
                         const tbody = document.getElementById('itemsTableBody');

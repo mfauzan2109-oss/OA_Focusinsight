@@ -95,3 +95,24 @@ CREATE TABLE IF NOT EXISTS `leave` (
   `Created At` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `last_reminder_sent` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `loans` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `employee_id` varchar(50) NOT NULL,
+  `employee_name` varchar(100) NOT NULL,
+  `department` varchar(100) NOT NULL,
+  `company_name` enum('focusinsight','fortuntech') NOT NULL DEFAULT 'focusinsight',
+  `loan_type` varchar(50) NOT NULL,
+  `amount_requested` decimal(10,2) NOT NULL,
+  `disbursement_method` varchar(50) NOT NULL,
+  `account_holder` varchar(100) NOT NULL,
+  `account_number` varchar(50) NOT NULL,
+  `bank_details` varchar(100) NOT NULL,
+  `supporting_document` varchar(255) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'Pending',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `last_reminder_sent` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
