@@ -1143,10 +1143,6 @@
                                 <input type="text" class="form-input-pill" id="loanType" readonly>
                             </div>
                             <div class="field-group">
-                                <label class="field-label">Monthly Salary</label>
-                                <input type="text" class="form-input-pill" id="loanMonthlySalary" readonly>
-                            </div>
-                            <div class="field-group">
                                 <label class="field-label">Amount Requested (RM)</label>
                                 <input type="text" class="form-input-pill" id="loanAmountRequested" readonly>
                             </div>
@@ -2020,7 +2016,6 @@
                         document.getElementById('loanDept').value = req.department || '—';
 
                         document.getElementById('loanType').value = req.loan_type || '—';
-                        document.getElementById('loanMonthlySalary').value = req.monthly_salary ? fmtMoney(req.monthly_salary) : '—';
                         document.getElementById('loanAmountRequested').value = req.amount_requested ? fmtMoney(req.amount_requested) : '—';
                         document.getElementById('loanDisbursementMethod').value = req.disbursement_method || '—';
 

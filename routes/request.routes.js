@@ -191,34 +191,165 @@ router.post('/api/submit-overtime', upload.none(), (req, res) => {
     });
 });
 
-router.post('/api/submit-loan', upload.single('attachment'), (req, res) => {
-    const {
-        employee_id, employee_name, department, loan_type,
-        repayment_period, monthly_salary, amount_requested,
-        disbursement_method, account_holder, account_number, bank_details
-    } = req.body;
+router.post(
+    '/api/submit-loan',
+    requireLogin,
+    upload.single('attachment'),
+    async (req, res) => {
+        const {
+            loan_type,
+            amount_requested,
+            disbursement_method,
+            account_holder,
+            account_number,
+            bank_details
+        } = req.body;
 
-    const attachment_path = req.file ? `uploads/${req.file.filename}` : null;
+        const employee_id = req.session.user.user_id;
+        const employee_name = req.session.user.name;
+        const department = req.session.user.department;
 
-    const query = `
-        INSERT INTO \`loans\` 
-        (\`employee_id\`, \`employee_name\`, \`department\`, \`loan_type\`, \`repayment_period\`, \`monthly_salary\`, \`amount_requested\`, \`disbursement_method\`, \`account_holder\`, \`account_number\`, \`bank_details\`, \`supporting_document\`, \`status\`, \`created_at\`) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-    `;
+        const cleanLoanType =
+            String(loan_type || '').trim();
 
-    db.query(query, [
-        employee_id, employee_name, department, loan_type,
-        repayment_period, monthly_salary, amount_requested,
-        disbursement_method, account_holder, account_number,
-        bank_details, attachment_path
-    ], (err, result) => {
-        if (err) {
-            console.error('Loan SQL Error:', err);
-            return res.status(500).json({ success: false, message: 'Database Error: ' + err.message });
+        if (cleanLoanType.toLowerCase() !== 'travel') {
+            return res.status(400).json({
+                success: false,
+                message: 'Only Travel Loan is allowed.'
+            });
         }
-        return res.json({ success: true, message: 'Loan application submitted successfully!' });
-    });
-});
+
+        const cleanDisbursementMethod =
+            String(disbursement_method || '').trim();
+
+        if (
+            cleanDisbursementMethod.toLowerCase() !==
+            'bank transfer'
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Travel Loan can only be disbursed by Bank Transfer.'
+            });
+        }
+
+        const cleanAmount =
+            parseFloat(
+                String(amount_requested || '')
+                    .replace(/[^0-9.]/g, '')
+            );
+
+        if (
+            Number.isNaN(cleanAmount) ||
+            cleanAmount <= 0 ||
+            cleanAmount > 4500
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Travel Loan amount must be between RM0.01 and RM4,500.00.'
+            });
+        }
+
+        if (
+            !String(account_holder || '').trim() ||
+            !String(account_number || '').trim() ||
+            !String(bank_details || '').trim()
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Bank account details are required.'
+            });
+        }
+
+        const attachment_path =
+            req.file
+                ? `uploads/${req.file.filename}`
+                : null;
+
+        try {
+            const query = `
+                INSERT INTO loans
+                (
+                    employee_id,
+                    employee_name,
+                    department,
+                    loan_type,
+                    amount_requested,
+                    disbursement_method,
+                    account_holder,
+                    account_number,
+                    bank_details,
+                    supporting_document,
+                    status,
+                    created_at
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    'Pending',
+                    NOW()
+                )
+            `;
+
+            const roles = [
+                'Project Manager',
+                'Head of Department',
+                'VGM'
+            ];
+
+            if (cleanAmount > 3000) {
+                roles.push(
+                    'CEO',
+                    'Chairman'
+                );
+            }
+
+            const result =
+                await saveWithApprovalSteps({
+                    type: 'loan',
+
+                    insertQuery: query,
+
+                    values: [
+                        employee_id,
+                        employee_name,
+                        department,
+                        'Travel',
+                        cleanAmount,
+                        'Bank Transfer',
+                        String(account_holder).trim(),
+                        String(account_number).trim(),
+                        String(bank_details).trim(),
+                        attachment_path
+                    ],
+
+                    roles,
+
+                    department
+                });
+
+            return res.json({
+                success: true,
+                id: result.insertId,
+                message:
+                    'Travel Loan application submitted successfully!'
+            });
+
+        } catch (err) {
+            console.error(
+                'Loan workflow error:',
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    'Failed to submit Travel Loan application.'
+            });
+        }
+    }
+);
 
 router.post('/api/submit-salary-adjustment', upload.single('attachment'), (req, res) => {
     const {
@@ -757,7 +888,7 @@ router.get('/api/my-requests', (req, res) => {
                                     employee_id: row['employee_id'] || '—',
                                     employee_name: row['employee_name'] || '—',
                                     request_type: 'Loan',
-                                    details: `${row['loan_type']} Loan (${row['repayment_period']} mos)`,
+                                    details: `${row['loan_type']} Loan`,
                                     date_submitted: formattedDate,
                                     created_at: row['created_at'] || null,
                                     last_reminder_sent: row.last_reminder_sent || null,
@@ -912,8 +1043,6 @@ router.post('/api/resubmit-request', (req, res) => {
         tableName = 'loans';
         columnMap = {
             loan_type: 'loan_type',
-            repayment_period: 'repayment_period',
-            monthly_salary: 'monthly_salary',
             disbursement_method: 'disbursement_method',
             account_holder: 'account_holder',
             account_number: 'account_number'
