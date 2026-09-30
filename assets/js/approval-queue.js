@@ -468,8 +468,6 @@ document.addEventListener('DOMContentLoaded', function() {
               <div class="detail-fields-grid">
                 <div class="detail-field"><label>Loan Type</label><div class="field-box">${data.loan_type || '—'}</div></div>
                 <div class="detail-field"><label>Amount Requested</label><div class="field-box">RM ${parseFloat(data.amount_requested || 0).toFixed(2)}</div></div>
-                <div class="detail-field"><label>Repayment Period</label><div class="field-box">${data.repayment_period || '—'} Months</div></div>
-                <div class="detail-field"><label>Monthly Basic Salary</label><div class="field-box">RM ${parseFloat(data.monthly_salary || 0).toFixed(2)}</div></div>
                 <div class="detail-field"><label>Disbursement Method</label><div class="field-box">${data.disbursement_method || 'Bank Transfer'}</div></div>
                 <div class="detail-field"><label>Bank Details</label><div class="field-box">${data.bank_details || '—'} (Acc: ${data.account_number || '—'})</div></div>
                 <div class="detail-field"><label>Account Holder Name</label><div class="field-box">${data.account_holder || '—'}</div></div>

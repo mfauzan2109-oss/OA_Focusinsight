@@ -605,7 +605,6 @@ router.post(
     async (req, res) => {
         const {
             loan_type,
-            repayment_period,
             amount_requested,
             disbursement_method,
             account_holder,
@@ -617,18 +616,27 @@ router.post(
         const employee_name = req.session.user.name;
         const department = req.session.user.department;
 
-        const periodMatch =
-            String(repayment_period || '').match(/\d+/);
+        const cleanLoanType =
+            String(loan_type || '').trim();
 
-        const cleanRepaymentPeriod =
-            periodMatch
-                ? parseInt(periodMatch[0], 10)
-                : null;
-
-        if (!cleanRepaymentPeriod) {
+        if (cleanLoanType.toLowerCase() !== 'travel') {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid repayment period.'
+                message: 'Only Travel Loan is allowed.'
+            });
+        }
+
+        const cleanDisbursementMethod =
+            String(disbursement_method || '').trim();
+
+        if (
+            cleanDisbursementMethod.toLowerCase() !==
+            'bank transfer'
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Travel Loan can only be disbursed by Bank Transfer.'
             });
         }
 
@@ -640,58 +648,44 @@ router.post(
 
         if (
             Number.isNaN(cleanAmount) ||
-            cleanAmount <= 0
+            cleanAmount <= 0 ||
+            cleanAmount > 4500
         ) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid loan amount.'
+                message:
+                    'Travel Loan amount must be between RM0.01 and RM4,500.00.'
             });
         }
 
+        if (
+            !String(account_holder || '').trim() ||
+            !String(account_number || '').trim() ||
+            !String(bank_details || '').trim()
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    'Bank account details are required.'
+            });
+        }
+        const cleanAccountNumber =
+            String(account_number || '')
+                .replace(/\s+/g, '')
+                .trim();
+
+        if (!/^\d+$/.test(cleanAccountNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Account Number must contain numbers only.'
+            });
+        }
         const attachment_path =
             req.file
                 ? `uploads/${req.file.filename}`
                 : null;
 
         try {
-            const salaryQuery = `
-                SELECT basic_salary
-                FROM users
-                WHERE LOWER(user_id) = LOWER(?)
-                LIMIT 1
-            `;
-
-            const salaryResults = await new Promise(
-                (resolve, reject) => {
-                    db.query(
-                        salaryQuery,
-                        [employee_id],
-                        (err, rows) => {
-                            if (err) {
-                                return reject(err);
-                            }
-
-                            resolve(rows);
-                        }
-                    );
-                }
-            );
-
-            if (
-                !salaryResults ||
-                salaryResults.length === 0
-            ) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Employee record not found.'
-                });
-            }
-
-            const monthly_salary =
-                parseFloat(
-                    salaryResults[0].basic_salary
-                ) || 0;
-
             const query = `
                 INSERT INTO loans
                 (
@@ -699,8 +693,6 @@ router.post(
                     employee_name,
                     department,
                     loan_type,
-                    repayment_period,
-                    monthly_salary,
                     amount_requested,
                     disbursement_method,
                     account_holder,
@@ -711,7 +703,7 @@ router.post(
                     created_at
                 )
                 VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     'Pending',
                     NOW()
                 )
@@ -740,14 +732,12 @@ router.post(
                         employee_id,
                         employee_name,
                         department,
-                        loan_type,
-                        cleanRepaymentPeriod,
-                        monthly_salary,
+                        'Travel',
                         cleanAmount,
-                        disbursement_method,
-                        account_holder,
-                        account_number,
-                        bank_details,
+                        'Bank Transfer',
+                        String(account_holder).trim(),
+                        cleanAccountNumber,
+                        String(bank_details).trim(),
                         attachment_path
                     ],
 
@@ -760,7 +750,7 @@ router.post(
                 success: true,
                 id: result.insertId,
                 message:
-                    'Loan application submitted successfully!'
+                    'Travel Loan application submitted successfully!'
             });
 
         } catch (err) {
@@ -772,7 +762,7 @@ router.post(
             return res.status(500).json({
                 success: false,
                 message:
-                    'Failed to submit loan application.'
+                    'Failed to submit Travel Loan application.'
             });
         }
     }
@@ -1831,6 +1821,49 @@ router.get('/api/request-details', requireLogin, (req, res) => {
                 return res.json({ success: true, data: record });
             });
         }
+
+        else if (reqType.includes('loan')) {
+            const stepsQuery = `
+        SELECT
+            step_order,
+            step_label,
+            approver_role,
+            status,
+            acted_by,
+            acted_at,
+            remarks
+        FROM loan_approval_steps
+        WHERE loan_id = ?
+        ORDER BY step_order
+    `;
+
+            return db.query(
+                stepsQuery,
+                [record.id],
+                (stepsErr, steps) => {
+                    if (stepsErr) {
+                        console.error(
+                            'Loan approval timeline error:',
+                            stepsErr
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message:
+                                'Failed to load Loan approval history.'
+                        });
+                    }
+
+                    record.approval_steps = steps;
+
+                    return res.json({
+                        success: true,
+                        data: record
+                    });
+                }
+            );
+        }
+
         // 5. Standard return for Leave, Overtime, and Loans
         else {
             return res.json({ success: true, data: record });
@@ -1974,7 +2007,7 @@ router.get('/api/my-requests', requireLogin, (req, res) => {
                                                 employee_id: row['employee_id'] || 'ΓÇö',
                                                 employee_name: row['employee_name'] || 'ΓÇö',
                                                 request_type: 'Loan',
-                                                details: `${row['loan_type']} Loan (${row['repayment_period']} mos)`,
+                                                details: `${row['loan_type']} Loan`,
                                                 date_submitted: formattedDate,
                                                 created_at: row['created_at'] || null,
                                                 last_reminder_sent: row.last_reminder_sent || null,

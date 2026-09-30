@@ -201,7 +201,21 @@ async function decide(connection, sessionUserId, idValue, body) {
         await connection.beginTransaction(); started = true;
         const user = await freshUser(connection, sessionUserId, true);
         const [requests] = await connection.query(
-            'SELECT id, employee_department AS department, requested_by, employee_id, status FROM probation_confirmations WHERE id = ? FOR UPDATE', [id]);
+            `SELECT
+                id,
+                employee_department AS department,
+                requested_by,
+                employee_id,
+                status,
+                total_points,
+                overall_recommendation,
+                assessed_by,
+                assessed_at
+            FROM probation_confirmations
+            WHERE id = ?
+            FOR UPDATE`,
+            [id]
+        );
         if (!requests.length) throw problem(404, 'Probation request not found.');
         const record = requests[0];
         if (!canRead(user, record)) throw problem(403, 'Access denied for this probation request.');
@@ -217,6 +231,25 @@ async function decide(connection, sessionUserId, idValue, body) {
                 'Approval step has changed. Reload the request before submitting.'
             );
         }
+
+        const currentRole =
+            norm(current.approver_role);
+
+        if (
+            body.status === 'Approved' &&
+            currentRole === 'head of department' &&
+            (
+                record.total_points == null ||
+                !record.overall_recommendation ||
+                !record.assessed_by
+            )
+        ) {
+            throw problem(
+                409,
+                'Probation assessment must be completed before HOD approval.'
+            );
+        }
+
         if (!canAct(user, record, current)) throw problem(403, 'You are not the approver for the current step.');
         const [changed] = await connection.query(
             "UPDATE probation_approval_steps SET status = ?, acted_by = ?, acted_at = NOW(), remarks = ? WHERE id = ? AND status = 'Pending'",
@@ -539,7 +572,7 @@ async function assess(c, sessionId, idValue, body) {
             performance_summary = ?, assessed_by = ?, assessed_at = NOW()
          WHERE id = ? AND status = 'Pending' AND total_points IS NULL`,
         [...ASSESSMENT_KEYS.map(k => scores[k]), total, ASSESSMENT_PASSING_POINTS,
-         recommendation, proposedDate, extendedPeriod, summary, user.user_id, id]);
+            recommendation, proposedDate, extendedPeriod, summary, user.user_id, id]);
     if (result.affectedRows !== 1) throw problem(409, 'This request has already been assessed.');
 
     return { success: true, id, total_points: total, passing_points: ASSESSMENT_PASSING_POINTS, passed: total >= ASSESSMENT_PASSING_POINTS };

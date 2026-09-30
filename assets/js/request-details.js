@@ -415,8 +415,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 calcBlock.style.display = 'none';
                 fieldsHTML = `
                     <div class="form-group"><label>Loan Type</label><div class="form-control-static">${data.loan_type || '—'}</div></div>
-                    <div class="form-group"><label>Repayment Period</label><div class="form-control-static">${data.repayment_period || '—'} Months</div></div>
-                    <div class="form-group"><label>Monthly Salary</label><div class="form-control-static">RM ${parseFloat(data.monthly_salary || 0).toFixed(2)}</div></div>
                     <div class="form-group"><label>Disbursement Method</label><div class="form-control-static">${data.disbursement_method || 'Bank Transfer'}</div></div>
                     <div class="form-group"><label>Account Holder</label><div class="form-control-static">${data.account_holder || '—'}</div></div>
                     <div class="form-group"><label>Account Number</label><div class="form-control-static">${data.account_number || '—'}</div></div>
