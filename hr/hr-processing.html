@@ -1321,12 +1321,20 @@
         .tv-table td .edit-input { min-width: 110px; }
         .lv-total td { font-weight: 700; border-top: 2px solid #b7e4cf; }
         .rd-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .rd-mini-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
-        .rd-mini { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; }
-        .rd-mini-title { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
-        .rd-mini-line { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 3px 0; }
-        .rd-mini-line span:first-child { color: #64748b; }
-        .rd-mini-line span:last-child { font-weight: 600; color: #0f172a; text-align: right; overflow-wrap: anywhere; }
+        .rd-mini-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+        .rd-mini { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(15,23,42,.05); }
+        .rd-mini-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 14px; }
+        .rd-mini-title i { font-size: 13px; color: #475569; }
+        .rd-field { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .rd-field:last-child { margin-bottom: 0; }
+        .rd-field-icon { width: 16px; text-align: center; color: #94a3b8; font-size: 13px; }
+        .rd-field-label { font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; }
+        .rd-field-value { font-size: 14px; font-weight: 600; color: #0f172a; overflow-wrap: anywhere; }
+        .rd-status-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+        .rd-status-art { width: 76px; height: 76px; }
+        .rd-status-word { font-size: 14px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+        .rd-status-sub { font-size: 11px; color: #94a3b8; }
+        .rd-stage-chip { font-size: 11px; font-weight: 600; color: #64748b; border: 1px solid #e5e7eb; border-radius: 20px; padding: 2px 12px; }
         .rd-pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 14px; border-radius: 20px; text-transform: uppercase; }
         @media (max-width: 900px) { .rd-mini-row { grid-template-columns: 1fr; } }
     </style>
@@ -2710,6 +2718,25 @@
             }
         }
 
+        function hrpStatusArt(state) {
+            const c = { approved: ['#22c55e', '#16a34a'], rejected: ['#ef4444', '#dc2626'], pending: ['#f59e0b', '#d97706'] }[state];
+            const mouth = state === 'approved' ? 'M33 52 Q41 59 49 52' : state === 'rejected' ? 'M33 57 Q41 49 49 57' : 'M33 54 L49 54';
+            return '<svg viewBox="0 0 80 80" class="rd-status-art" aria-hidden="true">' +
+                '<path d="M14 8 H52 L68 24 V68 a4 4 0 0 1 -4 4 H18 a4 4 0 0 1 -4 -4 Z" fill="' + c[0] + '"/>' +
+                '<path d="M52 8 V20 a4 4 0 0 0 4 4 H68 Z" fill="' + c[1] + '" opacity=".55"/>' +
+                '<circle cx="33" cy="42" r="2.6" fill="#0f172a"/><circle cx="49" cy="42" r="2.6" fill="#0f172a"/>' +
+                '<path d="' + mouth + '" stroke="#0f172a" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>';
+        }
+
+        function hrpStageInfo(req, kind, statusRaw) {
+            const routeKey = { leave: 'leave', overtime: 'overtime', disb: 'disbursement', loan: 'loan' }[kind];
+            const api = Array.isArray(req.approval_steps) ? req.approval_steps : [];
+            const steps = api.length ? api : (routeKey ? tvExpectedSteps(routeKey, req, statusRaw) : []);
+            const stages = steps.filter(x => !x._meta && !/^(initiator|submitted|cc)$/i.test(String(x.approver_role || '').trim()));
+            const done = stages.filter(x => String(x.status || '').toLowerCase().startsWith('approve')).length;
+            return { total: stages.length, done: done };
+        }
+
         function renderHrpDetail(req, type) {
             const lower = String(type || '').toLowerCase();
             const kind = lower.includes('travel') ? 'travel' : lower.includes('overtime') ? 'overtime' : lower.includes('leave') ? 'leave'
@@ -2719,22 +2746,48 @@
             window._reqData = req; window._lv = null; window._db = null; window._ln = null;
             const statusRaw = String(req.status || req.Status || 'PENDING').trim().toUpperCase();
 
-            // Summary cards
+            // Summary cards (Employee Information / Request Summary / Current Status)
             const created = tvPick(req, 'date_submitted', 'created_at', 'Created At');
             const amt = tvPick(req, 'total_amount', 'total_claim', 'amount_requested');
-            const key = statusRaw.startsWith('APPROVE') ? ['#d1fae5', '#16a34a'] : statusRaw.startsWith('REJECT') ? ['#fee2e2', '#dc2626'] : ['#fef3c7', '#d97706'];
+            const state = statusRaw.startsWith('APPROVE') ? 'approved' : statusRaw.startsWith('REJECT') ? 'rejected' : 'pending';
+            const stage = hrpStageInfo(req, kind, statusRaw);
             const sum = document.getElementById('rdSummary'); sum.replaceChildren();
-            const mini = (title, rows) => {
-                const c = tvEl('div', 'rd-mini'); c.appendChild(tvEl('div', 'rd-mini-title', title));
-                rows.forEach(([l, v]) => { const r = tvEl('div', 'rd-mini-line'); r.append(tvEl('span', '', l), tvEl('span', '', v || '—')); c.appendChild(r); });
+            const card = (icon, title) => {
+                const c = tvEl('div', 'rd-mini'); const t = tvEl('div', 'rd-mini-title');
+                const i = document.createElement('i'); i.className = icon;
+                t.append(i, document.createTextNode(title)); c.appendChild(t);
                 return c;
             };
-            const stCard = mini('Current Status', []);
-            const pill = tvEl('span', 'rd-pill', statusRaw); pill.style.background = key[0]; pill.style.color = key[1]; stCard.appendChild(pill);
-            sum.append(
-                mini('Employee Information', [['Full Name', req.employee_name || req['Employee Name']], ['Employee ID', req.employee_id || req['Employee ID']], ['Department', req.department || req.Department]]),
-                mini('Request Summary', [['Request Type', type], ['Submitted', created ? tvDateText(created) : ''], ['Amount', amt !== '' ? tvMoney(amt) : '']]),
-                stCard);
+            const field = (icon, label, value) => {
+                const r = tvEl('div', 'rd-field');
+                const ic = document.createElement('i'); ic.className = 'rd-field-icon ' + icon;
+                const w = tvEl('div'); w.append(tvEl('div', 'rd-field-label', label), tvEl('div', 'rd-field-value', value || '\u2014'));
+                r.append(ic, w); return r;
+            };
+            const empCard = card('fa-regular fa-address-card', 'Employee Information');
+            empCard.append(
+                field('fa-regular fa-user', 'Full name', req.employee_name || req['Employee Name']),
+                field('fa-regular fa-id-card', 'Employee ID', req.employee_id || req['Employee ID']),
+                field('fa-regular fa-building', 'Department', req.department || req.Department),
+                field('fa-solid fa-briefcase', 'Position', req.position || req.Position));
+            const reqCard = card('fa-regular fa-file-lines', 'Request Summary');
+            reqCard.append(
+                field('fa-regular fa-file', 'Request type', type),
+                field('fa-regular fa-calendar', 'Submitted', created ? tvDateText(created) : ''),
+                field('fa-solid fa-coins', 'Amount', amt !== '' ? tvMoney(amt) : 'N/A'));
+            const stCard = card('fa-regular fa-clock', 'Current Status');
+            const body = tvEl('div', 'rd-status-body');
+            const art = document.createElement('div'); art.innerHTML = hrpStatusArt(state);
+            const color = { approved: '#16a34a', rejected: '#dc2626', pending: '#d97706' }[state];
+            const word = tvEl('div', 'rd-status-word', statusRaw); word.style.color = color;
+            const subText = { approved: 'All levels approved', rejected: 'Request was rejected', pending: 'Awaiting approval' }[state];
+            body.append(art.firstElementChild, word, tvEl('div', 'rd-status-sub', subText));
+            if (stage.total > 0) {
+                const shown = state === 'approved' ? stage.total : Math.min(stage.done + 1, stage.total);
+                body.appendChild(tvEl('div', 'rd-stage-chip', 'Stage ' + shown + ' of ' + stage.total));
+            }
+            stCard.appendChild(body);
+            sum.append(empCard, reqCard, stCard);
 
             // Form (what the initiator filled in)
             if (kind === 'leave') renderLeaveForm(req, false);
