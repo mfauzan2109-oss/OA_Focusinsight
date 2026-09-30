@@ -1651,11 +1651,13 @@
                         ? p1Data.data
                             .filter(item => {
                                 const role = String(item.approver_role || '')
-                                    .trim()
-                                    .toLowerCase();
+                                                .trim()
+                                                .toLowerCase();
+                                const isLeave = /leave/i.test(String(item.request_type || ''));
 
-                                return role === 'hr' || role === 'hr specialist';
-                            })
+                                return role === 'hr' || role === 'hr specialist' ||
+                                (isLeave && (role === 'head of department' || role === 'manager'));
+                                })
                             .map(item => {
                                 const type = String(item.request_type || '');
 
@@ -1717,7 +1719,7 @@
             const uname = (sessionStorage.getItem('username') || '').trim().toLowerCase();
             const isHrDept = d => /human resources|(^|\W)hr(\W|$)/i.test(String(d || ''));
             const result = await Promise.all(items.map(async item => {
-                if (!/leave/i.test(String(item.request_type || ''))) return item;
+                if (!/leave/i.test(String(item.request_type || ''))) return item; if (String(item.employee_id || '').trim().toLowerCase() === uid) return null;
                 let d = HRP_LEAVE_CACHE[item.id];
                 if (!d) {
                     try {
