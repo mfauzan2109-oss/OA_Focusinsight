@@ -179,6 +179,26 @@
                 align-items: flex-start;
             }
         }
+
+        @keyframes notiBadgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .noti-badge.noti-badge-pop {
+            animation: notiBadgePop 0.4s ease-out;
+        }
+
+        @keyframes notiBellShake {
+            0%, 100% { transform: rotate(0deg); }
+            20%      { transform: rotate(-12deg); }
+            40%      { transform: rotate(10deg); }
+            60%      { transform: rotate(-8deg); }
+            80%      { transform: rotate(6deg); }
+        }
+        .noti-bell-btn.noti-bell-shake {
+            animation: notiBellShake 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -224,7 +244,7 @@
             <div class="header-actions">
                 <div class="search-box">
                     <i class='bx bx-search'></i>
-                    <input type="text" id="searchInput" placeholder="Search request..." disabled>
+                    <input type="text" id="searchInput" placeholder="Search request...">
                 </div>
 
                 <div class="notification-container">
@@ -232,6 +252,18 @@
                         <i class="fa-regular fa-bell"></i>
                         <span class="noti-badge" id="notiBadge">0</span>
                     </button>
+                    <div class="notification-dropdown" id="notiDropdown">
+                        <div class="noti-header">
+                            <h3>Notifications</h3>
+                            <button id="refreshNotiBtn" class="btn-mark-read">Refresh</button>
+                        </div>
+                        <div class="noti-body" id="notiList">
+                            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">Loading notifications...</div>
+                        </div>
+                        <div class="noti-footer">
+                            <a href="/hr/my-request-hr.html" class="view-all-link">View All Requests</a>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="top-bar-divider"></div>
@@ -256,43 +288,43 @@
                 </div>
 
                 <div class="ops-grid">
-                    <a href="probation-confirmation-form.html" class="ops-card ops-purple">
+                    <a href="probation-confirmation-form.html" class="ops-card ops-purple" data-name="Probation Confirmation Form">
                         <div class="ops-card-icon"><i class='bx bx-user-check'></i></div>
                         <div class="ops-card-title">Probation Confirmation Form</div>
                         <i class='bx bx-right-arrow-alt ops-card-arrow'></i>
                         <i class='bx bx-star ops-card-bookmark'></i>
                     </a>
-                    <a href="hiring-approval-form.html" class="ops-card ops-pink">
+                    <a href="hiring-approval-form.html" class="ops-card ops-pink" data-name="Hiring Approval Form">
                         <div class="ops-card-icon"><i class='bx bx-user-plus'></i></div>
                         <div class="ops-card-title">Hiring Approval Form</div>
                         <i class='bx bx-right-arrow-alt ops-card-arrow'></i>
                         <i class='bx bx-star ops-card-bookmark'></i>
                     </a>
-                    <a href="resignation-form.html" class="ops-card ops-red">
+                    <a href="resignation-form.html" class="ops-card ops-red" data-name="Resignation Request Form">
                         <div class="ops-card-icon"><i class='bx bx-user-x'></i></div>
                         <div class="ops-card-title">Resignation Request Form</div>
                         <i class='bx bx-right-arrow-alt ops-card-arrow'></i>
                         <i class='bx bx-star ops-card-bookmark'></i>
                     </a>
-                    <a href="contract-renewal-form.html" class="ops-card ops-green">
+                    <a href="contract-renewal-form.html" class="ops-card ops-green" data-name="Contract Renewal Form">
                         <div class="ops-card-icon"><i class='bx bx-briefcase-alt-2'></i></div>
                         <div class="ops-card-title">Contract Renewal Form</div>
                         <i class='bx bx-right-arrow-alt ops-card-arrow'></i>
                         <i class='bx bx-star ops-card-bookmark'></i>
                     </a>
-                    <a href="payroll-payment-request.html" class="ops-card ops-orange">
+                    <a href="payroll-payment-request.html" class="ops-card ops-orange" data-name="Payroll Payment Request Form">
                         <div class="ops-card-icon"><i class='bx bx-envelope'></i></div>
                         <div class="ops-card-title">Payroll Payment Request Form</div>
                         <i class='bx bx-right-arrow-alt ops-card-arrow'></i>
                         <i class='bx bx-star ops-card-bookmark'></i>
                     </a>
-                    <a href="manpower-outsourcing-request.html" class="ops-card ops-violet">
+                    <a href="manpower-outsourcing-request.html" class="ops-card ops-violet" data-name="Manpower Outsourcing Request Form">
                         <div class="ops-card-icon"><i class='bx bx-group'></i></div>
                         <div class="ops-card-title">Manpower Outsourcing Request Form</div>
                         <i class='bx bx-right-arrow-alt ops-card-arrow'></i>
                         <i class='bx bx-star ops-card-bookmark'></i>
                     </a>
-                    <a href="create-announcement.html" class="ops-card ops-cyan">
+                    <a href="create-announcement.html" class="ops-card ops-cyan" data-name="Create Announcement">
                         <div class="ops-card-icon"><i class='bx bxs-megaphone'></i></div>
                         <div class="ops-card-title">Create Announcement</div>
                         <i class='bx bx-right-arrow-alt ops-card-arrow'></i>
@@ -367,6 +399,142 @@
                 localStorage.setItem(favKey, JSON.stringify(favorites));
             });
         });
+
+        // ==========================================
+        // SEARCH / FILTER REQUEST CARDS
+        // ==========================================
+        const searchInput = document.getElementById('searchInput');
+        const opsCards = Array.from(document.querySelectorAll('.ops-card'));
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                opsCards.forEach(card => {
+                    const name = (card.dataset.name || '').toLowerCase();
+                    card.style.display = !query || name.includes(query) ? 'flex' : 'none';
+                });
+            });
+        }
+
+        // ==========================================
+        // NOTIFICATION SYSTEM
+        // ==========================================
+        const API_BASE = (window.location.port === '3000') ? '' : '';
+        const notiUserId = userId || sessionStorage.getItem('user_id') || '';
+        const notiDepartment = department || '';
+        const notiPosition = position || '';
+
+        const notiBellBtn = document.getElementById('notiBellBtn');
+        const notiDropdown = document.getElementById('notiDropdown');
+        const notiList = document.getElementById('notiList');
+        const notiBadge = document.getElementById('notiBadge');
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+
+        if (notiBellBtn && notiDropdown) {
+            notiBellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notiDropdown.classList.toggle('active');
+                if (notiDropdown.classList.contains('active')) fetchNotifications();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
+                    notiDropdown.classList.remove('active');
+                }
+            });
+
+            notiDropdown.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`${API_BASE}/api/notifications?employee_id=${encodeURIComponent(notiUserId)}&department=${encodeURIComponent(notiDepartment)}&position=${encodeURIComponent(notiPosition)}`);
+                const data = await response.json();
+
+                if (data.success && data.notifications && data.notifications.length > 0) {
+                    const unreadCount = data.notifications.filter(item =>
+                        item.is_reminder || (item.status || '').toLowerCase().includes('pending')
+                    ).length;
+
+                    if (notiList) {
+                        notiList.innerHTML = '';
+                        data.notifications.forEach(item => {
+                            const statusLower = (item.status || '').toLowerCase();
+                            let cardClass = 'status-pending';
+                            let pillClass = 'pending';
+
+                            if (item.is_reminder) {
+                                cardClass = 'status-reminder';
+                                pillClass = 'reminder';
+                            } else if (statusLower.includes('approve') || statusLower === 'completed') {
+                                cardClass = 'status-approved';
+                                pillClass = 'approved';
+                            } else if (statusLower.includes('reject')) {
+                                cardClass = 'status-rejected';
+                                pillClass = 'rejected';
+                            } else if (statusLower.includes('revision') || statusLower.includes('review')) {
+                                cardClass = 'status-review';
+                                pillClass = 'review';
+                            }
+
+                            const title = item.is_reminder
+                                ? `\uD83D\uDD14 ${item.message || (item.employee_name || 'Someone') + ': Reminder sent'}`
+                                : `${item.type || 'Form'} (${item.form_no || ''})`;
+
+                            const notiItem = document.createElement('a');
+                            notiItem.href = `request-details.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}`;
+                            notiItem.className = `noti-card ${cardClass}`;
+
+                            notiItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <div>
+                                        <p class="noti-card-title">${title}</p>
+                                        <p class="noti-card-formno">${item.message && !item.is_reminder ? item.message : 'Form No: ' + (item.form_no || '')}</p>
+                                        <p class="noti-card-date">${item.time || ''}</p>
+                                    </div>
+                                    <span class="noti-status-pill ${pillClass}">${item.is_reminder ? 'Reminder' : (item.status || 'Pending').toUpperCase()}</span>
+                                </div>
+                            `;
+                            notiList.appendChild(notiItem);
+                        });
+                    }
+
+                    if (notiBadge) {
+                        if (unreadCount > 0) {
+                            notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                            notiBadge.style.display = 'flex';
+                            notiBadge.classList.remove('noti-badge-pop');
+                            void notiBadge.offsetWidth;
+                            notiBadge.classList.add('noti-badge-pop');
+                            if (notiBellBtn) {
+                                notiBellBtn.classList.remove('noti-bell-shake');
+                                void notiBellBtn.offsetWidth;
+                                notiBellBtn.classList.add('noti-bell-shake');
+                            }
+                        } else {
+                            notiBadge.style.display = 'none';
+                        }
+                    }
+                } else {
+                    if (notiBadge) notiBadge.style.display = 'none';
+                    if (notiList) {
+                        notiList.innerHTML = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">No notifications found.</div>`;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching notifications:', err);
+            }
+        }
+
+        if (refreshNotiBtn) {
+            refreshNotiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                fetchNotifications();
+            });
+        }
+
+        fetchNotifications();
+        setInterval(fetchNotifications, 5000);
     });
     </script>
 

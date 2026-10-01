@@ -25,8 +25,36 @@
             justify-content: center;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: #bcdbe5; margin: 0; display: flex; min-height: 100vh; }
-        .main-content { margin-left: 250px; flex-grow: 1; padding: 24px 32px; width: calc(100% - 250px); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #aedce2;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        .main-content { margin-left: 250px; 
+            flex-grow: 1; 
+            padding: 0; 
+            width: calc(100% - 250px); 
+        }
+        .page-body { 
+            
+            padding: 24px 32px; 
+        }
+
+        /* --- TOP BAR (same as the other HR pages) --- */
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 0; width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+        .top-bar-divider { width: 1px; height: 24px; background-color: #e2e8f0; margin: 0 4px; }
+
         .sidebar-section-title { font-size: 11px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px 4px 14px; margin-top: 6px; }
         .admin-nav-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #ffffff; border-radius: 12px; padding: 4px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; }
         .admin-tab-btn { padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 700; color: #1e293b; text-decoration: none; border-radius: 8px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
@@ -121,7 +149,22 @@
             font-weight: 800;
             color: #0f172a;
             border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
+        .noti-dropdown-header .btn-mark-read {
+            background: none; border: none; color: #2563eb;
+            font-size: 12px; font-weight: 600; cursor: pointer; padding: 0;
+        }
+        .noti-dropdown-header .btn-mark-read:hover { text-decoration: underline; }
+        .noti-dropdown-footer {
+            padding: 10px 16px; text-align: center; border-top: 1px solid #e2e8f0;
+        }
+        .noti-dropdown-footer a {
+            font-size: 12px; font-weight: 600; color: #2563eb; text-decoration: none;
+        }
+        .noti-dropdown-footer a:hover { text-decoration: underline; }
 
         .noti-list-body { padding: 8px; }
 
@@ -160,6 +203,36 @@
         .noti-status-pill.approved { background: #22c55e; }
         .noti-status-pill.rejected { background: #ef4444; }
         .noti-status-pill.review { background: #0ea5e9; }
+        /* --- SEARCH PILL (same as hr-processing.html) --- */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
     </style>
 </head>
 <body>
@@ -176,13 +249,13 @@
         <nav class="nav-menu">
             <a href="hr-dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
             <div class="sidebar-section-title">HR Management</div>
-            <a href="administration.html" class="nav-item active"><i class='bx bx-user-check'></i> Administration</a>
+            <a href="user-management.html" class="nav-item active"><i class='bx bx-user-check'></i> Administration</a>
             <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
             <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
             <a href="hr-operations.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
             
             <div class="sidebar-section-title">My Workspace</div>
-           <a href="application-form-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
+           <a href="application-form-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
             <a href="/hr/my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
         </nav>
         <div class="sidebar-footer">
@@ -192,31 +265,44 @@
 
     <main class="main-content">
         <header class="top-header">
-            <h1>Administration</h1>
-            <div class="header-right">
-                <div class="search-box-wrapper">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="headerSearchInput" placeholder="Search request">
-                    </div>
+            <div class="header-title">
+                <h1>Administration</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-pill">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="headerSearchInput" placeholder="Search departments..." autocomplete="off">
                 </div>
+
                 <div class="notification-container">
-                    <button class="noti-bell-btn" id="notiBellBtn">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
                         <span class="noti-badge" id="notiBadge" style="display: none;">0</span>
                     </button>
                     <div class="noti-dropdown" id="notiDropdown">
-                        <div class="noti-dropdown-header">Notifications</div>
+                        <div class="noti-dropdown-header">
+                            <span>Notifications</span>
+                            <button id="refreshNotiBtn" class="btn-mark-read" type="button">Refresh</button>
+                        </div>
                         <div class="noti-list-body" id="notiListBody">
                             <div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Loading...</div>
                         </div>
+                        <div class="noti-dropdown-footer">
+                            <a href="my-request-hr.html">View All Requests</a>
+                        </div>
                     </div>
                 </div>
+
+                <div class="top-bar-divider"></div>
+
                 <a href="profile-hr.html" style="text-decoration: none;">
                     <div class="avatar-circle" id="topAvatar">FH</div>
                 </a>
             </div>
         </header>
+
+        <div class="page-body">
 
         <div class="admin-nav-tabs">
             <a href="user-management.html" class="admin-tab-btn">User Management</a>
@@ -247,6 +333,8 @@
                 </tbody>
             </table>
         </section>
+
+        </div>
     </main>
 
     <script>
@@ -280,6 +368,52 @@
             if (topAvatar) topAvatar.innerHTML = avatarImgHtml;
         })();
 
+        let allDepts = [];
+
+        function renderDepts(depts) {
+            const tableBody = document.getElementById('deptTableBody');
+            const countText = document.getElementById('deptCountText');
+            const searching = headerSearch && headerSearch.value.trim() !== '';
+
+            countText.textContent = searching
+                ? `${depts.length} of ${allDepts.length} department${allDepts.length !== 1 ? 's' : ''}`
+                : `${depts.length} department${depts.length !== 1 ? 's' : ''}`;
+
+            if (allDepts.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No department records found in user profiles.</td></tr>`;
+                return;
+            }
+            if (depts.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No matching departments.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = depts.map(d => `
+                <tr>
+                    <td class="text-left">${d.department}</td>
+                    <td>${d.hod}</td>
+                    <td>${d.headcount}</td>
+                    <td>
+                        <a href="department-view.html?dept=${encodeURIComponent(d.department)}" class="action-link">View</a>
+                        <span class="action-separator">|</span>
+                        <a href="department-edit.html?dept=${encodeURIComponent(d.department)}" class="action-link">Edit</a>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- SEARCH: filter departments by name or head of department ---
+        const headerSearch = document.getElementById('headerSearchInput');
+        function applyDeptSearch() {
+            const term = headerSearch ? headerSearch.value.toLowerCase().trim() : '';
+            const filtered = allDepts.filter(d =>
+                String(d.department || '').toLowerCase().includes(term) ||
+                String(d.hod || '').toLowerCase().includes(term)
+            );
+            renderDepts(filtered);
+        }
+        if (headerSearch) headerSearch.addEventListener('input', applyDeptSearch);
+
         async function fetchDepartmentsFromUsersTable() {
             const tableBody = document.getElementById('deptTableBody');
             const countText = document.getElementById('deptCountText');
@@ -289,26 +423,8 @@
                 const result = await response.json();
 
                 if (result.success && Array.isArray(result.data)) {
-                    const depts = result.data;
-                    countText.textContent = `${depts.length} department${depts.length !== 1 ? 's' : ''}`;
-
-                    if (depts.length === 0) {
-                        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No department records found in user profiles.</td></tr>`;
-                        return;
-                    }
-
-                    tableBody.innerHTML = depts.map(d => `
-                        <tr>
-                            <td class="text-left">${d.department}</td>
-                            <td>${d.hod}</td>
-                            <td>${d.headcount}</td>
-                            <td>
-                                <a href="department-view.html?dept=${encodeURIComponent(d.department)}" class="action-link">View</a>
-                                <span class="action-separator">|</span>
-                                <a href="department-edit.html?dept=${encodeURIComponent(d.department)}" class="action-link">Edit</a>
-                            </td>
-                        </tr>
-                    `).join('');
+                    allDepts = result.data;
+                    applyDeptSearch();
                 } else {
                     tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ef4444; padding: 20px;">Failed to load departments from database.</td></tr>`;
                 }
@@ -323,7 +439,7 @@
         // --- NOTIFICATIONS ---
         if (userId) {
             fetchNotifications(userId, department, position);
-            setInterval(() => fetchNotifications(userId, department, position), 15000);
+            setInterval(() => fetchNotifications(userId, department, position), 5000);
         } else {
             document.getElementById('notiListBody').innerHTML = `<div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Log in to see notifications</div>`;
         }
@@ -334,13 +450,24 @@
         notiBellBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             notiDropdown.classList.toggle('open');
+            if (notiDropdown.classList.contains('open') && userId) {
+                fetchNotifications(userId, department, position);
+            }
         });
 
         document.addEventListener('click', function(e) {
-            if (!notiDropdown.contains(e.target) && e.target !== notiBellBtn) {
+            if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
                 notiDropdown.classList.remove('open');
             }
         });
+
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+        if (refreshNotiBtn) {
+            refreshNotiBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (userId) fetchNotifications(userId, department, position);
+            });
+        }
 
         notiDropdown.addEventListener('click', function(e) {
             const card = e.target.closest('.noti-card');
@@ -433,7 +560,7 @@
         notiListBody.innerHTML = html;
         previousNotiState = nextState;
 
-        if (hasNewOrChanged) {
+        if (hasNewOrChanged || pendingCount > 0) {
             notiBadge.classList.remove('noti-badge-pop');
             void notiBadge.offsetWidth;
             notiBadge.classList.add('noti-badge-pop');

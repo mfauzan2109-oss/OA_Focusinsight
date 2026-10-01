@@ -30,18 +30,31 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #bcdbe5;
+            background-color: #aedce2;
             margin: 0;
             display: flex;
             min-height: 100vh;
+            color: #1e293b;
         }
 
         .main-content {
             margin-left: 250px;
             flex-grow: 1;
-            padding: 24px 32px;
+            padding: 0;
             width: calc(100% - 250px);
         }
+        .page-body { padding: 24px 32px; }
+
+        /* --- TOP BAR (same as the other HR pages) --- */
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 0; width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+        .top-bar-divider { width: 1px; height: 24px; background-color: #e2e8f0; margin: 0 4px; }
 
         .sidebar-section-title {
             font-size: 11px;
@@ -332,7 +345,24 @@
             font-weight: 800;
             color: #0f172a;
             border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
+        .noti-dropdown-header .btn-mark-read {
+            background: none; border: none; color: #2563eb;
+            font-size: 12px; font-weight: 600; cursor: pointer; padding: 0;
+        }
+        .noti-dropdown-header .btn-mark-read:hover { text-decoration: underline; }
+        a.noti-card { text-decoration: none; color: inherit; }
+        a.noti-card:hover { background: #f1f5f9; }
+        .noti-dropdown-footer {
+            padding: 10px 16px; text-align: center; border-top: 1px solid #e2e8f0;
+        }
+        .noti-dropdown-footer a {
+            font-size: 12px; font-weight: 600; color: #2563eb; text-decoration: none;
+        }
+        .noti-dropdown-footer a:hover { text-decoration: underline; }
 
         .noti-list-body {
             padding: 8px;
@@ -384,6 +414,70 @@
         .noti-status-pill.approved { background: #22c55e; }
         .noti-status-pill.rejected { background: #ef4444; }
         .noti-status-pill.review { background: #0ea5e9; }
+        /* --- SEARCH PILL (same as hr-processing.html) --- */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        /* --- Search Dropdown (same as hr-dashboard.html) --- */
+        .search-results-dropdown {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 45px;
+            width: 320px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .search-results-dropdown.active {
+            display: block;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            text-align: center;
+            text-transform: capitalize;
+        }
+        .status-badge.pending  { background-color: #fef9c3; color: #a16207; }
+        .status-badge.approve  { background-color: #dcfce7; color: #15803d; }
+        .status-badge.approved { background-color: #dcfce7; color: #15803d; }
+        .status-badge.rejected { background-color: #fee2e2; color: #b91c1c; }
+        .status-badge.revision { background-color: #dbeafe; color: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -427,33 +521,45 @@
 
         <!-- HEADER TOP BAR -->
         <header class="top-header">
-            <h1>Administration</h1>
-            <div class="header-right">
-                <div class="search-box-wrapper">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Search request">
-                    </div>
+            <div class="header-title">
+                <h1>Administration</h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="search-pill">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search request" autocomplete="off">
+                    <div class="search-results-dropdown" id="searchResultsDropdown"></div>
                 </div>
 
                 <div class="notification-container">
-                    <button class="noti-bell-btn" id="notiBellBtn">
+                    <button class="noti-bell-btn" id="notiBellBtn" title="Notifications">
                         <i class="fa-regular fa-bell"></i>
                         <span class="noti-badge" id="notiBadge" style="display: none;">0</span>
                     </button>
                     <div class="noti-dropdown" id="notiDropdown">
-                        <div class="noti-dropdown-header">Notifications</div>
+                        <div class="noti-dropdown-header">
+                            <span>Notifications</span>
+                            <button id="refreshNotiBtn" class="btn-mark-read" type="button">Refresh</button>
+                        </div>
                         <div class="noti-list-body" id="notiListBody">
                             <div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Loading...</div>
                         </div>
+                        <div class="noti-dropdown-footer">
+                            <a href="my-request-hr.html">View All Requests</a>
+                        </div>
                     </div>
                 </div>
+
+                <div class="top-bar-divider"></div>
 
                 <a href="profile-hr.html" style="text-decoration: none;">
                     <div class="avatar-circle" id="topAvatar">CJ</div>
                 </a>
             </div>
         </header>
+
+        <div class="page-body">
 
         <!-- ADMINISTRATION TABS -->
         <div class="admin-nav-tabs">
@@ -499,6 +605,7 @@
             </div>
         </section>
 
+        </div>
     </main>
 
     <script>
@@ -539,10 +646,11 @@
         // Load users from backend API
         fetchUsers();
 
-        // Live search filtering listener
-        document.getElementById('userSearchInput').addEventListener('input', function(e) {
+        // Employee search box (inside the card) filters the user table
+        const userSearchInput = document.getElementById('userSearchInput');
+        userSearchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase().trim();
-            const filteredUsers = allUsers.filter(u => 
+            const filteredUsers = allUsers.filter(u =>
                 (u.user_id || '').toLowerCase().includes(searchTerm) ||
                 (u.name || '').toLowerCase().includes(searchTerm) ||
                 (u.department || '').toLowerCase().includes(searchTerm) ||
@@ -552,10 +660,70 @@
             renderUserTable(filteredUsers);
         });
 
+        // Header Live Search Box (same as hr-dashboard.html): search form requests
+        const formattedUserId = (userId || '').toUpperCase();
+        const searchInput = document.getElementById('searchInput');
+        const searchDropdown = document.getElementById('searchResultsDropdown');
+
+        if (searchInput && searchDropdown) {
+            searchInput.addEventListener('input', async function(e) {
+                const query = e.target.value.trim().toLowerCase();
+                if (!query) {
+                    searchDropdown.classList.remove('active');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/api/hr/recent-activities?user_id=${encodeURIComponent(formattedUserId)}`);
+                    const resData = await res.json();
+                    const items = resData.data || [];
+
+                    const filtered = items.filter(r =>
+                        (r.request_type && r.request_type.toLowerCase().includes(query)) ||
+                        (r.employee_name && r.employee_name.toLowerCase().includes(query)) ||
+                        (r.status && r.status.toLowerCase().includes(query)) ||
+                        (r.id && r.id.toString().includes(query))
+                    );
+
+                    if (filtered.length > 0) {
+                        searchDropdown.innerHTML = '';
+                        filtered.forEach(f => {
+                            const reqType = f.request_type || 'General';
+                            const div = document.createElement('a');
+                            div.href = `request-details-hr.html?id=${f.id}&type=${encodeURIComponent(reqType)}`;
+                            div.style.cssText = 'display: block; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; text-decoration: none; color: inherit;';
+                            div.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">REQ-${reqType.toUpperCase()}-${f.id}</div>
+                                        <div style="font-size: 12px; color: #64748b;">${reqType} • ${f.date_submitted || ''}</div>
+                                    </div>
+                                    <span class="status-badge ${(f.status || '').toLowerCase()}">${f.status || 'Pending'}</span>
+                                </div>
+                            `;
+                            searchDropdown.appendChild(div);
+                        });
+                        searchDropdown.classList.add('active');
+                    } else {
+                        searchDropdown.innerHTML = '<div style="padding: 14px; text-align: center; color: #94a3b8; font-size: 13px;">No matching requests found</div>';
+                        searchDropdown.classList.add('active');
+                    }
+                } catch (err) {
+                    console.error('Search error:', err);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!searchDropdown.contains(e.target) && !searchInput.contains(e.target)) {
+                    searchDropdown.classList.remove('active');
+                }
+            });
+        }
+
         // --- NOTIFICATIONS ---
         if (userId) {
             fetchNotifications(userId, department, position);
-            setInterval(() => fetchNotifications(userId, department, position), 15000);
+            setInterval(() => fetchNotifications(userId, department, position), 5000);
         } else {
             document.getElementById('notiListBody').innerHTML = `<div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Log in to see notifications</div>`;
         }
@@ -566,13 +734,26 @@
         notiBellBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             notiDropdown.classList.toggle('open');
+            if (notiDropdown.classList.contains('open') && userId) {
+                fetchNotifications(userId, department, position);
+            }
         });
 
+        notiDropdown.addEventListener('click', e => e.stopPropagation());
+
         document.addEventListener('click', function(e) {
-            if (!notiDropdown.contains(e.target) && e.target !== notiBellBtn) {
+            if (!notiDropdown.contains(e.target) && !notiBellBtn.contains(e.target)) {
                 notiDropdown.classList.remove('open');
             }
         });
+
+        const refreshNotiBtn = document.getElementById('refreshNotiBtn');
+        if (refreshNotiBtn) {
+            refreshNotiBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (userId) fetchNotifications(userId, department, position);
+            });
+        }
     });
 
     async function fetchNotifications(userId, department, position) {
@@ -636,21 +817,21 @@
             nextState[itemKey] = statusLower;
 
             html += `
-                <div class="noti-card ${cardClass}">
+                <a class="noti-card ${cardClass}" href="request-details-hr.html?id=${item.id}&type=${encodeURIComponent(item.type || '')}">
                     <div>
                         <p class="noti-card-title">${title}</p>
                         <p class="noti-card-formno">Form No: ${item.form_no || ''}</p>
                         <p class="noti-card-date">${item.time || ''}</p>
                     </div>
                     <span class="noti-status-pill ${pillClass}">${(item.status || 'Pending').toUpperCase()}</span>
-                </div>
+                </a>
             `;
         });
 
         notiListBody.innerHTML = html;
         previousNotiState = nextState;
 
-        if (hasNewOrChanged) {
+        if (hasNewOrChanged || pendingCount > 0) {
             notiBadge.classList.remove('noti-badge-pop');
             void notiBadge.offsetWidth;
             notiBadge.classList.add('noti-badge-pop');

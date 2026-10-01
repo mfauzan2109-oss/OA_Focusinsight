@@ -26,18 +26,31 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #bcdbe5;
+            background-color: #aedce2;
             margin: 0;
             display: flex;
             min-height: 100vh;
+            color: #1e293b;
         }
 
         .main-content {
             margin-left: 250px;
             flex-grow: 1;
-            padding: 24px 32px;
+            padding: 0;
             width: calc(100% - 250px);
         }
+        .page-body { padding: 24px 32px; }
+
+        /* --- TOP BAR (same as the other HR pages) --- */
+        .top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            padding: 14px 24px; margin-bottom: 0; width: 100%; box-sizing: border-box;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .header-title h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 0; }
+        .top-bar-divider { width: 1px; height: 24px; background-color: #e2e8f0; margin: 0 4px; }
 
         .sidebar-section-title {
             font-size: 11px;
@@ -278,6 +291,40 @@
             background-color: #1d4ed8;
         }
 
+        /* --- SEARCH PILL (same as departments.html) --- */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-pill {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-pill i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .search-pill input {
+            padding: 7px 16px 7px 34px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 12px;
+            width: 200px;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        /* Highlight a config section matched by the header search */
+        .config-section.search-hidden { display: none; }
+
         /* --- NOTIFICATION BELL & DROPDOWN --- */
         .notification-container { position: relative; }
 
@@ -418,10 +465,10 @@
             <a href="user-management.html" class="nav-item active"><i class='bx bx-user-check'></i> Administration</a>
             <a href="hr-processing.html" class="nav-item"><i class='bx bx-time-five'></i> HR Processing</a>
             <a href="reports.html" class="nav-item"><i class='bx bx-briefcase'></i> Reports</a>
-            <a href="hr-operations.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
+            <a href="hr-operation.html" class="nav-item "><i class='bx bx-briefcase'></i> HR Operations</a>
 
             <div class="sidebar-section-title">My Workspace</div>
-           <a href="application-form-hr.html" class="nav-item active"><i class='bx bx-file'></i> Application Form</a>
+           <a href="application-form-hr.html" class="nav-item"><i class='bx bx-file'></i> Application Form</a>
             <a href="/hr/my-request-hr.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
         </nav>
 
@@ -435,13 +482,13 @@
 
         <!-- HEADER TOP BAR -->
         <header class="top-header">
-            <h1>Administration</h1>
-            <div class="header-right">
-                <div class="search-box-wrapper">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Search request">
-                    </div>
+            <div class="header-title">
+                <h1>Administration</h1>
+            </div>
+            <div class="header-actions">
+                <div class="search-pill">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search settings..." autocomplete="off">
                 </div>
 
                 <div class="notification-container">
@@ -457,11 +504,15 @@
                     </div>
                 </div>
 
+                <div class="top-bar-divider"></div>
+
                 <a href="profile-hr.html" style="text-decoration: none;">
                     <div class="avatar-circle" id="topAvatar">CJ</div>
                 </a>
             </div>
         </header>
+
+        <div class="page-body">
 
         <!-- ADMINISTRATION TABS -->
         <div class="admin-nav-tabs">
@@ -473,7 +524,7 @@
 
         <!-- MAIN CARD CONTAINER -->
         <section class="admin-card">
-            <h2 class="card-title">System Configuration</h2>
+            <h2 class="card-title">Company Info</h2>
 
             <form id="systemConfigForm">
 
@@ -769,6 +820,7 @@ Website : https://fortuntechmy.com/</textarea>
             </form>
         </section>
 
+        </div>
     </main>
 
     <script>
@@ -833,10 +885,22 @@ Website : https://fortuntechmy.com/</textarea>
             alert('System configuration settings saved successfully!');
         });
 
+        // --- SEARCH: filter config sections by their field label ---
+        const headerSearch = document.getElementById('searchInput');
+        function applyConfigSearch() {
+            const term = headerSearch ? headerSearch.value.toLowerCase().trim() : '';
+            document.querySelectorAll('.config-section').forEach(section => {
+                const label = section.querySelector('.section-label');
+                const text = label ? label.textContent.toLowerCase() : '';
+                section.classList.toggle('search-hidden', term !== '' && !text.includes(term));
+            });
+        }
+        if (headerSearch) headerSearch.addEventListener('input', applyConfigSearch);
+
         // --- NOTIFICATIONS ---
         if (userId) {
             fetchNotifications(userId, department, position);
-            setInterval(() => fetchNotifications(userId, department, position), 15000);
+            setInterval(() => fetchNotifications(userId, department, position), 5000);
         } else {
             document.getElementById('notiListBody').innerHTML = `<div style="padding: 12px; text-align: center; color: #64748b; font-size: 13px;">Log in to see notifications</div>`;
         }
@@ -946,7 +1010,7 @@ Website : https://fortuntechmy.com/</textarea>
         notiListBody.innerHTML = html;
         previousNotiState = nextState;
 
-        if (hasNewOrChanged) {
+        if (hasNewOrChanged || pendingCount > 0) {
             notiBadge.classList.remove('noti-badge-pop');
             void notiBadge.offsetWidth;
             notiBadge.classList.add('noti-badge-pop');
