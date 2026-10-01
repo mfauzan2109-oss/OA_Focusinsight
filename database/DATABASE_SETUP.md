@@ -54,7 +54,6 @@ already applied.
 - `sql/leave_date_entries_migration.sql` — adds `Date Entries` to `leave`
 - `sql/hiring_approvals_migration.sql` — adds `employment_period` to `hiring_approvals` (run-once)
 - `sql/probation_assessment_migration.sql` — adds assessment columns to `probation_confirmations` (run-once)
-- `sql/probation_confirmations_migration.sql` — additional columns on `probation_confirmations`
 - `sql/resignations_migration.sql` — adds `requested_by_name`, `requester_position` to `resignations`
 - `sql/salary_adjustments_next_position.sql` — adds `next_position` to `salary_adjustments`
 - `sql/loan_remove_repayment_salary.sql` — **existing databases only.** A fresh database already has the updated `loans` schema from `base_schema.sql`; running this against a fresh database is unnecessary but harmless.
