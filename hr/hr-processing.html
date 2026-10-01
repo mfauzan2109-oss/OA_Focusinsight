@@ -27,6 +27,7 @@
             margin: 0;
             display: flex;
             min-height: 100vh;
+            color: #1e293b;
         }
 
         .main-content {
@@ -1387,7 +1388,7 @@
             <div class="header-actions">
                 <div class="search-pill">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search request">
+                    <input type="text" id="searchInput" placeholder="Search request">
                 </div>
                 <div class="notification-container">
                     <button class="noti-bell-btn" id="notiBellBtn">
@@ -1493,6 +1494,10 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             loadLists();
+
+            // --- SEARCH / FILTER REQUEST LISTS ---
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.addEventListener('input', applyRequestSearch);
 
             const userId = sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '';
             const username = sessionStorage.getItem('username') || '';
@@ -1609,6 +1614,14 @@
                             if (unreadCount > 0) {
                                 notiBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
                                 notiBadge.style.display = 'flex';
+                                notiBadge.classList.remove('noti-badge-pop');
+                                void notiBadge.offsetWidth;
+                                notiBadge.classList.add('noti-badge-pop');
+                                if (notiBellBtn) {
+                                    notiBellBtn.classList.remove('noti-bell-shake');
+                                    void notiBellBtn.offsetWidth;
+                                    notiBellBtn.classList.add('noti-bell-shake');
+                                }
                             } else {
                                 notiBadge.style.display = 'none';
                             }
@@ -1755,6 +1768,35 @@
             return result.filter(Boolean);
         }
 
+        // Filter the request cards in both lists by name, request type, form no. or HOD
+        function applyRequestSearch() {
+            const input = document.getElementById('searchInput');
+            const query = input ? input.value.trim().toLowerCase() : '';
+            ['approvalListContainer', 'bookingListContainer'].forEach(id => {
+                const container = document.getElementById(id);
+                if (!container) return;
+                const rows = Array.from(container.querySelectorAll('.request-item'));
+                let visible = 0;
+                rows.forEach(row => {
+                    const match = !query || row.textContent.toLowerCase().includes(query);
+                    row.style.display = match ? 'flex' : 'none';
+                    if (match) visible++;
+                });
+                let note = container.querySelector('.search-no-match');
+                if (query && rows.length > 0 && visible === 0) {
+                    if (!note) {
+                        note = document.createElement('div');
+                        note.className = 'search-no-match';
+                        note.style.cssText = 'padding:12px; font-size:12px; color:#94a3b8;';
+                        note.textContent = 'No matching requests';
+                        container.appendChild(note);
+                    }
+                } else if (note) {
+                    note.remove();
+                }
+            });
+        }
+
         function renderItems(containerId, items, countId, isBookingList) {
             document.getElementById(countId).innerText = `${items.length} Request awaiting action`;
             const container = document.getElementById(containerId);
@@ -1790,6 +1832,7 @@
                     </div>
                 `;
             }).join('');
+            applyRequestSearch();
         }
 
         // 2. Select Request & Dynamically Bind Database Payload
