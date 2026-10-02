@@ -552,6 +552,29 @@
             color: #2563eb;
             text-decoration: none;
         }
+
+        /* ---- Header search: static size + general search dropdown ---- */
+        .search-box { position: relative; width: 280px; flex: 0 0 280px; }
+        .search-box:focus-within, .search-box input:focus { width: 280px; flex-basis: 280px; transform: none; }
+        .search-box input { width: 100%; min-width: 0; }
+        .search-results-dropdown {
+            position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: #ffffff;
+            border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-height: 340px; overflow-y: auto; z-index: 1000; display: none;
+        }
+        .search-results-dropdown.active { display: block; }
+        .search-result-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px;
+            text-decoration: none; color: #0f172a; border-bottom: 1px solid #f1f5f9; transition: background-color 0.15s;
+        }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:hover, .search-result-item.kbd { background-color: #f8fafc; }
+        .search-result-title { font-size: 13px; font-weight: 600; }
+        .search-result-sub { font-size: 11px; color: #64748b; }
+        .search-status { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; white-space: nowrap; background: #fef3c7; color: #d97706; }
+        .search-status.approved { background: #d1fae5; color: #16a34a; }
+        .search-status.rejected { background: #fee2e2; color: #dc2626; }
+        .search-count { padding: 8px 14px; font-size: 11px; color: #94a3b8; border-bottom: 1px solid #f1f5f9; }
     </style>
 </head>
 <body>
@@ -601,7 +624,8 @@
             <div class="header-actions">
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="headerSearchInput" placeholder="Search request">
+                    <input type="text" id="headerSearchInput" placeholder="Search request" autocomplete="off">
+                    <div class="search-results-dropdown" id="searchResults"></div>
                 </div>
 
                 <!-- NOTIFICATION BELL + DROPDOWN (data comes from /api/notifications) -->
@@ -911,6 +935,80 @@
 
         fetchNotifications();
         setInterval(fetchNotifications, 5000);
+
+        /* ==============================================================
+           GENERAL SEARCH (all of my requests: ID, type, status, date, project, amount, reason...)
+           ============================================================== */
+        (function initGeneralSearch() {
+            const input = document.getElementById('headerSearchInput');
+            const box = document.getElementById('searchResults');
+            if (!input || !box) return;
+            let all = [], loadedAt = 0, loading = null, active = -1;
+
+            async function load() {
+                if (Date.now() - loadedAt < 30000 && all.length) return;
+                if (loading) return loading;
+                loading = fetch(`${API_BASE}/api/my-requests?employee_id=${encodeURIComponent(userId)}`)
+                    .then(r => r.json())
+                    .then(j => { all = (j.success && Array.isArray(j.data)) ? j.data : []; loadedAt = Date.now(); })
+                    .catch(e => console.error('Search load failed:', e))
+                    .finally(() => { loading = null; });
+                return loading;
+            }
+
+            const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const formId = it => `REQ-${String(it.request_type || 'Leave').toUpperCase()}-${String(it.id).padStart(3, '0')}`;
+            const haystack = it => {
+                const parts = [formId(it)];
+                Object.keys(it).forEach(k => {
+                    const v = it[k];
+                    if (v !== null && v !== undefined && typeof v !== 'object') parts.push(String(v));
+                });
+                return parts.join(' ').toLowerCase();
+            };
+
+            function render() {
+                const q = input.value.trim().toLowerCase();
+                active = -1;
+                if (!q) { box.innerHTML = ''; box.classList.remove('active'); return; }
+                const tokens = q.split(/\s+/);
+                const hits = all.filter(it => { const h = haystack(it); return tokens.every(t => h.includes(t)); });
+                if (!hits.length) {
+                    box.innerHTML = '<div style="padding: 12px; text-align: center; color: #64748b; font-size: 12px;">No matching requests found</div>';
+                } else {
+                    box.innerHTML = `<div class="search-count">${hits.length} result${hits.length > 1 ? 's' : ''}</div>` + hits.slice(0, 8).map(it => {
+                        const type = it.request_type || 'Leave';
+                        const st = String(it.status || 'Pending');
+                        const cls = /approv/i.test(st) ? 'approved' : /reject/i.test(st) ? 'rejected' : '';
+                        const sub = [it.date_submitted || it.created_at, it.proj_name || it.project_name].filter(Boolean).join(' · ');
+                        return `<a href="request-details-hr.html?id=${encodeURIComponent(it.id)}&type=${encodeURIComponent(type)}" class="search-result-item">
+                            <div><div class="search-result-title">${esc(formId(it))} - ${esc(type)}</div><div class="search-result-sub">${esc(sub || '—')}</div></div>
+                            <span class="search-status ${cls}">${esc(st)}</span></a>`;
+                    }).join('');
+                }
+                box.classList.add('active');
+            }
+
+            input.addEventListener('focus', () => { load().then(render); });
+            input.addEventListener('input', () => { load().then(render); });
+            input.addEventListener('keydown', e => {
+                const items = Array.from(box.querySelectorAll('.search-result-item'));
+                if (e.key === 'Escape') { box.classList.remove('active'); input.blur(); return; }
+                if (!items.length) return;
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    active = (active + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+                    items.forEach((el, i) => el.classList.toggle('kbd', i === active));
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    (items[active] || items[0]).click();
+                }
+            });
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.search-box')) box.classList.remove('active');
+            });
+        })();
+
 
         const expenseTableBody = document.getElementById('expenseTableBody');
         const addRowBtn = document.getElementById('addRowBtn');
