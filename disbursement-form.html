@@ -155,6 +155,20 @@
             background-color: #f8fafc !important;
         }
 
+        .recurring-table { min-width: 900px; }
+        .expenses-table input[type="checkbox"] {
+            width: 18px !important;
+            height: 18px;
+            padding: 0 !important;
+            cursor: pointer;
+            accent-color: #0b46be;
+        }
+        .expenses-table input.rec-amount {
+            text-align: right;
+            font-weight: 700;
+            background-color: #f8fafc !important;
+        }
+
         .nav-item .nav-badge {
             margin-left: auto;
             background-color: #f97316;
@@ -676,6 +690,38 @@
                     </div>
                 </div>
 
+                <div class="form-section" id="sectionRecurring">
+                    <div class="section-trigger-row">
+                        <span class="form-section-title">Recurring Expenses</span>
+                        <button type="button" class="btn-add-row" id="addRecurringBtn"><i class='bx bx-plus'></i> Add Row</button>
+                    </div>
+
+                    <div class="expenses-table-wrapper">
+                        <table class="expenses-table recurring-table" id="recurringTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;">No.</th>
+                                    <th style="width: 140px;">Date</th>
+                                    <th style="width: 130px;">On-Site Allowance<br>RM 25 / day</th>
+                                    <th style="width: 130px;">1st Bridge Toll Fee<br>RM 4.60</th>
+                                    <th style="width: 130px;">2nd Bridge Toll Fee<br>RM 5.74</th>
+                                    <th style="width: 110px;">Parking Fee</th>
+                                    <th style="width: 110px;">Amount</th>
+                                    <th style="width: 150px;">Remark</th>
+                                    <th style="width: 50px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="total-claim-container">
+                        <span>TOTAL CLAIM AMOUNT</span>
+                        <input type="text" class="total-claim-input" id="recurringTotalAmount" value="0.00" readonly>
+                    </div>
+                </div>
+
                 <div class="form-section" id="sectionDoc">
                     <span class="form-section-title">Supporting Document (if applicable)</span>
                     <div class="upload-dropzone" id="dropzone">
@@ -977,6 +1023,138 @@
             const totalClaimInput = document.getElementById('totalClaimAmount');
             const form = document.getElementById('disbursementForm');
 
+            // ==========================================
+            // RECURRING EXPENSES (on-site allowance, bridge tolls, parking)
+            // ==========================================
+            const RECURRING_RATES = { allowance: 25, toll1: 4.60, toll2: 5.74 };
+            const recBody = document.querySelector('#recurringTable tbody');
+            const addRecurringBtn = document.getElementById('addRecurringBtn');
+            const recTotalInput = document.getElementById('recurringTotalAmount');
+
+            function calcRecurringRow(row) {
+                let amt = 0;
+                if (row.querySelector('.rec-allowance')?.checked) amt += RECURRING_RATES.allowance;
+                if (row.querySelector('.rec-toll1')?.checked) amt += RECURRING_RATES.toll1;
+                if (row.querySelector('.rec-toll2')?.checked) amt += RECURRING_RATES.toll2;
+                amt += parseFloat(row.querySelector('.rec-parking')?.value) || 0;
+                const out = row.querySelector('.rec-amount');
+                if (out) out.value = amt.toFixed(2);
+                return amt;
+            }
+
+            function calculateRecurringTotal() {
+                let total = 0;
+                recBody.querySelectorAll('tr').forEach(row => { total += calcRecurringRow(row); });
+                recTotalInput.value = total.toFixed(2);
+            }
+
+            function hasRecurringEntries() {
+                return Array.from(recBody.querySelectorAll('tr')).some(row => calcRecurringRow(row) > 0);
+            }
+
+            // Expense rows are only mandatory when there is nothing claimed under Recurring
+            // Expenses (so a recurring-only claim can be submitted). A row that has been
+            // started must still be completed.
+            function syncExpenseRequired() {
+                const relax = hasRecurringEntries();
+                tableBody.querySelectorAll('tr').forEach(row => {
+                    const inputs = Array.from(row.querySelectorAll('.inv-date, .inv-no, .sup-name, .exp-desc, .amount-field'));
+                    const touched = inputs.some(i => i.value.trim() !== '');
+                    inputs.forEach(i => { i.required = touched || !relax; });
+                });
+            }
+
+            function reindexRecurringRows() {
+                recBody.querySelectorAll('tr').forEach((row, i) => {
+                    const n = row.querySelector('.rec-num');
+                    if (n) n.textContent = i + 1;
+                });
+            }
+
+            function addRecurringRow(data = {}) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                            <td class="center-align rec-num">1</td>
+                            <td><input type="date" class="rec-date"></td>
+                            <td class="center-align"><input type="checkbox" class="rec-allowance"></td>
+                            <td class="center-align"><input type="checkbox" class="rec-toll1"></td>
+                            <td class="center-align"><input type="checkbox" class="rec-toll2"></td>
+                            <td><input type="number" step="0.01" min="0" class="rec-parking" placeholder="0.00"></td>
+                            <td><input type="text" class="rec-amount" value="0.00" readonly></td>
+                            <td><input type="text" class="rec-remark" placeholder="Optional remark"></td>
+                            <td class="center-align">
+                                <button type="button" class="btn-delete-row" title="Delete Row"><i class='bx bx-trash'></i></button>
+                            </td>
+                        `;
+                tr.querySelector('.rec-date').value = data.date || '';
+                tr.querySelector('.rec-allowance').checked = !!data.allowance;
+                tr.querySelector('.rec-toll1').checked = !!data.toll1;
+                tr.querySelector('.rec-toll2').checked = !!data.toll2;
+                tr.querySelector('.rec-parking').value = data.parking || '';
+                tr.querySelector('.rec-remark').value = data.remark || '';
+                recBody.appendChild(tr);
+                reindexRecurringRows();
+                calculateRecurringTotal();
+            }
+
+            // Turns each filled recurring row into one claim item so the existing
+            // /api/submit-disbursement payload (items + total_amount) keeps working.
+            function collectRecurringItems() {
+                const items = [];
+                let invalid = false;
+                recBody.querySelectorAll('tr').forEach(row => {
+                    const amount = calcRecurringRow(row);
+                    const date = row.querySelector('.rec-date')?.value || '';
+                    if (amount <= 0 && !date) return;               // untouched row
+                    if (amount <= 0 || !date) { invalid = true; return; }
+
+                    const parts = [];
+                    if (row.querySelector('.rec-allowance')?.checked) parts.push(`On-Site Allowance (RM${RECURRING_RATES.allowance.toFixed(2)})`);
+                    if (row.querySelector('.rec-toll1')?.checked) parts.push(`1st Bridge Toll Fee (RM${RECURRING_RATES.toll1.toFixed(2)})`);
+                    if (row.querySelector('.rec-toll2')?.checked) parts.push(`2nd Bridge Toll Fee (RM${RECURRING_RATES.toll2.toFixed(2)})`);
+                    const parking = parseFloat(row.querySelector('.rec-parking')?.value) || 0;
+                    if (parking > 0) parts.push(`Parking Fee (RM${parking.toFixed(2)})`);
+
+                    items.push({
+                        invoice_date: date,
+                        invoice_no: 'RECURRING',
+                        supplier_name: 'N/A',
+                        description: 'Recurring: ' + parts.join(', '),
+                        amount: amount.toFixed(2),
+                        remark: row.querySelector('.rec-remark')?.value || ''
+                    });
+                });
+                return { items, invalid };
+            }
+
+            recBody.addEventListener('input', calculateRecurringTotal);
+            recBody.addEventListener('change', calculateRecurringTotal);
+
+            recBody.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-delete-row');
+                if (!btn) return;
+                const row = btn.closest('tr');
+                if (recBody.querySelectorAll('tr').length > 1) {
+                    row.remove();
+                } else {
+                    // Recurring expenses are optional: clear the last row instead of blocking
+                    row.querySelectorAll('input').forEach(i => {
+                        if (i.type === 'checkbox') i.checked = false;
+                        else if (!i.readOnly) i.value = '';
+                    });
+                }
+                reindexRecurringRows();
+                calculateRecurringTotal();
+                syncExpenseRequired();
+                saveFormDraft();
+            });
+
+            addRecurringBtn.addEventListener('click', function () {
+                addRecurringRow();
+                syncExpenseRequired();
+                saveFormDraft();
+            });
+
             function calculateTotal() {
                 let total = 0;
                 const amountFields = document.querySelectorAll('.amount-field');
@@ -1010,6 +1188,7 @@
                     </td>
                 `;
                 tableBody.appendChild(newRow);
+                syncExpenseRequired();
             }
 
             const DRAFT_KEY = `draft_${formattedUserId}_disbursementForm`;
@@ -1041,6 +1220,18 @@
                         remark: row.querySelector('.exp-remark')?.value || ''
                     };
                     draftData.items.push(item);
+                });
+
+                draftData.recurring = [];
+                form.querySelectorAll('#recurringTable tbody tr').forEach(row => {
+                    draftData.recurring.push({
+                        date: row.querySelector('.rec-date')?.value || '',
+                        allowance: !!row.querySelector('.rec-allowance')?.checked,
+                        toll1: !!row.querySelector('.rec-toll1')?.checked,
+                        toll2: !!row.querySelector('.rec-toll2')?.checked,
+                        parking: row.querySelector('.rec-parking')?.value || '',
+                        remark: row.querySelector('.rec-remark')?.value || ''
+                    });
                 });
 
                 localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
@@ -1091,8 +1282,29 @@
 
             loadFormDraft();
 
+            // Restore (or start) the Recurring Expenses rows
+            (function initRecurringRows() {
+                let saved = [];
+                try {
+                    saved = (JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}').recurring) || [];
+                } catch (e) { saved = []; }
+                recBody.innerHTML = '';
+                if (saved.length) {
+                    saved.forEach(r => addRecurringRow(r));
+                    if (draftNotice && saved.some(r => r.date || r.allowance || r.toll1 || r.toll2 || r.parking || r.remark)) {
+                        draftNotice.style.display = 'block';
+                    }
+                } else {
+                    addRecurringRow();
+                }
+                calculateTotal();
+                syncExpenseRequired();
+            })();
+
             form.addEventListener('input', saveFormDraft);
             form.addEventListener('change', saveFormDraft);
+            form.addEventListener('input', syncExpenseRequired);
+            form.addEventListener('change', syncExpenseRequired);
 
             tableBody.addEventListener('input', function(e) {
                 if (e.target.classList.contains('amount-field')) {
@@ -1261,6 +1473,22 @@
                         });
                     }
                 });
+
+                // Recurring Expenses -> one claim item per filled row
+                const recurring = collectRecurringItems();
+                if (recurring.invalid) {
+                    alert('Recurring Expenses: each row needs a Date and at least one expense (allowance, toll or parking).');
+                    return;
+                }
+                recurring.items.forEach(item => itemsArray.push(item));
+
+                if (itemsArray.length === 0) {
+                    alert('Please add at least one expense or recurring expense.');
+                    return;
+                }
+
+                const grandTotal = itemsArray.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+                formData.set('total_amount', grandTotal.toFixed(2));
 
                 formData.append('items', JSON.stringify(itemsArray));
 
