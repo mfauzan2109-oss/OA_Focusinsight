@@ -1085,6 +1085,10 @@
             line-height: 1.4;
             flex-shrink: 0;
         }
+        .tl-time-empty {
+            color: #94a3b8;
+            font-style: italic;
+        }
         @media (max-width: 900px) {
             .travel-grid {
                 grid-template-columns: 1fr;
@@ -2224,6 +2228,42 @@
             return out;
         }
 
+        // Builds the full timeline: Initiator -> every real stage from the database -> CC.
+        // Falls back to the expected route when the backend sends no stage history.
+        function tvBuildTimeline(routeKey, steps, data, statusRaw) {
+            if (!steps.length) return tvExpectedSteps(routeKey, data, statusRaw);
+
+            const route = APPROVAL_ROUTES[routeKey === 'loan' ? 'disbursement' : routeKey];
+            const overall = statusRaw.startsWith('APPROVE') ? 'approved'
+                : statusRaw.startsWith('REJECT') ? 'rejected' : 'pending';
+
+            const out = [{
+                approver_role: 'Initiator',
+                acted_by: data.employee_name || data['Employee Name'] || 'Initiator',
+                status: 'approved',
+                acted_at: data.created_at || data['Created At'],
+                _sub: 'Initiator · Submitted',
+                _meta: true
+            }];
+
+            steps.forEach((st, i) => {
+                const role = st.approver_role || st.step_label || 'Approver';
+                out.push(Object.assign({}, st, { _sub: `${role} · Stage ${i + 1}` }));
+            });
+
+            if (route) {
+                out.push({
+                    approver_role: 'CC',
+                    acted_by: `CC: ${route.cc.join(', ')}`,
+                    status: overall === 'approved' ? 'approved' : 'waiting',
+                    _sub: 'End of workflow',
+                    _stateLabel: 'Notified',
+                    _meta: true
+                });
+            }
+            return out;
+        }
+
         // ---- Shared: approval timeline (used by Travel and Overtime) ----
         function tvRenderTimeline(timeline, steps, data, statusRaw) {
             timeline.replaceChildren();
@@ -2279,7 +2319,14 @@
 
                 const when = step.acted_at ? tvFormatDate(step.acted_at) : { date: '', time: '' };
                 const time = tvEl('div', 'tl-time');
-                if (when.date) { time.appendChild(tvEl('div', '', when.date)); time.appendChild(tvEl('div', '', when.time)); }
+                if (when.date) {
+                    time.appendChild(tvEl('div', '', when.date));
+                    time.appendChild(tvEl('div', '', when.time));
+                    time.title = new Date(step.acted_at).toLocaleString('en-GB');
+                } else {
+                    // Stage not acted on yet: keep the column filled so every stage shows a date/time slot
+                    time.appendChild(tvEl('div', 'tl-time-empty', state === 'pending' ? 'Awaiting action' : '—'));
+                }
 
                 item.append(dotEl, main, time);
                 timeline.appendChild(item);
@@ -2858,7 +2905,7 @@
             // Approval timeline (roles/thresholds only; names come from the backend's approval_steps)
             const routeKey = { leave: 'leave', overtime: 'overtime', disb: 'disbursement', loan: 'loan' }[kind];
             const api = Array.isArray(req.approval_steps) ? req.approval_steps : [];
-            const steps = api.length ? api : (routeKey ? tvExpectedSteps(routeKey, req, statusRaw) : []);
+            const steps = routeKey ? tvBuildTimeline(routeKey, api, req, statusRaw) : api;
             tvRenderTimeline(document.getElementById('rdTimeline'), steps, Object.assign({}, req, kind === 'travel' ? { _bookedLabel: 'Booked' } : {}), statusRaw);
 
             hrpActions();
