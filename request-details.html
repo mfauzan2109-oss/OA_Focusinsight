@@ -2820,6 +2820,42 @@
             return out;
         }
 
+        // Builds the full timeline: Initiator -> every real stage from the database -> CC.
+        // Falls back to the expected route when the backend sends no stage history.
+        function tvBuildTimeline(routeKey, steps, data, statusRaw) {
+            if (!steps.length) return tvExpectedSteps(routeKey, data, statusRaw);
+
+            const route = APPROVAL_ROUTES[routeKey === 'loan' ? 'disbursement' : routeKey];
+            const overall = statusRaw.startsWith('APPROVE') ? 'approved'
+                : statusRaw.startsWith('REJECT') ? 'rejected' : 'pending';
+
+            const out = [{
+                approver_role: 'Initiator',
+                acted_by: data.employee_name || data['Employee Name'] || 'Initiator',
+                status: 'approved',
+                acted_at: data.created_at || data['Created At'],
+                _sub: 'Initiator · Submitted',
+                _meta: true
+            }];
+
+            steps.forEach((st, i) => {
+                const role = st.approver_role || st.step_label || 'Approver';
+                out.push(Object.assign({}, st, { _sub: `${role} · Stage ${i + 1}` }));
+            });
+
+            if (route) {
+                out.push({
+                    approver_role: 'CC',
+                    acted_by: `CC: ${route.cc.join(', ')}`,
+                    status: overall === 'approved' ? 'approved' : 'waiting',
+                    _sub: 'End of workflow',
+                    _stateLabel: 'Notified',
+                    _meta: true
+                });
+            }
+            return out;
+        }
+
         // ---- Shared: approval timeline (used by Travel and Overtime) ----
         function tvRenderTimeline(timeline, steps, data, statusRaw) {
             timeline.replaceChildren();
@@ -3356,7 +3392,7 @@
             const steps = Array.isArray(data.approval_steps) ? data.approval_steps : [];
 
             if (isLoan) {
-                const timelineSteps = steps.length ? steps : tvExpectedSteps('loan', data, statusRaw);
+                const timelineSteps = tvBuildTimeline('loan', steps, data, statusRaw);
                 tvApplySummary(data, statusRaw, timelineSteps.filter(x => !x._meta), 'Loan Request', false);
                 window._ln = null;
                 renderLoanForm(data, false);
@@ -3381,7 +3417,7 @@
             }
 
             if (isDisb) {
-                const timelineSteps = steps.length ? steps : tvExpectedSteps('disbursement', data, statusRaw);
+                const timelineSteps = tvBuildTimeline('disbursement', steps, data, statusRaw);
                 tvApplySummary(data, statusRaw, timelineSteps.filter(x => !x._meta), 'Disbursement Request', false);
                 window._db = null;
                 renderDisbForm(data, false);
@@ -3406,7 +3442,7 @@
             }
 
             if (isLeave) {
-                const timelineSteps = steps.length ? steps : tvExpectedSteps('leave', data, statusRaw);
+                const timelineSteps = tvBuildTimeline('leave', steps, data, statusRaw);
                 tvApplySummary(data, statusRaw, timelineSteps.filter(x => !x._meta), 'Leave Request', false);
                 window._lv = null;
                 renderLeaveForm(data, false);
@@ -3432,7 +3468,7 @@
 
             if (isOvertime) {
                 // Backend history wins; otherwise show the expected route for this request
-                const timelineSteps = steps.length ? steps : tvExpectedSteps('overtime', data, statusRaw);
+                const timelineSteps = tvBuildTimeline('overtime', steps, data, statusRaw);
                 // "Stage x of y" counts approval stages only (not the Initiator / CC rows)
                 tvApplySummary(data, statusRaw, timelineSteps.filter(x => !x._meta), 'Overtime Claim', false);
                 renderOvertimeForm(data);

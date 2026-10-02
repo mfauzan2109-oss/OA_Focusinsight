@@ -1636,6 +1636,33 @@ router.post(
     }
 );
 
+// Loads the real per-stage approval history so the Approval Timeline shows who
+// approved each stage and when (read straight from the database).
+// Leave is confirmed: `leave_approval_steps` / `leave_id`. Overtime and
+// Disbursement follow the same naming convention; if a table or column doesn't
+// exist, we fall back to [] and the page keeps its expected-route timeline.
+// (Travel and Loan already load their steps inline below.)
+const APPROVAL_STEP_TYPES = ['leave', 'overtime', 'disbursement'];
+
+function attachApprovalSteps(record, reqType, done) {
+    const key = APPROVAL_STEP_TYPES.find(t => reqType.includes(t));
+    const requestId = record.ID || record.id;
+    if (!key || !requestId) return done();
+
+    const sql = `SELECT step_order, step_label, approver_role, status, acted_by, acted_at, remarks
+        FROM \`${key}_approval_steps\` WHERE \`${key}_id\` = ? ORDER BY step_order ASC`;
+
+    db.query(sql, [requestId], (stepErr, rows) => {
+        if (stepErr) {
+            console.error(`[approval_steps] ${key} (id ${requestId}):`, stepErr.code || stepErr.message);
+            record.approval_steps = [];
+        } else {
+            record.approval_steps = rows || [];
+        }
+        done();
+    });
+}
+
 router.get('/api/request-details', requireLogin, (req, res) => {
     const { id, type } = req.query;
 
@@ -1778,7 +1805,7 @@ router.get('/api/request-details', requireLogin, (req, res) => {
             const childQuery = `SELECT * FROM \`disbursement_items\` WHERE disbursement_id = ?`;
             db.query(childQuery, [record.id], (childErr, itemResults) => {
                 record.items = itemResults || [];
-                return res.json({ success: true, data: record });
+                attachApprovalSteps(record, reqType, () => res.json({ success: true, data: record }));
             });
         }
         // 4. Parse assigned employees for Travel requests
@@ -1864,9 +1891,9 @@ router.get('/api/request-details', requireLogin, (req, res) => {
             );
         }
 
-        // 5. Standard return for Leave, Overtime, and Loans
+        // 5. Leave and Overtime: attach approval history; other types return as before
         else {
-            return res.json({ success: true, data: record });
+            return attachApprovalSteps(record, reqType, () => res.json({ success: true, data: record }));
         }
     });
 });
