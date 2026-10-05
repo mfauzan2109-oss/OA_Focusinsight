@@ -380,6 +380,23 @@ router.get('/api/users', (req, res) => {
     });
 });
 
+// Approver names for the approval timeline (non-sensitive columns only).
+// The frontend matches each approval stage to a person by position + department.
+router.get('/api/approver-directory', (req, res) => {
+    const query = `
+        SELECT user_id, name, position, department
+        FROM users
+        WHERE position IN ('Manager', 'Project Manager', 'HR Specialist', 'VGM', 'CEO', 'Chairman')
+        ORDER BY user_id ASC`;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Approver Directory Error:', err);
+            return res.status(500).json({ success: false, message: 'Database error: ' + err.message });
+        }
+        return res.json({ success: true, data: results });
+    });
+});
+
 router.get('/api/next-employee-id', (req, res) => {
     // New staff use the FIS-XXXXXX format (6 random digits), matching the
     // format existing staff IDs were migrated to.

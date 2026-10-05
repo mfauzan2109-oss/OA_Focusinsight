@@ -888,7 +888,7 @@
                 const typeKey = (req.request_type || '').toLowerCase();
                 const detailUrl = `request-details-hr.html?id=${encodeURIComponent(req.id)}&type=${encodeURIComponent(typeKey)}`;
 
-                const reminderCell = statusClass === 'pending'
+                const reminderCell = (statusClass === 'pending' && !req._fromProbationApi)
                     ? `<button class="remind-btn" data-id="${escapeHtml(req.id)}" data-type="${escapeHtml(typeKey)}">Remind</button>`
                     : '<span style="color:#cbd5e1;">—</span>';
 
@@ -906,15 +906,49 @@
             });
         }
 
+        function formatProbationDate(value) {
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return value || '';
+            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // Probation confirmations submitted by this HR user.
+        // A failure here must never break the rest of the page.
+        function loadProbationRequests() {
+            return fetch(`${API_BASE}/api/probation-confirmations/my-requests`)
+                .then(r => r.json())
+                .then(result => (result && result.success && Array.isArray(result.data)) ? result.data : [])
+                .catch(err => {
+                    console.error('Probation requests load error:', err);
+                    return [];
+                });
+        }
+
         function loadMyRequests() {
             const url = `${API_BASE}/api/my-requests?employee_id=${encodeURIComponent(userId)}`;
 
-            return fetch(url)
+            const mainRequest = fetch(url)
                 .then(r => r.json())
                 .then(result => {
                     if (!result.success) throw new Error(result.message || 'Failed to load requests');
+                    return result.data || [];
+                });
 
-                    allRequests = (result.data || []).map(row => ({
+            return Promise.all([mainRequest, loadProbationRequests()])
+                .then(([rows, probationRows]) => {
+                    // If /api/my-requests already returns probation rows, don't add them twice.
+                    const alreadyIncluded = rows.some(r => /probation/i.test(r.request_type || ''));
+                    const extraRows = alreadyIncluded ? [] : probationRows.map(p => ({
+                        id: p.id,
+                        request_type: p.request_type,
+                        status: p.status,
+                        date_submitted: formatProbationDate(p.created_at || p.request_date),
+                        amount: '-',
+                        details: p.employee_name || '',
+                        _fromProbationApi: true
+                    }));
+
+                    allRequests = rows.concat(extraRows).map(row => ({
                         ...row,
                         // Same numbering convention the notification API uses,
                         // so a notification and its table row match by eye.
