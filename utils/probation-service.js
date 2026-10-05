@@ -89,6 +89,23 @@ async function submit(c, sessionId, body, attachment) {
         return { success: true, id: insert.insertId, status: 'Pending', message: 'Probation confirmation submitted.', current_step: { step_order: 1, approver_role: ROLES[0] } };
     } catch (error) { if (started) await c.rollback().catch(() => { }); throw error; }
 }
+// Names of the people who can act for a role. Same matching rules as resolveApproverRecipients
+// (p1-email.js) but without requiring an email address. Display only (approval timeline).
+async function approverNamesFor(c, role, department) {
+    const r = norm(role);
+    let where, params = [];
+    if (r === 'head of department') {
+        where = "LOWER(TRIM(position)) IN ('manager','head of department','hod') AND LOWER(TRIM(department)) = LOWER(TRIM(?))";
+        params = [department];
+    } else if (r === 'vgm' || r === 'ceo' || r === 'chairman') {
+        where = 'LOWER(TRIM(position)) = ?';
+        params = [r];
+    } else if (r === 'hr specialist') {
+        where = "LOWER(TRIM(position)) = 'hr specialist' AND LOWER(TRIM(department)) IN ('hr','human resources')";
+    } else return [];
+    const [rows] = await c.query(`SELECT name FROM users WHERE ${where} ORDER BY user_id`, params);
+    return rows.map(x => x.name).filter(Boolean);
+}
 async function details(c, sessionId, idValue) {
     const id = requestId(idValue), user = await freshUser(c, sessionId);
     const [rows] = await c.query(`
@@ -120,6 +137,25 @@ async function details(c, sessionId, idValue) {
     const [steps] = await c.query(`SELECT s.*,u.name AS acted_by_name FROM probation_approval_steps s
         LEFT JOIN users u ON u.user_id=s.acted_by WHERE s.probation_id=? ORDER BY s.step_order`, [id]);
     const current = record.status === 'Pending' ? validatePending(access, steps) : null;
+
+    // Approval timeline data. Every name comes from the database - nothing is hardcoded.
+    const [initiatorRows] = await c.query('SELECT name FROM users WHERE LOWER(user_id) = LOWER(?) LIMIT 1', [record.requested_by]);
+    const [ccRows] = await c.query(`SELECT u.user_id, u.name, u.position, u.department
+        FROM probation_cc_recipients r JOIN users u ON LOWER(u.user_id) = LOWER(r.user_id) ORDER BY r.user_id`);
+    const approvalSteps = [];
+    for (const s of steps) {
+        const notActedYet = !s.acted_by && ['Pending', 'Waiting'].includes(s.status);
+        approvalSteps.push({
+            ...s,
+            acted_by_id: s.acted_by || null,
+            acted_by: s.acted_by_name || s.acted_by || null,
+            approver_name: notActedYet ? (await approverNamesFor(c, s.approver_role, record.employee_department)).join(' / ') : ''
+        });
+    }
+    data.initiator_name = (initiatorRows[0] && initiatorRows[0].name) || record.requested_by || null;
+    data.approval_steps = approvalSteps;
+    data.cc_recipients = ccRows;
+
     return {
         success: true,
         id,
@@ -142,7 +178,9 @@ async function queue(c, sessionId) {
         p.employee_department AS department,p.status,p.recommendation,p.created_at,
         'Probation Confirmation' AS request_type,s.step_order,s.approver_role,s.status AS step_status
         FROM probation_confirmations p JOIN probation_approval_steps s ON s.probation_id=p.id
-        WHERE p.status='Pending' AND s.status='Pending' ORDER BY p.created_at DESC,p.id DESC`);
+        WHERE p.status='Pending' AND s.status='Pending'
+        AND LOWER(TRIM(s.approver_role)) <> 'head of department'
+        ORDER BY p.created_at DESC,p.id DESC`);
     return { success: true, data: rows.filter(r => canAct(user, r, { status: r.step_status, approver_role: r.approver_role })).map(r => ({ ...r, can_approve: true })) };
 }
 async function mine(c, sessionId) {
@@ -450,8 +488,9 @@ async function decide(connection, sessionUserId, idValue, body) {
 
 // ---------------------------------------------------------------------------
 // Manager / HOD probation ASSESSMENT (probation-confirmation-list.html and
-// probation-confirmation-detail.html). This step only SAVES the assessment;
-// approving/rejecting still happens in the Approval Queue via decide().
+// probation-confirmation-detail.html). Saving the assessment IS the HOD's approval step:
+// it completes step 1 and hands the request to the VGM. The HOD step never appears in
+// the Approval Queue; VGM, CEO, Chairman and HR Specialist still use the Approval Queue.
 // ---------------------------------------------------------------------------
 const ASSESSMENT_KEYS = [
     'job_knowledge', 'quality_of_work', 'work_productivity', 'communication_skills',
@@ -558,23 +597,65 @@ async function assess(c, sessionId, idValue, body) {
     if (!summary) throw problem(400, 'Comments supporting the recommendation are required.');
     if (summary.length > 10000) throw problem(400, 'Comments must be 10000 characters or fewer.');
 
-    const [rows] = await c.query('SELECT id, status, employee_department, total_points FROM probation_confirmations WHERE id = ?', [id]);
-    if (!rows.length) throw problem(404, 'Probation confirmation not found.');
-    const rec = rows[0];
-    if (norm(rec.employee_department) !== norm(user.department)) throw problem(403, 'This request belongs to a different department.');
-    if (rec.status !== 'Pending') throw problem(409, 'This request is already completed or rejected.');
-    if (rec.total_points !== null && rec.total_points !== undefined) throw problem(409, 'This request has already been assessed.');
+    let started = false, rec = null, next = null;
+    try {
+        await c.beginTransaction(); started = true;
+        const [rows] = await c.query('SELECT id, status, employee_department, total_points FROM probation_confirmations WHERE id = ? FOR UPDATE', [id]);
+        if (!rows.length) throw problem(404, 'Probation confirmation not found.');
+        rec = rows[0];
+        if (norm(rec.employee_department) !== norm(user.department)) throw problem(403, 'This request belongs to a different department.');
+        if (rec.status !== 'Pending') throw problem(409, 'This request is already completed or rejected.');
+        if (rec.total_points !== null && rec.total_points !== undefined) throw problem(409, 'This request has already been assessed.');
 
-    const setCols = ASSESSMENT_KEYS.map(k => `assessment_${k} = ?`).join(', ');
-    const [result] = await c.query(
-        `UPDATE probation_confirmations SET ${setCols}, total_points = ?, passing_points = ?,
-            overall_recommendation = ?, proposed_confirmation_date = ?, extended_probation_period = ?,
-            performance_summary = ?, assessed_by = ?, assessed_at = NOW()
-         WHERE id = ? AND status = 'Pending' AND total_points IS NULL`,
-        [...ASSESSMENT_KEYS.map(k => scores[k]), total, ASSESSMENT_PASSING_POINTS,
-            recommendation, proposedDate, extendedPeriod, summary, user.user_id, id]);
-    if (result.affectedRows !== 1) throw problem(409, 'This request has already been assessed.');
+        const setCols = ASSESSMENT_KEYS.map(k => `assessment_${k} = ?`).join(', ');
+        const [result] = await c.query(
+            `UPDATE probation_confirmations SET ${setCols}, total_points = ?, passing_points = ?,
+                overall_recommendation = ?, proposed_confirmation_date = ?, extended_probation_period = ?,
+                performance_summary = ?, assessed_by = ?, assessed_at = NOW()
+             WHERE id = ? AND status = 'Pending' AND total_points IS NULL`,
+            [...ASSESSMENT_KEYS.map(k => scores[k]), total, ASSESSMENT_PASSING_POINTS,
+                recommendation, proposedDate, extendedPeriod, summary, user.user_id, id]);
+        if (result.affectedRows !== 1) throw problem(409, 'This request has already been assessed.');
 
+        // The assessment is the HOD's approval step: complete it and activate the next approver.
+        // Requests created before approval steps existed have no steps and are left as they are.
+        const [steps] = await c.query('SELECT * FROM probation_approval_steps WHERE probation_id = ? ORDER BY step_order FOR UPDATE', [id]);
+        if (steps.length) {
+            const current = validatePending(rec, steps);
+            if (norm(current.approver_role) !== 'head of department') throw problem(409, 'The HOD step is not the current approval step.');
+            const [changed] = await c.query(
+                "UPDATE probation_approval_steps SET status = 'Approved', acted_by = ?, acted_at = NOW(), remarks = ? WHERE id = ? AND status = 'Pending'",
+                [user.user_id, 'Probation assessment completed', current.id]);
+            if (changed.affectedRows !== 1) throw problem(409, 'Approval step has already changed.');
+            next = steps.find(st => Number(st.step_order) === Number(current.step_order) + 1) || null;
+            if (next) {
+                const [activated] = await c.query("UPDATE probation_approval_steps SET status = 'Pending' WHERE id = ? AND status = 'Waiting'", [next.id]);
+                if (activated.affectedRows !== 1) throw problem(409, 'Next approval step could not be activated.');
+            }
+        }
+        await c.commit(); started = false;
+    } catch (error) { if (started) await c.rollback().catch(() => { }); throw error; }
+
+    // Email only AFTER the commit; an email failure must not undo the assessment.
+    if (next) {
+        try {
+            const recipients = await resolveApproverRecipients(c, next.approver_role, rec.employee_department);
+            if (!recipients.length) console.warn(`[EMAIL] No recipient found for ${next.approver_role} on REQ-PROBATION-${id}`);
+            for (const recipient of recipients) {
+                await sendEmail({
+                    to: recipient.email,
+                    subject: `Approval Required: REQ-PROBATION-${id}`,
+                    text: `Hi ${recipient.name || recipient.user_id},\n\n` +
+                        `A Probation Confirmation request requires your approval.\n` +
+                        `Request: REQ-PROBATION-${id}\n` +
+                        `Role: ${next.approver_role}\n\n` +
+                        `Please log in to the FocusInsight OA System to review the request.`
+                });
+            }
+        } catch (emailError) {
+            console.error('[EMAIL] Probation next approver notification failed:', emailError.message);
+        }
+    }
     return { success: true, id, total_points: total, passing_points: ASSESSMENT_PASSING_POINTS, passed: total >= ASSESSMENT_PASSING_POINTS };
 }
 

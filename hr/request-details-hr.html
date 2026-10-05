@@ -1721,7 +1721,8 @@
 
             <div class="card">
                 <div class="card-header-sm"><i class="fa-solid fa-timeline"></i> Approval Timeline</div>
-                <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+                <div class="tl-list" id="probation-timeline" style="display: none;"></div>
+                <div id="generic-timeline-text" style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
                     <div><i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <strong>Submitted:</strong>
                         <span id="timeline-created">—</span>
                     </div>
@@ -1911,6 +1912,7 @@
             }
 
             try {
+                await tvLoadApproverDirectory();
                 const response = await fetch(`/api/request-details?id=${encodeURIComponent(reqId)}&type=${encodeURIComponent(reqType)}`);
                 const result = await response.json();
 
@@ -2144,7 +2146,9 @@
                     row.append(label, status);
 
                     const details = [];
-                    if (step.acted_by) details.push(step.acted_by);
+                    const resolvedStep = tvEnrichStep(step, data);
+                    const stepName = resolvedStep.acted_by || resolvedStep.approver_name;
+                    if (stepName) details.push(stepName);
 
                     if (step.acted_at) {
                         const date = new Date(step.acted_at);
@@ -2683,6 +2687,85 @@
             }
         }
 
+        // ---- Approver names come from the database (users table) - nothing is hardcoded ----
+        // /api/approver-directory returns [{ user_id, name, position, department }] from `users`.
+        // Every stage of every timeline is matched to a real person from that list.
+        let APPROVER_DIR = [];
+
+        async function tvLoadApproverDirectory() {
+            try {
+                const res = await fetch('/api/approver-directory');
+                const json = await res.json();
+                APPROVER_DIR = Array.isArray(json.data) ? json.data : [];
+            } catch (err) {
+                console.warn('Approver directory unavailable:', err);
+                APPROVER_DIR = [];
+            }
+        }
+
+        const tvNorm = v => String(v == null ? '' : v).trim().toLowerCase();
+
+        // Turn a stage label into the `users.position` it maps to
+        function tvRoleKey(role) {
+            const r = tvNorm(role);
+            if (/project manager/.test(r)) return 'pm';
+            if (/head of department|^hod\b|department head|^manager$/.test(r)) return 'hod';
+            if (/^vgm\b/.test(r)) return 'vgm';
+            if (/^ceo\b/.test(r)) return 'ceo';
+            if (/^chairman\b/.test(r)) return 'chairman';
+            if (/^hr\b|human resources|relevant hr/.test(r)) return 'hr';
+            return '';
+        }
+
+        // Name(s) for a stage role, looked up in the users table.
+        // Department-based roles (Project Manager / Head of Department) use the requester's department.
+        function tvResolveApprover(role, data) {
+            const key = tvRoleKey(role);
+            if (!key || !APPROVER_DIR.length) return '';
+            const dept = tvNorm(data && (data.department || data['Department']));
+            const byPos = p => APPROVER_DIR.filter(u => tvNorm(u.position) === p);
+            const inDept = list => list.filter(u => dept && tvNorm(u.department) === dept);
+
+            let hits = [];
+            if (key === 'pm') hits = inDept(byPos('project manager'));
+            else if (key === 'hod') hits = inDept(byPos('manager'));
+            else if (key === 'vgm') hits = byPos('vgm');
+            else if (key === 'ceo') hits = byPos('ceo');
+            else if (key === 'chairman') hits = byPos('chairman');
+            else if (key === 'hr') {
+                hits = byPos('hr specialist');
+                if (!hits.length) hits = APPROVER_DIR.filter(u => tvNorm(u.department) === 'human resources');
+            }
+            return hits.map(u => u.name).filter(Boolean).join(' / ');
+        }
+
+        // If the backend stored a user_id (e.g. DEMO_HOD_EE) instead of a name, show the real name
+        function tvNameFromId(value) {
+            const v = tvNorm(value);
+            if (!v) return '';
+            const u = APPROVER_DIR.find(x => tvNorm(x.user_id) === v);
+            return u ? u.name : '';
+        }
+
+        // Fills in the name on one timeline step (Initiator / CC rows are left alone)
+        function tvEnrichStep(step, data) {
+            if (!step || step._meta || step._submitted) return step;
+            const out = Object.assign({}, step);
+            const role = out.approver_role || out.step_label;
+
+            const idName = tvNameFromId(out.acted_by) || tvNameFromId(out.approver_name) ||
+                tvNameFromId(out.approver_id) || tvNameFromId(out.approver_user_id);
+            if (idName) {
+                if (out.acted_by) out.acted_by = idName; else out.approver_name = idName;
+                return out;
+            }
+            if (out.acted_by || out.approver_name) return out;
+
+            const resolved = tvResolveApprover(role, data);
+            if (resolved) out.approver_name = resolved;
+            return out;
+        }
+
         // ---- Approval routes (roles only - NO approver names are hardcoded here) ----
         // The backend's `approval_steps` is always the source of truth. This route is only used to
         // show the expected path when a request has no per-stage history yet.
@@ -2711,6 +2794,13 @@
                 ],
                 cc: ['Relevant HR', 'Initiator']
             },
+            probation: {
+                // Nothing hardcoded: stages come from probation_approval_steps (approval_steps),
+                // the initiator from initiator_name, and the CC list from probation_cc_recipients.
+                stages: [],
+                cc: [],
+                ccSub: 'CC · Notified when approved'
+            },
             overtime: {
                 stages: [
                     { role: 'Project Manager', nameFrom: ['person_in_charge', 'project_manager'] },
@@ -2722,6 +2812,55 @@
                 cc: ['HR Specialist', 'Initiator']
             }
         };
+
+        // Initiator shown on the timeline. For probation, employee_name is the person being confirmed,
+        // NOT the initiator, so it is never used as a fallback there (HR who submitted = initiator_name).
+        function tvInitiatorName(routeKey, data) {
+            if (routeKey === 'probation') return data.initiator_name || data.requested_by || 'Initiator';
+            return data.initiator_name || data.employee_name || data['Employee Name'] || 'Initiator';
+        }
+
+        // Row after the last approval stage: CC. When the backend sends cc_recipients (probation), each
+        // recipient is listed on its own line as "Name · Department". A route can set `ccSub` as the caption.
+        function tvTailRows(route, data, overall) {
+            const row = {
+                approver_role: 'CC',
+                acted_by: tvCcLabel(route, data),
+                status: overall === 'approved' ? 'approved' : 'waiting',
+                _sub: route.ccSub || 'End of workflow',
+                _stateLabel: 'Notified',
+                _meta: true
+            };
+            if (Array.isArray(data.cc_recipients)) {
+                row.acted_by = 'CC';
+                row._people = data.cc_recipients.length
+                    ? data.cc_recipients.map(p => p.department ? `${p.name} · ${p.department}` : p.name)
+                    : ['No CC recipients configured'];
+            } else if (route.cc && route.cc.length) {
+                // No cc_recipients from the backend: show real names from the users table
+                row.acted_by = 'CC';
+                row._people = [];
+                route.cc.forEach(role => {
+                    if (tvNorm(role) === 'initiator') {
+                        row._people.push(`${tvInitiatorName('', data)} · Initiator`);
+                        return;
+                    }
+                    const names = tvResolveApprover(role, data);
+                    if (names) names.split(' / ').forEach(n => row._people.push(`${n} · ${role}`));
+                    else row._people.push(role);
+                });
+            }
+            return [row];
+        }
+
+        // CC row label: real people from the database when the backend sends them, else the role names.
+        function tvCcLabel(route, data) {
+            const people = Array.isArray(data.cc_recipients) ? data.cc_recipients : [];
+            if (people.length) {
+                return 'CC: ' + people.map(p => p.department ? `${p.name} (${p.department})` : p.name).join(', ');
+            }
+            return route.cc.length ? `CC: ${route.cc.join(', ')}` : 'CC';
+        }
 
         function tvExpectedSteps(routeKey, data, statusRaw) {
             const route = APPROVAL_ROUTES[routeKey === 'loan' ? 'disbursement' : routeKey];
@@ -2737,7 +2876,7 @@
 
             const out = [{
                 approver_role: 'Initiator',
-                acted_by: data.employee_name || data['Employee Name'] || 'Initiator',
+                acted_by: tvInitiatorName(routeKey, data),
                 status: 'approved',
                 acted_at: data.created_at || data['Created At'],
                 _sub: 'Initiator · Submitted',
@@ -2757,14 +2896,7 @@
                 });
             });
 
-            out.push({
-                approver_role: 'CC',
-                acted_by: `CC: ${route.cc.join(', ')}`,
-                status: overall === 'approved' ? 'approved' : 'waiting',
-                _sub: 'End of workflow',
-                _stateLabel: 'Notified',
-                _meta: true
-            });
+            out.push(...tvTailRows(route, data, overall));
             return out;
         }
 
@@ -2779,7 +2911,7 @@
 
             const out = [{
                 approver_role: 'Initiator',
-                acted_by: data.employee_name || data['Employee Name'] || 'Initiator',
+                acted_by: tvInitiatorName(routeKey, data),
                 status: 'approved',
                 acted_at: data.created_at || data['Created At'],
                 _sub: 'Initiator · Submitted',
@@ -2791,16 +2923,7 @@
                 out.push(Object.assign({}, st, { _sub: `${role} · Stage ${i + 1}` }));
             });
 
-            if (route) {
-                out.push({
-                    approver_role: 'CC',
-                    acted_by: `CC: ${route.cc.join(', ')}`,
-                    status: overall === 'approved' ? 'approved' : 'waiting',
-                    _sub: 'End of workflow',
-                    _stateLabel: 'Notified',
-                    _meta: true
-                });
-            }
+            if (route) out.push(...tvTailRows(route, data, overall));
             return out;
         }
 
@@ -2826,6 +2949,8 @@
                 ];
             }
 
+            steps = steps.map(st => tvEnrichStep(st, data));
+
             steps.forEach((step, index) => {
                 const state = String(step.status || 'waiting').toLowerCase();
                 const role = step.approver_role || step.step_label || 'Approver';
@@ -2839,6 +2964,13 @@
 
                 const main = tvEl('div', 'tl-main');
                 main.appendChild(tvEl('div', 'tl-name', step.acted_by || step.approver_name || role));
+                if (Array.isArray(step._people)) {
+                    step._people.forEach(person => {
+                        const line = tvEl('div', 'tl-cc-person', person);
+                        line.style.cssText = 'font-size:13px;color:#334155;margin-top:2px;';
+                        main.appendChild(line);
+                    });
+                }
                 main.appendChild(tvEl('div', 'tl-role', step._sub || (step._submitted ? 'Submitted' : `${role} · Stage ${index + 1}`)));
 
                 const isHr = /human resources|^hr\b/i.test(role);
@@ -3266,8 +3398,42 @@
             });
         }
 
+        // Probation: same approval timeline as Leave (Initiator -> approval stages -> CC / End),
+        // drawn into the generic detail layout. All data comes from the backend.
+        function drawProbationTimeline(data, statusRaw) {
+            const list = document.getElementById('probation-timeline');
+            if (!list) return;
+            const steps = Array.isArray(data.approval_steps) ? data.approval_steps : [];
+            const items = tvBuildTimeline('probation', steps, data, statusRaw);
+            const oldBlock = document.getElementById('generic-timeline-text');
+            if (oldBlock) oldBlock.style.display = 'none';
+            list.style.display = '';
+            tvRenderTimeline(list, items, data, statusRaw);
+        }
+
+        async function renderProbationTimeline(data, statusRaw) {
+            drawProbationTimeline(data, statusRaw);
+
+            // /api/request-details did not include the stages from probation_approval_steps:
+            // read them straight from the probation endpoint so every stage still shows.
+            if (Array.isArray(data.approval_steps) && data.approval_steps.length) return;
+            try {
+                const res = await fetch(`/api/probation-confirmations/${encodeURIComponent(data.id)}`);
+                const r = await res.json();
+                if (!r || !r.success) return;
+                const full = r.data || {};
+                const rows = Array.isArray(full.approval_steps) && full.approval_steps.length
+                    ? full.approval_steps
+                    : (Array.isArray(r.steps) ? r.steps.map(st => Object.assign({}, st, { acted_by: st.acted_by_name || st.acted_by })) : []);
+                if (rows.length) drawProbationTimeline(Object.assign({}, data, full, { approval_steps: rows }), statusRaw);
+            } catch (err) {
+                console.error('Probation timeline load error:', err);
+            }
+        }
+
         function renderTravelView(data, type, statusRaw, docPath) {
             const lowerType = String(type).trim().toLowerCase();
+            if (lowerType.includes('probation')) renderProbationTimeline(data, statusRaw);
             const isTravel = lowerType.includes('travel');
             const isOvertime = lowerType.includes('overtime');
             const isLeave = lowerType.includes('leave');
