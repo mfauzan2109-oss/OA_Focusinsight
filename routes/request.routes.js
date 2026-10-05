@@ -706,6 +706,8 @@ router.get('/api/request-details', (req, res) => {
         query = `SELECT t.*, u.phone_no, u.email FROM \`travel\` t LEFT JOIN users u ON LOWER(t.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE t.id = ?`;
     } else if (reqType.includes('overtime')) {
         query = `SELECT o.*, u.phone_no, u.email FROM \`overtime\` o LEFT JOIN users u ON LOWER(o.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE o.id = ?`;
+    } else if (reqType.includes('job')) {
+        query = `SELECT j.*, u.phone_no, u.email FROM \`job_transfer_requests\` j LEFT JOIN users u ON LOWER(j.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE j.id = ?`;
     } else if (reqType.includes('loan')) {
         query = `SELECT ln.*, u.phone_no, u.email FROM \`loans\` ln LEFT JOIN users u ON LOWER(ln.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE ln.id = ?`;
     } else {
@@ -992,123 +994,320 @@ router.post('/api/submit-hiring-approval', upload.single('attachment'), (req, re
 // ==========================================================================
 // API ROUTE: RESUBMIT A REJECTED REQUEST (Edit -> Resubmit flow)
 // ==========================================================================
-router.post('/api/resubmit-request', (req, res) => {
-    const { id, type, employee_id, reason, ...fields } = req.body;
+// ===========================================================================
+// RESUBMIT A REJECTED REQUEST  (Leave, Overtime, Travel, Loan, Disbursement, Job Transfer)
+//
+// What it does:
+//   1. Only a Rejected request owned by the caller can be resubmitted, max 3 times.
+//   2. Saves every edited field that is a real column of the request table
+//      (column names are discovered with SHOW COLUMNS, so nothing is hard-coded).
+//   3. Sets Status back to Pending, bumps resubmission_count, stamps resubmitted_at,
+//      clears last_reminder_sent and the old rejection details.
+//   4. Resets the <type>_approval_steps rows so the request goes back to the approver.
+//   5. Replaces Leave date rows (leave_date_entries) and Disbursement items.
+// ===========================================================================
+const RESUBMIT_CAP = 3;
 
-    if (!id || !type) {
-        return res.status(400).json({ success: false, message: 'Request ID and Type are required.' });
+const RESUBMIT_TYPES = {
+    leave:        { key: 'leave',        table: 'leave',                 idCol: 'ID', statusCol: 'Status', empCol: 'Employee ID', steps: 'leave_approval_steps' },
+    overtime:     { key: 'overtime',     table: 'overtime',              idCol: 'id', statusCol: 'status', empCol: 'employee_id', steps: 'overtime_approval_steps' },
+    travel:       { key: 'travel',       table: 'travel',                idCol: 'id', statusCol: 'status', empCol: 'employee_id', steps: 'travel_approval_steps' },
+    loan:         { key: 'loan',         table: 'loans',                 idCol: 'id', statusCol: 'status', empCol: 'employee_id', steps: 'loan_approval_steps' },
+    disbursement: { key: 'disbursement', table: 'disbursements',         idCol: 'id', statusCol: 'status', empCol: 'employee_id', steps: 'disbursement_approval_steps' },
+    job_transfer: { key: 'job_transfer', table: 'job_transfer_requests', idCol: 'id', statusCol: 'status', empCol: 'employee_id', steps: 'job_transfer_approval_steps' }
+};
+
+// The leave table uses column names with spaces, so map the form field names to them.
+const LEAVE_FIELD_TO_COLUMN = {
+    leave_type: 'Leave Type', day_type: 'Day type', start_date: 'Start Date',
+    end_date: 'End Date', num_days: 'No of Days', total_days: 'No of Days', reason: 'Reason'
+};
+
+// Never let the browser overwrite these.
+const RESUBMIT_PROTECTED = new Set([
+    'id', 'employee_id', 'employee id', 'employee_name', 'employee name', 'department', 'status',
+    'created_at', 'updated_at', 'resubmission_count', 'resubmitted_at', 'last_reminder_sent',
+    'supporting_document', 'supporting documen', 'attachment_path',
+    'rejected_by', 'rejected_at', 'rejection_reason', 'comment'
+]);
+
+const dbq = (sql, params) => db.promise().query(sql, params || []).then(([rows]) => rows);
+
+function resolveResubmitType(type) {
+    const t = String(type || '').toLowerCase();
+    if (t.includes('job')) return RESUBMIT_TYPES.job_transfer;
+    if (t.includes('leave')) return RESUBMIT_TYPES.leave;
+    if (t.includes('overtime')) return RESUBMIT_TYPES.overtime;
+    if (t.includes('travel')) return RESUBMIT_TYPES.travel;
+    if (t.includes('loan')) return RESUBMIT_TYPES.loan;
+    if (t.includes('disbursement')) return RESUBMIT_TYPES.disbursement;
+    return null;
+}
+
+// Turn a browser value into something the column accepts. Returns undefined to skip the field.
+function coerceForColumn(info, value) {
+    if (value === undefined) return undefined;
+    if (typeof value === 'boolean') value = value ? 1 : 0;
+    const type = String(info.Type || '');
+    const numeric = /int|decimal|numeric|float|double|year/i.test(type);
+    const temporal = /date|time/i.test(type);
+
+    if (typeof value === 'string') {
+        value = value.trim();
+        // a plain DATE column rejects ISO timestamps such as 2028-01-16T16:00:00.000Z
+        if (/^date$/i.test(type) && value.includes('T')) value = value.split('T')[0];
+        if (value === '' && (numeric || temporal)) return info.Null === 'YES' ? null : undefined;
+        if (numeric && !/^tinyint\(1\)$/i.test(type)) {
+            value = value.replace(/[^0-9.\-]/g, '');
+            if (value === '') return info.Null === 'YES' ? null : undefined;
+        }
+    }
+    return value;
+}
+
+// Put every approval step of this request back to the approver.
+async function resetApprovalSteps(cfg, id) {
+    const exists = await dbq('SHOW TABLES LIKE ?', [cfg.steps]);
+    if (!exists.length) return { reset: false, note: `${cfg.steps} does not exist` };
+
+    const info = await dbq(`SHOW COLUMNS FROM \`${cfg.steps}\``);
+    const names = info.map(c => c.Field);
+    const find = re => names.find(n => re.test(n));
+
+    const fkCol = find(new RegExp(`^(${cfg.key}_id|${cfg.key}_request_id|request_id)$`, 'i'));
+    const stCol = find(/^(status|step_status|approval_status)$/i);
+    if (!fkCol || !stCol) {
+        throw new Error(`Cannot find the request-id / status column in ${cfg.steps}. Columns are: ${names.join(', ')}`);
+    }
+    const orderCol = find(/^(step_order|step_no|step_number|stage|sequence|seq|order_no|level|step)$/i);
+
+    // keep the casing style the table already uses (Pending vs pending)
+    const existing = await dbq(`SELECT \`${stCol}\` AS s FROM \`${cfg.steps}\` WHERE \`${fkCol}\` = ?`, [id]);
+    const lowerStyle = existing.some(r => /^(pending|approved|rejected)$/.test(String(r.s || '')));
+    const PENDING = lowerStyle ? 'pending' : 'Pending';
+
+    // columns that hold the old decision are emptied (only if they allow NULL)
+    const clearCols = info
+        .filter(c => c.Null === 'YES' &&
+            /^(acted_at|approved_at|action_at|action_date|acted_on|decided_at|actioned_at|comment|comments|remark|remarks|rejection_reason|approver_comment)$/i.test(c.Field))
+        .map(c => c.Field);
+    const clearSql = clearCols.map(c => `, \`${c}\` = NULL`).join('');
+
+    if (orderCol) {
+        // sequential workflow: only the first approver is Pending, the rest wait their turn
+        const all = await dbq(`SELECT DISTINCT \`${stCol}\` AS s FROM \`${cfg.steps}\``);
+        const waiting = all.map(r => String(r.s || '')).find(s => /wait|not.?started|queued|upcoming|locked/i.test(s));
+        const first = await dbq(`SELECT MIN(\`${orderCol}\`) AS m FROM \`${cfg.steps}\` WHERE \`${fkCol}\` = ?`, [id]);
+        const firstOrder = first[0] && first[0].m;
+
+        await dbq(`UPDATE \`${cfg.steps}\` SET \`${stCol}\` = ?${clearSql} WHERE \`${fkCol}\` = ?`, [waiting || PENDING, id]);
+        if (firstOrder !== null && firstOrder !== undefined) {
+            await dbq(`UPDATE \`${cfg.steps}\` SET \`${stCol}\` = ? WHERE \`${fkCol}\` = ? AND \`${orderCol}\` = ?`, [PENDING, id, firstOrder]);
+        }
+        return { reset: true, table: cfg.steps, firstOrder };
     }
 
-    const reqType = type.toLowerCase();
+    await dbq(`UPDATE \`${cfg.steps}\` SET \`${stCol}\` = ?${clearSql} WHERE \`${fkCol}\` = ?`, [PENDING, id]);
+    return { reset: true, table: cfg.steps };
+}
 
-    // Maps the data-field names sent by request-details.html to each
-    // table's actual column names, since leave uses capitalized/spaced
-    // column names while the other tables use lowercase snake_case.
-    let tableName = '';
-    let idCol = 'id';
-    let statusCol = 'status';
-    let reasonCol = ''; // only set per-branch below when the table is confirmed to have a reason-equivalent column
-    let columnMap = {};
-    let resubCap = 3;
+// Leave: replace the rows in leave_date_entries with what the employee edited.
+async function replaceLeaveEntries(id, entries) {
+    if (typeof entries === 'string') { try { entries = JSON.parse(entries); } catch (e) { entries = null; } }
+    if (!Array.isArray(entries) || !entries.length) return false;
 
-    if (reqType.includes('leave')) {
-        tableName = 'leave';
-        idCol = 'ID';
-        statusCol = 'Status';
-        reasonCol = 'Reason';
-        columnMap = {
-            leave_type: '`Leave Type`',
-            day_type: '`Day type`',
-            start_date: '`Start Date`',
-            end_date: '`End Date`',
-            total_days: '`No of Days`'
-        };
-    } else if (reqType.includes('overtime')) {
-        tableName = 'overtime';
-        reasonCol = 'reason'; // `overtime` table has a `reason` column
-        columnMap = {
-            ot_date: 'ot_date',
-            day_type: 'day_type',
-            start_time: 'start_time',
-            end_time: 'end_time',
-            night_allowance: 'night_allowance',
-            meal_allowance: 'meal_allowance'
-        };
-    } else if (reqType.includes('travel')) {
-        tableName = 'travel';
-        columnMap = {
-            allowance_type: 'allowance_type',
-            claim_month: 'claim_month'
-        };
-    } else if (reqType.includes('loan')) {
-        tableName = 'loans';
-        columnMap = {
-            loan_type: 'loan_type',
-            disbursement_method: 'disbursement_method',
-            account_holder: 'account_holder',
-            account_number: 'account_number'
-        };
-    } else if (reqType.includes('disbursement')) {
-        tableName = 'disbursements';
-        columnMap = {}; // total_amount / itemized rows aren't edited through this generic flow
-    } else {
-        return res.status(400).json({ success: false, message: 'Invalid or unsupported request type.' });
+    const exists = await dbq('SHOW TABLES LIKE ?', ['leave_date_entries']);
+    if (!exists.length) return false;
+    const info = await dbq('SHOW COLUMNS FROM `leave_date_entries`');
+    const names = info.map(c => c.Field);
+    const find = re => names.find(n => re.test(n));
+    const fk = find(/^(leave_id|leave_request_id|request_id)$/i);
+    const orderC = find(/^(entry_order|sort_order|order_no|seq|sequence|position|row_no)$/i);
+    const startC = find(/start/i), endC = find(/end/i), typeC = find(/day.?type/i), durC = find(/duration|^days?$|no.?of.?days/i);
+    if (!fk || !startC || !endC || !typeC || !durC) {
+        console.warn('leave_date_entries columns not recognised, rows left unchanged:', names.join(', '));
+        return false;
     }
 
-    // First, check the current resubmission_count so we can enforce the cap server-side too
-    const checkQuery = `SELECT resubmission_count, \`${statusCol}\` AS current_status FROM \`${tableName}\` WHERE \`${idCol}\` = ?`;
+    // any other NOT NULL column without a default would make the INSERT fail, so say so clearly
+    const known = [fk, orderC, startC, endC, typeC, durC];
+    const missing = info.filter(c => c.Null === 'NO' && c.Default === null && !/auto_increment/i.test(c.Extra || '') && !known.includes(c.Field));
+    if (missing.length) {
+        throw new Error('leave_date_entries needs a value for: ' + missing.map(c => c.Field).join(', '));
+    }
 
-    db.query(checkQuery, [id], (checkErr, checkResults) => {
-        if (checkErr || checkResults.length === 0) {
-            console.error('Resubmit lookup error:', checkErr);
+    // entry_order starts at 0 or 1 depending on how the existing rows were saved
+    let base = 1;
+    if (orderC) {
+        const m = await dbq(`SELECT MIN(\`${orderC}\`) AS m FROM \`leave_date_entries\``);
+        if (m[0] && m[0].m !== null && Number(m[0].m) === 0) base = 0;
+    }
+
+    const cols = [fk].concat(orderC ? [orderC] : [], [startC, endC, typeC, durC]);
+    const rows = entries.map((e, i) => [id].concat(
+        orderC ? [i + base] : [],
+        [
+            String(e.start || e.start_date || '').split('T')[0],
+            String(e.end || e.end_date || '').split('T')[0],
+            e.dayType || e.day_type || 'full',
+            parseFloat(e.duration) || 0
+        ]
+    ));
+
+    // delete + insert together: if the insert fails, the old rows come back
+    const conn = db.promise();
+    await conn.beginTransaction();
+    try {
+        await conn.query(`DELETE FROM \`leave_date_entries\` WHERE \`${fk}\` = ?`, [id]);
+        await conn.query(`INSERT INTO \`leave_date_entries\` (${cols.map(c => `\`${c}\``).join(', ')}) VALUES ?`, [rows]);
+        await conn.commit();
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    }
+    return true;
+}
+
+// Disbursement: replace the expense rows and return the new total.
+async function replaceDisbursementItems(id, items) {
+    if (typeof items === 'string') { try { items = JSON.parse(items); } catch (e) { items = null; } }
+    if (!Array.isArray(items) || !items.length) return null;
+
+    const rows = items.map(it => [
+        id, it.invoice_date ? String(it.invoice_date).split('T')[0] : null, it.invoice_no || '', it.supplier_name || '',
+        it.description || '', parseFloat(String(it.amount || 0).replace(/[^0-9.]/g, '')) || 0, it.remark || ''
+    ]);
+    const conn = db.promise();
+    await conn.beginTransaction();
+    try {
+        await conn.query('DELETE FROM `disbursement_items` WHERE `disbursement_id` = ?', [id]);
+        await conn.query('INSERT INTO `disbursement_items` (`disbursement_id`, `invoice_date`, `invoice_no`, `supplier_name`, `description`, `amount`, `remark`) VALUES ?', [rows]);
+        await conn.commit();
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    }
+    return rows.reduce((sum, r) => sum + r[5], 0);
+}
+
+router.post('/api/resubmit-request', async (req, res) => {
+    try {
+        const { id, type, employee_id, leave_entries, items, ...fields } = req.body || {};
+        if (!id || !type) {
+            return res.status(400).json({ success: false, message: 'Request ID and Type are required.' });
+        }
+        const cfg = resolveResubmitType(type);
+        if (!cfg) {
+            return res.status(400).json({ success: false, message: 'Invalid or unsupported request type.' });
+        }
+
+        const colInfo = new Map((await dbq(`SHOW COLUMNS FROM \`${cfg.table}\``)).map(c => [c.Field.toLowerCase(), c]));
+        if (!colInfo.has('resubmission_count')) {
+            return res.status(500).json({
+                success: false,
+                message: `Table "${cfg.table}" has no resubmission_count column. Run: ALTER TABLE \`${cfg.table}\` ADD COLUMN resubmission_count INT NOT NULL DEFAULT 0, ADD COLUMN resubmitted_at DATETIME NULL, ADD COLUMN last_reminder_sent DATETIME NULL;`
+            });
+        }
+
+        const rows = await dbq(`SELECT * FROM \`${cfg.table}\` WHERE \`${cfg.idCol}\` = ?`, [id]);
+        if (!rows.length) {
             return res.status(404).json({ success: false, message: 'Request record not found.' });
         }
+        const row = rows[0];
 
-        const currentCount = parseInt(checkResults[0].resubmission_count || 0, 10);
-
-        if (currentCount >= resubCap) {
-            return res.status(400).json({ success: false, message: `Maximum resubmissions (${resubCap}) already reached for this request.` });
+        // 1. checks: owner, status, resubmission cap
+        const caller = String((req.session && req.session.user && req.session.user.user_id) || employee_id || '').toLowerCase();
+        if (caller && String(row[cfg.empCol] || '').toLowerCase() !== caller) {
+            return res.status(403).json({ success: false, message: 'You can only resubmit your own requests.' });
+        }
+        if (!/reject/i.test(String(row[cfg.statusCol] || ''))) {
+            return res.status(400).json({ success: false, message: 'Only rejected requests can be resubmitted.' });
+        }
+        const currentCount = parseInt(row.resubmission_count || 0, 10);
+        if (currentCount >= RESUBMIT_CAP) {
+            return res.status(400).json({ success: false, message: `Maximum resubmissions (${RESUBMIT_CAP}) already reached for this request.` });
         }
 
-        // Build the SET clause from whichever known fields were sent
-        const setClauses = [`\`${statusCol}\` = 'Pending'`, `resubmission_count = resubmission_count + 1`];
+        // 2. validation that mirrors the original forms
+        if (cfg.key === 'loan' && fields.amount_requested !== undefined) {
+            const amt = parseFloat(String(fields.amount_requested).replace(/[^0-9.]/g, ''));
+            if (Number.isNaN(amt) || amt <= 0 || amt > 4500) {
+                return res.status(400).json({ success: false, message: 'Travel Loan amount must be between RM0.01 and RM4,500.00.' });
+            }
+        }
+
+        // 3. build the UPDATE from every edited field that is a real, unprotected column
+        const setClauses = [];
         const params = [];
+        const addSet = (col, value) => { setClauses.push(`\`${col}\` = ?`); params.push(value); };
 
-        Object.keys(columnMap).forEach((fieldKey) => {
-            if (Object.prototype.hasOwnProperty.call(fields, fieldKey)) {
-                let value = fields[fieldKey];
-                // Safety net: MySQL DATE columns reject full ISO timestamps
-                // (e.g. "2026-09-09T16:00:00.000Z") sent from the frontend —
-                // strip everything from "T" onward so only "YYYY-MM-DD" is stored.
-                if (typeof value === 'string' && /date/i.test(fieldKey) && value.includes('T')) {
-                    value = value.split('T')[0];
-                }
-                setClauses.push(`${columnMap[fieldKey]} = ?`);
-                params.push(value);
-            }
+        Object.entries(fields).forEach(([key, raw]) => {
+            const col = cfg.key === 'leave' ? LEAVE_FIELD_TO_COLUMN[key] : key;
+            if (!col) return;
+            const info = colInfo.get(col.toLowerCase());
+            if (!info || RESUBMIT_PROTECTED.has(col.toLowerCase())) return;
+            const value = coerceForColumn(info, raw);
+            if (value === undefined) return;
+            // do not set the same column twice (e.g. total_days and num_days)
+            if (setClauses.some(s => s.startsWith(`\`${info.Field}\` =`))) return;
+            addSet(info.Field, value);
         });
 
-        if (reason !== undefined && reasonCol) {
-            setClauses.push(`\`${reasonCol}\` = ?`);
-            params.push(reason);
+        // disbursement: the rows decide the total
+        let newTotal = null;
+        if (cfg.key === 'disbursement') {
+            newTotal = await replaceDisbursementItems(id, items);
+            if (newTotal !== null && colInfo.has('total_amount') && !setClauses.some(s => s.startsWith('`total_amount` ='))) {
+                addSet('total_amount', newTotal);
+            }
+        }
+        if (cfg.key === 'leave') {
+            await replaceLeaveEntries(id, leave_entries);
         }
 
-        const updateQuery = `UPDATE \`${tableName}\` SET ${setClauses.join(', ')} WHERE \`${idCol}\` = ?`;
-        params.push(id);
-
-        db.query(updateQuery, params, (updateErr) => {
-            if (updateErr) {
-                console.error('Resubmit update error:', updateErr);
-                return res.status(500).json({ success: false, message: 'Failed to resubmit request.' });
-            }
-
-            return res.json({
-                success: true,
-                message: 'Request resubmitted successfully.',
-                resubmission_count: currentCount + 1
-            });
+        // status + bookkeeping
+        const statusInfo = colInfo.get(cfg.statusCol.toLowerCase());
+        setClauses.unshift(`\`${statusInfo.Field}\` = 'Pending'`);
+        setClauses.push('`resubmission_count` = `resubmission_count` + 1');
+        if (colInfo.has('resubmitted_at')) setClauses.push('`resubmitted_at` = NOW()');
+        if (colInfo.has('last_reminder_sent')) setClauses.push('`last_reminder_sent` = NULL');
+        ['rejected_by', 'rejected_at', 'rejection_reason'].forEach(c => {
+            const info = colInfo.get(c);
+            if (info && info.Null === 'YES') setClauses.push(`\`${info.Field}\` = NULL`);
         });
-    });
+
+        // 4. send it back to the approver: reset the approval steps first, so a failure leaves the request Rejected
+        // The approval queue only needs Status = 'Pending', so a problem with the steps table must not block the resubmit.
+        let stepsResult = { reset: false };
+        try {
+            stepsResult = await resetApprovalSteps(cfg, id);
+        } catch (stepErr) {
+            console.warn('[RESUBMIT] approval steps not reset:', stepErr.message);
+            stepsResult = { reset: false, note: stepErr.message };
+        }
+
+        // keep a "current step" pointer in sync if the table has one
+        const pointer = [...colInfo.values()].find(c => /^current_(step|stage)$/i.test(c.Field));
+        if (pointer && stepsResult.firstOrder !== undefined && stepsResult.firstOrder !== null) {
+            setClauses.push(`\`${pointer.Field}\` = ?`);
+            params.push(stepsResult.firstOrder);
+        }
+
+        params.push(id);
+        await dbq(`UPDATE \`${cfg.table}\` SET ${setClauses.join(', ')} WHERE \`${cfg.idCol}\` = ?`, params);
+
+        console.log(`[RESUBMIT] ${cfg.table} #${id} is now Pending (resubmission ${currentCount + 1}/${RESUBMIT_CAP}), steps reset: ${stepsResult.reset}`);
+        return res.json({
+            success: true,
+            message: 'Request resubmitted successfully.',
+            resubmission_count: currentCount + 1,
+            approval_steps_reset: stepsResult.reset,
+            approval_steps_note: stepsResult.note || null
+        });
+    } catch (err) {
+        console.error('Resubmit error:', err);
+        return res.status(500).json({ success: false, message: 'Failed to resubmit request: ' + err.message });
+    }
 });
 
 

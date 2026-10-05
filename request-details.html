@@ -1786,7 +1786,7 @@
                 <i class="fa-regular fa-file-lines"></i> Submit Report to HR
             </button>
 
-            <button class="btn btn-secondary" onclick="alert('Notification email triggered successfully.')"><i
+            <button id="btnSendEmail" class="btn btn-secondary" onclick="alert('Notification email triggered successfully.')"><i
                     class="fa-regular fa-envelope"></i> Send to Email</button>
 
             <a href="my-request.html" class="back-link-bottom"><i class="fa-solid fa-chevron-left"></i> Back to My
@@ -2400,6 +2400,7 @@
             // request record once the reject-with-reason flow is wired up. Falls
             // back to sensible defaults if those fields aren't present yet.
             const resubmissionCount = parseInt(data.resubmission_count || 0, 10);
+            document.getElementById('btnSendEmail').style.display = '';
 
             if (statusRaw === 'REJECTED' || statusRaw === 'REJECT') {
                 rejectBanner.style.display = 'block';
@@ -2418,12 +2419,12 @@
                     resubmitLimitBanner.style.display = 'none';
                     resubmitInfoBanner.style.display = 'block';
                     document.getElementById('resubmitCountText').innerText = resubmissionCount;
-                    btnEdit.style.display = 'inline-flex';
-                    btnEdit.disabled = false;
-                    btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> Edit';
+                    // Rejected form opens straight into edit mode: no Edit button, and no Submit to HR / Send to Email while editing
+                    btnEdit.style.display = 'none';
                     btnResubmit.style.display = 'inline-flex';
-                    btnResubmit.disabled = true;
-                    btnSubmitReportHR.style.display = 'inline-flex';
+                    btnResubmit.disabled = false;
+                    btnSubmitReportHR.style.display = 'none';
+                    document.getElementById('btnSendEmail').style.display = 'none';
                 }
             } else {
                 rejectBanner.style.display = 'none';
@@ -2435,6 +2436,11 @@
             }
 
             renderTravelView(data, type, statusRaw, docPath);
+
+            // Rejected (and resubmissions left): open the form for editing automatically
+            if ((statusRaw === 'REJECTED' || statusRaw === 'REJECT') && resubmissionCount < 3) {
+                enableEditMode();
+            }
         }
 
         // ================= TRAVEL REQUEST DETAIL VIEW =================
@@ -2511,10 +2517,27 @@
             return '';
         }
 
+        // Dates from the API can arrive as UTC ISO strings (e.g. 2028-01-16T16:00:00.000Z for 17 Jan in Malaysia).
+        // Convert those to the viewer's local calendar date instead of cutting the first 10 characters.
+        function ymd(value) {
+            if (value === null || value === undefined || value === '') return '';
+            const t = value instanceof Date ? value.toISOString() : String(value).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+            if (/T/.test(t) && /(Z|[+-]\d{2}:?\d{2})$/.test(t)) {
+                const d = new Date(t);
+                if (!Number.isNaN(d.getTime())) {
+                    const p = n => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+                }
+            }
+            const m = t.match(/^(\d{4}-\d{2}-\d{2})/);
+            return m ? m[1] : '';
+        }
+
         function tvDateText(value) {
             if (!value) return '';
             const text = String(value);
-            const m = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            const m = ymd(text).match(/^(\d{4})-(\d{2})-(\d{2})/);
             const d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : new Date(text);
             if (Number.isNaN(d.getTime())) return text;
             return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -3062,7 +3085,7 @@
         }
         function lvDayLabel(v) { const f = LV_DAY.find(d => d[0] === v); return f ? f[1] : (v === 'mixed' ? 'Mixed' : v); }
         function lvTypeLabel(v) { v = String(v || ''); return !v ? '' : /leave/i.test(v) ? v : v.charAt(0).toUpperCase() + v.slice(1) + ' Leave'; }
-        function lvDate(v) { const m = String(v || '').match(/^\d{4}-\d{2}-\d{2}/); return m ? m[0] : ''; }
+        function lvDate(v) { return ymd(v); }
         function lvDuration(start, end, t) {
             if (!start || !t) return null;
             if (t === '24hr') return 1;
@@ -3533,7 +3556,7 @@
             const pickKey = keys => keys.find(k => d[k] !== undefined && d[k] !== null) || keys[0];
             const raw = (k, t) => {
                 let v = d[k]; v = (v === undefined || v === null) ? '' : String(v);
-                if (t === 'date') return (v.match(/^\d{4}-\d{2}-\d{2}/) || [''])[0];
+                if (t === 'date') return ymd(v);
                 if (t === 'time') return v.slice(0, 5);
                 return v;
             };
@@ -3560,8 +3583,8 @@
                     const f = el.dataset.field, txt = el.textContent.trim();
                     if (el.dataset.inputType === 'checkbox') {
                         el.innerHTML = `<input type="checkbox" data-field="${f}" ${txt.toLowerCase() === 'yes' ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">`;
-                    } else if (/date/i.test(f) && /^\d{4}-\d{2}-\d{2}/.test(txt)) {
-                        mk(el, f, 'date', txt.slice(0, 10));
+                    } else if (/date/i.test(f) && ymd(txt)) {
+                        mk(el, f, 'date', ymd(txt));
                     } else if (/_salary$/.test(f)) {
                         mk(el, f, 'number', txt.replace(/[^0-9.]/g, ''));
                     } else if (f === 'job_description' || f === 'job_scope_change') {
@@ -3587,35 +3610,37 @@
                 add(r, sec, 'Model Number', S(['model_no', 'model_number']));
                 add(r, sec, 'Person in Charge', S('person_in_charge'));
             };
-            proj('tr', 'Project Information'); add('tr', 'Project Information', 'Company', S('company'));
+            proj('tr', 'Project Information'); add('tr', 'Project Information', 'Company', S(['company_name', 'company']));
             add('tr', 'Trip Details', 'Travel Destination', S(['travel_destination', 'destination']));
             add('tr', 'Trip Details', 'Travel Mode', S('travel_mode'));
             add('tr', 'Trip Details', 'Departure Destination', S('departure_destination'));
             add('tr', 'Trip Details', 'Arrival Destination', S('arrival_destination'));
-            add('tr', 'Trip Details', 'Expected Date Departure', S('expected_departure', 'date'));
-            add('tr', 'Trip Details', 'Expected Date Arrival', S('expected_arrival', 'date'));
-            add('tr', 'Trip Details', 'Estimated Return Date', S('return_date', 'date'));
+            add('tr', 'Trip Details', 'Expected Date Departure', S(['expected_departure_date', 'expected_departure'], 'date'));
+            add('tr', 'Trip Details', 'Expected Date Arrival', S(['expected_arrival_date', 'expected_arrival'], 'date'));
+            add('tr', 'Trip Details', 'Estimated Return Date', S(['estimated_return_date', 'return_date'], 'date'));
             add('tr', 'Trip Details', 'Mileage', S('mileage', 'number'));
-            add('tr', 'Trip Details', 'Required Accommodation', S('accommodation'));
+            add('tr', 'Trip Details', 'Required Accommodation', S(['required_accommodation', 'accommodation']));
             add('tr', 'Oversea Contact Details', 'Primary Contact', S('primary_contact'));
-            add('tr', 'Oversea Contact Details', 'Phone Number', S('phone_number'));
+            add('tr', 'Oversea Contact Details', 'Phone Number', S(['contact_phone', 'phone_number']));
             add('tr', 'Oversea Contact Details', 'Venue & Address', S('venue_address'));
             [['dep', 'Flight (Departure)'], ['ret', 'Flight (Return)']].forEach(([p, sec]) => {
-                add('tr', sec, 'Channel', S(p + '_channel'));
-                add('tr', sec, 'Departure Destination', S(p + '_departure_dest'));
-                add('tr', sec, 'Arrival Destination', S(p + '_arrival_dest'));
-                add('tr', sec, 'Departure Date & Time', S(p + '_date', 'date'), S(p + '_time', 'time'));
-                add('tr', sec, 'Arrival Date & Time', S(p + '_arr_date', 'date'), S(p + '_arr_time', 'time'));
-                add('tr', sec, 'Airline', S(p + '_airline'));
-                add('tr', sec, 'Flight Type', S(p + '_airline_type', 'select', [['direct', 'Direct flight'], ['transfer', 'Flight with transfers']]));
-                add('tr', sec, 'Checked Baggage', S(p + '_baggage'));
-                add('tr', sec, 'Estimated Price', S(p + '_price', 'number'));
+                // real column names of the `travel` table
+                const R = p === 'dep'
+                    ? { channel: 'departure_channel', dTime: 'departure_time', aTime: 'arrival_time', airline: 'airline', type: 'flight_type', bag: 'checked_baggage', price: 'flight_cost', dDate: 'expected_departure_date', aDate: 'expected_arrival_date' }
+                    : { channel: 'return_channel', dTime: 'return_departure_time', aTime: 'return_arrival_time', airline: 'return_airline', type: 'return_flight_type', bag: 'return_checked_baggage', price: 'return_flight_cost', dDate: 'estimated_return_date', aDate: 'ret_arr_date' };
+                add('tr', sec, 'Channel', S([R.channel, p + '_channel']));
+                add('tr', sec, 'Departure Date & Time', S([R.dDate, p + '_date'], 'date'), S([R.dTime, p + '_time'], 'time'));
+                add('tr', sec, 'Arrival Date & Time', S([R.aDate, p + '_arr_date'], 'date'), S([R.aTime, p + '_arr_time'], 'time'));
+                add('tr', sec, 'Airline', S([R.airline, p + '_airline']));
+                add('tr', sec, 'Flight Type', S([R.type, p + '_airline_type']));
+                add('tr', sec, 'Checked Baggage', S([R.bag, p + '_baggage']));
+                add('tr', sec, 'Estimated Price', S([R.price, p + '_price'], 'number'));
             });
             add('tr', 'Hotel', 'Channel', S('hotel_channel'));
             add('tr', 'Hotel', 'Hotel Name', S('hotel_name'));
             add('tr', 'Hotel', 'Duration', S('hotel_duration'));
             add('tr', 'Hotel', 'Total Nights', S('hotel_nights', 'number'));
-            add('tr', 'Hotel', 'Estimated Price', S('hotel_price', 'number'));
+            add('tr', 'Hotel', 'Estimated Price', S(['hotel_cost', 'hotel_price'], 'number'));
             proj('ot', '');
             add('ot', '', 'Date', S('ot_date', 'date'));
             add('ot', '', 'Period', S('period'));
