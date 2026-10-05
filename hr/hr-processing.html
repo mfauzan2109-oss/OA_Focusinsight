@@ -2566,26 +2566,6 @@
             root.appendChild(rWrap);
         }
 
-        window._leaveRender = editing => renderLeaveForm(window._reqData, editing);
-        window._leaveGetPayload = function () {
-            const st = window._lv; if (!st) return null;
-            if (!st.entries.length || st.entries.some(e => !(e.duration > 0))) {
-                return { error: 'Please complete each row in the Leave Details table (valid dates and day type) before resubmitting.' };
-            }
-            if (!st.reason.trim()) return { error: 'Please fill in the Reason / Description.' };
-            const starts = st.entries.map(e => e.start).sort(), ends = st.entries.map(e => e.end).sort();
-            return {
-                data: {
-                    leave_type: st.type, reason: st.reason,
-                    start_date: starts[0], end_date: ends[ends.length - 1],
-                    day_type: st.entries.length === 1 ? st.entries[0].dayType : 'mixed',
-                    num_days: st.entries.reduce((a, e) => a + e.duration, 0),
-                    leave_entries: JSON.stringify(st.entries.map(({ start, end, dayType, duration }) => ({ start, end, dayType, duration })))
-                }
-            };
-        };
-
-
         // ================= DISBURSEMENT REQUEST DETAIL VIEW =================
         const DB_COLS = [['invoice_date', 'Invoice Date', 'date'], ['invoice_no', 'Invoice No.', 'text'], ['supplier_name', 'Supplier Name', 'text'],
                          ['description', 'Description', 'text'], ['amount', 'Amount', 'number'], ['remark', 'Reason / Remark', 'text']];
@@ -2672,20 +2652,6 @@
             else refresh();
         }
 
-        window._disbRender = editing => renderDisbForm(window._reqData, editing);
-        window._disbGetPayload = function () {
-            const st = window._db; if (!st) return null;
-            if (!st.items.length) return { error: 'Please add at least one expense row before resubmitting.' };
-            const bad = st.items.some(r => !r.invoice_date || !r.invoice_no.trim() || !r.supplier_name.trim() || !r.description.trim() || !(parseFloat(r.amount) > 0));
-            if (bad) return { error: 'Please complete Invoice Date, Invoice No., Supplier, Description and Amount for every row.' };
-            return { data: {
-                proj_name: st.proj_name, model_no: st.model_no, person_in_charge: st.person_in_charge,
-                total_amount: st.items.reduce((a, r) => a + (parseFloat(r.amount) || 0), 0).toFixed(2),
-                items: JSON.stringify(st.items)
-            } };
-        };
-
-
         // ================= LOAN REQUEST DETAIL VIEW =================
         const LN_MAX = 4500;
         const LN_SECTIONS = [
@@ -2735,18 +2701,6 @@
             });
         }
 
-        window._loanRender = editing => renderLoanForm(window._reqData, editing);
-        window._loanGetPayload = function () {
-            const st = window._ln; if (!st) return null;
-            const amt = parseFloat(st.amount_requested);
-            if (!st.loan_type || !st.disbursement_method || !st.account_holder.trim() || !st.account_number.trim() || !st.bank_details.trim()) {
-                return { error: 'Please fill in Loan Type, Disbursement Method and all Borrower Bank Details.' };
-            }
-            if (!(amt > 0) || amt > LN_MAX) return { error: `Amount Requested must be more than 0 and not exceed RM ${LN_MAX}.` };
-            return { data: Object.assign({}, st, { amount_requested: amt.toFixed(2) }) };
-        };
-
-
         // ================= REQUEST VIEW (same as request-details.html) =================
         function hrpTitle(key) { return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 
@@ -2769,7 +2723,7 @@
 
         // Any other request type: show every value the initiator filled in (labels come from the field names)
         function hrpGeneric(data, root) {
-            const SKIP = /^(id|status|created_at|updated_at|approval_steps|attachments|supporting_document|attachment_path|attachment|items|employee_name|employee_id|department|position|last_reminder_sent|resubmission_count|resubmitted_at|rejected_by|rejected_at|rejection_reason|comment|priority|table_source|source_table|request_type|type)$/i;
+            const SKIP = /^(id|status|created_at|updated_at|approval_steps|attachments|supporting_document|attachment_path|attachment|items|employee_name|employee_id|department|position|last_reminder_sent|rejected_by|rejected_at|rejection_reason|comment|priority|table_source|source_table|request_type|type)$/i;
             root.replaceChildren();
             const nodes = [];
             Object.keys(data).forEach(k => {

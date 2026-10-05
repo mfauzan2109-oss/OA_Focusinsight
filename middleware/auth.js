@@ -9,6 +9,15 @@ function requireLogin(req, res, next) {
     next();
 }
 
+function normalize(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+function matchesHR(value) {
+    const v = normalize(value);
+    return v === 'hr' || v.includes('human resources');
+}
+
 function requireHRAccess(req, res, next) {
     if (!req.session || !req.session.user) {
         return res.status(401).json({
@@ -17,19 +26,20 @@ function requireHRAccess(req, res, next) {
         });
     }
 
-    const department = String(
-        req.session.user.department || ''
-    ).trim().toLowerCase();
+    const user = req.session.user;
 
-    const position = String(
-        req.session.user.position || ''
-    ).trim().toLowerCase();
+    // Temporary debug line: remove once the problem is fixed
+    console.log('SESSION USER:', user);
 
     const isHR =
-        department.includes('human resources') ||
-        department === 'hr' ||
-        position.includes('human resources') ||
-        position === 'hr';
+        matchesHR(user.department) ||
+        matchesHR(user.dept) ||
+        matchesHR(user.department_name) ||
+        matchesHR(user.departmentName) ||
+        matchesHR(user.position) ||
+        matchesHR(user.job_title) ||
+        matchesHR(user.jobTitle) ||
+        matchesHR(user.role);
 
     if (!isHR) {
         return res.status(403).json({

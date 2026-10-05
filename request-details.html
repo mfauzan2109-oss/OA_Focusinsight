@@ -800,7 +800,7 @@
             background-color: #f1f5f9;
         }
 
-        /* ================= REJECTION / RESUBMISSION UI ================= */
+        /* ================= REJECTION UI ================= */
         .reject-banner {
             background-color: #fecaca;
             border: 1px solid #f87171;
@@ -816,26 +816,6 @@
             font-size: 14.5px;
             margin-bottom: 4px;
             color: #b91c1c;
-        }
-
-        .resubmit-info-banner {
-            background-color: #99f6e4;
-            border: 1px solid #2dd4bf;
-            color: #134e4a;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .resubmit-limit-banner {
-            background-color: #fef3c7;
-            border: 1px solid #f59e0b;
-            color: #78350f;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
         }
 
         .edit-input {
@@ -1747,22 +1727,12 @@
             </div>
         </div>
 
-        <!-- Rejection & Resubmission Banners (shown only when applicable) -->
+        <!-- Rejection Banner (shown only when applicable) -->
         <div id="rejectBanner" class="reject-banner" style="display: none;">
             <div class="reject-banner-title"><i class="fa-solid fa-circle-xmark"></i> Request Rejected</div>
             <div>Rejected by: <span id="rejectedBy">—</span></div>
             <div>Date &amp; Time: <span id="rejectedAt">—</span></div>
             <div>Reason: <span id="rejectedReason">—</span></div>
-        </div>
-
-        <div id="resubmitInfoBanner" class="resubmit-info-banner" style="display: none;">
-            You can edit and resubmit this request. Maximum 3 resubmissions allowed. (<span
-                id="resubmitCountText">0</span>/3 used)
-        </div>
-
-        <div id="resubmitLimitBanner" class="resubmit-limit-banner" style="display: none;">
-            <i class="fa-solid fa-circle-exclamation"></i> Maximum resubmissions (3) reached. Please contact HR or your
-            manager for further assistance.
         </div>
 
         <!-- Action Buttons -->
@@ -1773,17 +1743,6 @@
             <!-- Send Reminder Button -->
             <button id="btnSendReminder" class="btn" style="background-color: #f97316; color: #ffffff; display: none;">
                 <i class="fa-solid fa-bell"></i> Send Reminder
-            </button>
-
-            <!-- Edit / Resubmit (shown only when this request was Rejected) -->
-            <button id="btnEdit" class="btn" style="background-color: #2563eb; color: #ffffff; display: none;">
-                <i class="fa-solid fa-pen"></i> Edit
-            </button>
-            <button id="btnResubmit" class="btn btn-secondary" style="display: none;" disabled>
-                <i class="fa-solid fa-paper-plane"></i> Resubmit
-            </button>
-            <button id="btnSubmitReportHR" class="btn btn-secondary" style="display: none;">
-                <i class="fa-regular fa-file-lines"></i> Submit Report to HR
             </button>
 
             <button id="btnSendEmail" class="btn btn-secondary" onclick="alert('Notification email triggered successfully.')"><i
@@ -2073,9 +2032,9 @@
                 if (statusRaw.startsWith('PENDING')) {
                     btnReminder.style.display = 'none';
 
-                    // Reminder unlocks 5 min after the latest of: submitted, resubmitted, last stage approved, last reminder
+                    // Reminder unlocks 5 min after the latest of: submitted, last stage approved, last reminder
                     const REMINDER_DELAY_MS = 5 * 60 * 1000;
-                    const stamps = [data.created_at || data['Created At'], data.resubmitted_at, data.last_reminder_sent]
+                    const stamps = [data.created_at || data['Created At'], data.last_reminder_sent]
                         .concat((Array.isArray(data.approval_steps) ? data.approval_steps : [])
                             .filter(x => String(x.status).toLowerCase() === 'approved').map(x => x.acted_at))
                         .map(v => v ? new Date(v).getTime() : NaN)
@@ -2384,22 +2343,11 @@
                     data.reason_for_transfer || 'No description provided.';
             }
 
-            // ---- Rejection / Resubmission UI ----
+            // ---- Rejection UI ----
             currentRequestId = displayId;
             currentRequestType = type;
 
             const rejectBanner = document.getElementById('rejectBanner');
-            const resubmitInfoBanner = document.getElementById('resubmitInfoBanner');
-            const resubmitLimitBanner = document.getElementById('resubmitLimitBanner');
-            const btnEdit = document.getElementById('btnEdit');
-            const btnResubmit = document.getElementById('btnResubmit');
-            const btnSubmitReportHR = document.getElementById('btnSubmitReportHR');
-
-            // NOTE: assumes the backend provides `rejected_by`, `rejected_at` (or
-            // `updated_at`), `rejection_reason`, and `resubmission_count` on the
-            // request record once the reject-with-reason flow is wired up. Falls
-            // back to sensible defaults if those fields aren't present yet.
-            const resubmissionCount = parseInt(data.resubmission_count || 0, 10);
             document.getElementById('btnSendEmail').style.display = '';
 
             if (statusRaw === 'REJECTED' || statusRaw === 'REJECT') {
@@ -2408,39 +2356,11 @@
                 const rejectedAtRaw = data.rejected_at || data.updated_at;
                 document.getElementById('rejectedAt').innerText = rejectedAtRaw ? new Date(rejectedAtRaw).toLocaleString() : '—';
                 document.getElementById('rejectedReason').innerText = data.rejection_reason || data.comment || 'No reason provided.';
-
-                if (resubmissionCount >= 3) {
-                    resubmitInfoBanner.style.display = 'none';
-                    resubmitLimitBanner.style.display = 'block';
-                    btnEdit.style.display = 'none';
-                    btnResubmit.style.display = 'none';
-                    btnSubmitReportHR.style.display = 'inline-flex';
-                } else {
-                    resubmitLimitBanner.style.display = 'none';
-                    resubmitInfoBanner.style.display = 'block';
-                    document.getElementById('resubmitCountText').innerText = resubmissionCount;
-                    // Rejected form opens straight into edit mode: no Edit button, and no Submit to HR / Send to Email while editing
-                    btnEdit.style.display = 'none';
-                    btnResubmit.style.display = 'inline-flex';
-                    btnResubmit.disabled = false;
-                    btnSubmitReportHR.style.display = 'none';
-                    document.getElementById('btnSendEmail').style.display = 'none';
-                }
             } else {
                 rejectBanner.style.display = 'none';
-                resubmitInfoBanner.style.display = 'none';
-                resubmitLimitBanner.style.display = 'none';
-                btnEdit.style.display = 'none';
-                btnResubmit.style.display = 'none';
-                btnSubmitReportHR.style.display = 'none';
             }
 
             renderTravelView(data, type, statusRaw, docPath);
-
-            // Rejected (and resubmissions left): open the form for editing automatically
-            if ((statusRaw === 'REJECTED' || statusRaw === 'REJECT') && resubmissionCount < 3) {
-                enableEditMode();
-            }
         }
 
         // ================= TRAVEL REQUEST DETAIL VIEW =================
@@ -3206,26 +3126,6 @@
             root.appendChild(rWrap);
         }
 
-        window._leaveRender = editing => renderLeaveForm(window._reqData, editing);
-        window._leaveGetPayload = function () {
-            const st = window._lv; if (!st) return null;
-            if (!st.entries.length || st.entries.some(e => !(e.duration > 0))) {
-                return { error: 'Please complete each row in the Leave Details table (valid dates and day type) before resubmitting.' };
-            }
-            if (!st.reason.trim()) return { error: 'Please fill in the Reason / Description.' };
-            const starts = st.entries.map(e => e.start).sort(), ends = st.entries.map(e => e.end).sort();
-            return {
-                data: {
-                    leave_type: st.type, reason: st.reason,
-                    start_date: starts[0], end_date: ends[ends.length - 1],
-                    day_type: st.entries.length === 1 ? st.entries[0].dayType : 'mixed',
-                    num_days: st.entries.reduce((a, e) => a + e.duration, 0),
-                    leave_entries: JSON.stringify(st.entries.map(({ start, end, dayType, duration }) => ({ start, end, dayType, duration })))
-                }
-            };
-        };
-
-
         // ================= DISBURSEMENT REQUEST DETAIL VIEW =================
         const DB_COLS = [['invoice_date', 'Invoice Date', 'date'], ['invoice_no', 'Invoice No.', 'text'], ['supplier_name', 'Supplier Name', 'text'],
                          ['description', 'Description', 'text'], ['amount', 'Amount', 'number'], ['remark', 'Reason / Remark', 'text']];
@@ -3312,20 +3212,6 @@
             else refresh();
         }
 
-        window._disbRender = editing => renderDisbForm(window._reqData, editing);
-        window._disbGetPayload = function () {
-            const st = window._db; if (!st) return null;
-            if (!st.items.length) return { error: 'Please add at least one expense row before resubmitting.' };
-            const bad = st.items.some(r => !r.invoice_date || !r.invoice_no.trim() || !r.supplier_name.trim() || !r.description.trim() || !(parseFloat(r.amount) > 0));
-            if (bad) return { error: 'Please complete Invoice Date, Invoice No., Supplier, Description and Amount for every row.' };
-            return { data: {
-                proj_name: st.proj_name, model_no: st.model_no, person_in_charge: st.person_in_charge,
-                total_amount: st.items.reduce((a, r) => a + (parseFloat(r.amount) || 0), 0).toFixed(2),
-                items: JSON.stringify(st.items)
-            } };
-        };
-
-
         // ================= LOAN REQUEST DETAIL VIEW =================
         const LN_MAX = 4500;
         const LN_SECTIONS = [
@@ -3374,17 +3260,6 @@
                 root.appendChild(tvSection(title, nodes));
             });
         }
-
-        window._loanRender = editing => renderLoanForm(window._reqData, editing);
-        window._loanGetPayload = function () {
-            const st = window._ln; if (!st) return null;
-            const amt = parseFloat(st.amount_requested);
-            if (!st.loan_type || !st.disbursement_method || !st.account_holder.trim() || !st.account_number.trim() || !st.bank_details.trim()) {
-                return { error: 'Please fill in Loan Type, Disbursement Method and all Borrower Bank Details.' };
-            }
-            if (!(amt > 0) || amt > LN_MAX) return { error: `Amount Requested must be more than 0 and not exceed RM ${LN_MAX}.` };
-            return { data: Object.assign({}, st, { amount_requested: amt.toFixed(2) }) };
-        };
 
         function renderTravelView(data, type, statusRaw, docPath) {
             const lowerType = String(type).trim().toLowerCase();
@@ -3548,228 +3423,6 @@
             const open = this.getAttribute('aria-expanded') === 'true';
             this.setAttribute('aria-expanded', String(!open));
             body.classList.toggle('collapsed', open);
-        });
-
-        // ================= EDIT / RESUBMIT (for Rejected requests) =================
-        function enableEditMode() {
-            const d = window._reqData || {};
-            const pickKey = keys => keys.find(k => d[k] !== undefined && d[k] !== null) || keys[0];
-            const raw = (k, t) => {
-                let v = d[k]; v = (v === undefined || v === null) ? '' : String(v);
-                if (t === 'date') return ymd(v);
-                if (t === 'time') return v.slice(0, 5);
-                return v;
-            };
-            const mk = (el, key, type, value, options) => {
-                let inp;
-                if (type === 'select') {
-                    inp = document.createElement('select');
-                    const opts = options.slice();
-                    if (value && !opts.some(o => o[0] === value)) opts.push([value, value]);
-                    opts.forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; o.selected = v === value; inp.appendChild(o); });
-                } else if (type === 'textarea') {
-                    inp = document.createElement('textarea'); inp.value = value;
-                } else {
-                    inp = document.createElement('input'); inp.type = type; inp.value = value;
-                }
-                inp.className = 'edit-input'; inp.dataset.field = key;
-                el.replaceChildren(inp);
-            };
-
-            // (a) Leave / Loan / Disbursement / Job Transfer (generic card)
-            const generic = document.getElementById('generic-detail-card');
-            if (generic && generic.style.display !== 'none') {
-                document.querySelectorAll('#dynamic-fields-container .form-control-static[data-field]').forEach(el => {
-                    const f = el.dataset.field, txt = el.textContent.trim();
-                    if (el.dataset.inputType === 'checkbox') {
-                        el.innerHTML = `<input type="checkbox" data-field="${f}" ${txt.toLowerCase() === 'yes' ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">`;
-                    } else if (/date/i.test(f) && ymd(txt)) {
-                        mk(el, f, 'date', ymd(txt));
-                    } else if (/_salary$/.test(f)) {
-                        mk(el, f, 'number', txt.replace(/[^0-9.]/g, ''));
-                    } else if (f === 'job_description' || f === 'job_scope_change') {
-                        mk(el, f, 'textarea', txt === '—' ? '' : txt);
-                    } else {
-                        mk(el, f, 'text', txt === '—' ? '' : txt);
-                    }
-                });
-                const reasonEl = document.getElementById('req-reason');
-                if (reasonEl && reasonEl.tagName !== 'TEXTAREA') {
-                    const ta = document.createElement('textarea');
-                    ta.id = 'req-reason'; ta.className = 'edit-input'; ta.value = reasonEl.textContent.trim();
-                    reasonEl.replaceWith(ta);
-                }
-            }
-
-            // (b) Travel + Overtime forms: map "section|label" -> data key(s)
-            const EM = {};
-            const S = (k, t = 'text', o) => ({ k: [].concat(k), t, o });
-            const add = (r, sec, label, ...specs) => { EM[`${r}|${sec}|${label}`] = specs; };
-            const proj = (r, sec) => {
-                add(r, sec, 'Project Name', S(['proj_name', 'project_name']));
-                add(r, sec, 'Model Number', S(['model_no', 'model_number']));
-                add(r, sec, 'Person in Charge', S('person_in_charge'));
-            };
-            proj('tr', 'Project Information'); add('tr', 'Project Information', 'Company', S(['company_name', 'company']));
-            add('tr', 'Trip Details', 'Travel Destination', S(['travel_destination', 'destination']));
-            add('tr', 'Trip Details', 'Travel Mode', S('travel_mode'));
-            add('tr', 'Trip Details', 'Departure Destination', S('departure_destination'));
-            add('tr', 'Trip Details', 'Arrival Destination', S('arrival_destination'));
-            add('tr', 'Trip Details', 'Expected Date Departure', S(['expected_departure_date', 'expected_departure'], 'date'));
-            add('tr', 'Trip Details', 'Expected Date Arrival', S(['expected_arrival_date', 'expected_arrival'], 'date'));
-            add('tr', 'Trip Details', 'Estimated Return Date', S(['estimated_return_date', 'return_date'], 'date'));
-            add('tr', 'Trip Details', 'Mileage', S('mileage', 'number'));
-            add('tr', 'Trip Details', 'Required Accommodation', S(['required_accommodation', 'accommodation']));
-            add('tr', 'Oversea Contact Details', 'Primary Contact', S('primary_contact'));
-            add('tr', 'Oversea Contact Details', 'Phone Number', S(['contact_phone', 'phone_number']));
-            add('tr', 'Oversea Contact Details', 'Venue & Address', S('venue_address'));
-            [['dep', 'Flight (Departure)'], ['ret', 'Flight (Return)']].forEach(([p, sec]) => {
-                // real column names of the `travel` table
-                const R = p === 'dep'
-                    ? { channel: 'departure_channel', dTime: 'departure_time', aTime: 'arrival_time', airline: 'airline', type: 'flight_type', bag: 'checked_baggage', price: 'flight_cost', dDate: 'expected_departure_date', aDate: 'expected_arrival_date' }
-                    : { channel: 'return_channel', dTime: 'return_departure_time', aTime: 'return_arrival_time', airline: 'return_airline', type: 'return_flight_type', bag: 'return_checked_baggage', price: 'return_flight_cost', dDate: 'estimated_return_date', aDate: 'ret_arr_date' };
-                add('tr', sec, 'Channel', S([R.channel, p + '_channel']));
-                add('tr', sec, 'Departure Date & Time', S([R.dDate, p + '_date'], 'date'), S([R.dTime, p + '_time'], 'time'));
-                add('tr', sec, 'Arrival Date & Time', S([R.aDate, p + '_arr_date'], 'date'), S([R.aTime, p + '_arr_time'], 'time'));
-                add('tr', sec, 'Airline', S([R.airline, p + '_airline']));
-                add('tr', sec, 'Flight Type', S([R.type, p + '_airline_type']));
-                add('tr', sec, 'Checked Baggage', S([R.bag, p + '_baggage']));
-                add('tr', sec, 'Estimated Price', S([R.price, p + '_price'], 'number'));
-            });
-            add('tr', 'Hotel', 'Channel', S('hotel_channel'));
-            add('tr', 'Hotel', 'Hotel Name', S('hotel_name'));
-            add('tr', 'Hotel', 'Duration', S('hotel_duration'));
-            add('tr', 'Hotel', 'Total Nights', S('hotel_nights', 'number'));
-            add('tr', 'Hotel', 'Estimated Price', S(['hotel_cost', 'hotel_price'], 'number'));
-            proj('ot', '');
-            add('ot', '', 'Date', S('ot_date', 'date'));
-            add('ot', '', 'Period', S('period'));
-            add('ot', '', 'Day Type', S('day_type', 'select', [['weekdays', 'Weekday & Saturday'], ['sunday', 'Sunday & Public Holiday']]));
-            add('ot', '', 'OT Allowance', S(['ot_allowance', 'ot_payment'], 'number'));
-            add('ot', '', 'OT Rate', S('ot_rate'));
-            add('ot', '', 'Start Time', S('start_time', 'time'));
-            add('ot', '', 'End Time', S('end_time', 'time'));
-            add('ot', '', 'Reason / Description', S(['reason', 'Reason'], 'textarea'));
-
-            document.querySelectorAll('#travel-form-content .tv-field, #overtime-form-content .tv-field').forEach(f => {
-                const r = f.closest('#overtime-form-content') ? 'ot' : 'tr';
-                const sec = f.closest('.tv-section')?.querySelector('.tv-section-title')?.textContent || '';
-                const label = f.querySelector('.tv-label')?.firstChild?.textContent.trim();
-                const specs = EM[`${r}|${sec}|${label}`];
-                if (!specs) return;
-                const boxes = f.querySelectorAll('.tv-value');
-                specs.forEach((e, i) => { if (boxes[i]) { const k = pickKey(e.k); mk(boxes[i], k, e.t, raw(k, e.t), e.o); } });
-            });
-
-            // Overtime tick boxes
-            const CK = [['Night Allowance (FI)', ['night_allowance_check', 'night_allowance']],
-                        ['Night Allowance (Inari)', ['inari_night_allowance_check', 'inari_night_allowance']],
-                        ['Meal Allowance', ['meal_allowance_check', 'meal_allowance']]];
-            document.querySelectorAll('#overtime-form-content .tv-check-row').forEach(row => {
-                const title = row.querySelector('.tv-check-title')?.textContent || '';
-                const hit = CK.find(([t]) => title.startsWith(t));
-                const box = row.querySelector('.tv-check-box');
-                if (!hit || !box) return;
-                const cb = document.createElement('input');
-                cb.type = 'checkbox'; cb.checked = box.classList.contains('on');
-                cb.dataset.field = pickKey(hit[1]);
-                cb.style.cssText = 'width: 20px; height: 20px; cursor: pointer;';
-                box.replaceWith(cb);
-            });
-
-            // Travel remarks
-            const rem = document.getElementById('travel-remarks');
-            if (rem && rem.closest('#travel-section') && document.getElementById('travel-section').style.display !== 'none') {
-                const k = pickKey(['remarks', 'reason']);
-                mk(rem, k, 'textarea', raw(k, 'text'));
-            }
-
-            const btnEdit = document.getElementById('btnEdit');
-            const btnResubmit = document.getElementById('btnResubmit');
-            if (document.getElementById('leave-section').style.display !== 'none' && window._leaveRender) window._leaveRender(true);
-            if (document.getElementById('disb-section').style.display !== 'none' && window._disbRender) window._disbRender(true);
-            if (document.getElementById('loan-section').style.display !== 'none' && window._loanRender) window._loanRender(true);
-            btnEdit.disabled = true;
-            btnEdit.innerHTML = '<i class="fa-solid fa-pen"></i> Editing...';
-            btnResubmit.disabled = false;
-        }
-
-        async function handleResubmit() {
-            if (parseInt((window._reqData || {}).resubmission_count || 0, 10) >= 3) { alert('Maximum resubmissions (3) reached.'); return; }
-            const payload = {
-                id: currentRequestId,
-                type: currentRequestType,
-                employee_id: (sessionStorage.getItem('userId') || '').toUpperCase()
-            };
-
-            document.querySelectorAll('main input[data-field], main select[data-field], main textarea[data-field]').forEach(input => {
-                let value = (input.type === 'checkbox') ? input.checked : input.value;
-                // Safety net: if a date-ish field somehow carries a full ISO
-                // timestamp (e.g. "2026-09-09T16:00:00.000Z") instead of a
-                // plain "YYYY-MM-DD", MySQL DATE columns will reject it.
-                // Strip everything from "T" onward so only the date part is sent.
-                if (typeof value === 'string' && /date/i.test(input.dataset.field) && value.includes('T')) {
-                    value = value.split('T')[0];
-                }
-                payload[input.dataset.field] = value;
-            });
-
-            const reasonEl = document.getElementById('req-reason');
-            if (reasonEl && reasonEl.tagName === 'TEXTAREA') {
-                payload.reason = reasonEl.value;
-                if (/job.?transfer/i.test(currentRequestType)) payload.reason_for_transfer = reasonEl.value;
-            }
-
-            const btnResubmit = document.getElementById('btnResubmit');
-            if (document.getElementById('leave-section').style.display !== 'none' && window._leaveGetPayload) {
-                const lp = window._leaveGetPayload();
-                if (lp && lp.error) { alert(lp.error); return; }
-                if (lp) Object.assign(payload, lp.data);
-            }
-
-            if (document.getElementById('loan-section').style.display !== 'none' && window._loanGetPayload) {
-                const np = window._loanGetPayload();
-                if (np && np.error) { alert(np.error); return; }
-                if (np) Object.assign(payload, np.data);
-            }
-
-            if (document.getElementById('disb-section').style.display !== 'none' && window._disbGetPayload) {
-                const dp = window._disbGetPayload();
-                if (dp && dp.error) { alert(dp.error); return; }
-                if (dp) Object.assign(payload, dp.data);
-            }
-
-            btnResubmit.disabled = true;
-            btnResubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Resubmitting...';
-
-            try {
-                const res = await fetch('/api/resubmit-request', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await res.json();
-
-                if (result.success) {
-                    alert('Request resubmitted successfully! Status has been set back to Pending for review.');
-                    window.location.reload();
-                } else {
-                    alert(result.message || 'Failed to resubmit request.');
-                    btnResubmit.disabled = false;
-                    btnResubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resubmit';
-                }
-            } catch (err) {
-                console.error('Resubmit error:', err);
-                alert('Failed to connect to server. Please check your connection and try again.');
-                btnResubmit.disabled = false;
-                btnResubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Resubmit';
-            }
-        }
-
-        document.getElementById('btnEdit')?.addEventListener('click', enableEditMode);
-        document.getElementById('btnResubmit')?.addEventListener('click', handleResubmit);
-        document.getElementById('btnSubmitReportHR')?.addEventListener('click', () => {
-            alert('Report submitted to HR.');
         });
 
         async function checkApprovalQueueAccess(userId, department, position) {
