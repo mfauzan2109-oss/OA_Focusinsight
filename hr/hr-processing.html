@@ -1919,10 +1919,27 @@
             return '';
         }
 
+        // Dates from the API can arrive as UTC ISO strings (e.g. 2028-01-16T16:00:00.000Z for 17 Jan in Malaysia).
+        // Convert those to the viewer's local calendar date instead of cutting the first 10 characters.
+        function ymd(value) {
+            if (value === null || value === undefined || value === '') return '';
+            const t = value instanceof Date ? value.toISOString() : String(value).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+            if (/T/.test(t) && /(Z|[+-]\d{2}:?\d{2})$/.test(t)) {
+                const d = new Date(t);
+                if (!Number.isNaN(d.getTime())) {
+                    const p = n => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+                }
+            }
+            const m = t.match(/^(\d{4}-\d{2}-\d{2})/);
+            return m ? m[1] : '';
+        }
+
         function tvDateText(value) {
             if (!value) return '';
             const text = String(value);
-            const m = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            const m = ymd(text).match(/^(\d{4})-(\d{2})-(\d{2})/);
             const d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : new Date(text);
             if (Number.isNaN(d.getTime())) return text;
             return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -2428,7 +2445,7 @@
         }
         function lvDayLabel(v) { const f = LV_DAY.find(d => d[0] === v); return f ? f[1] : (v === 'mixed' ? 'Mixed' : v); }
         function lvTypeLabel(v) { v = String(v || ''); return !v ? '' : /leave/i.test(v) ? v : v.charAt(0).toUpperCase() + v.slice(1) + ' Leave'; }
-        function lvDate(v) { const m = String(v || '').match(/^\d{4}-\d{2}-\d{2}/); return m ? m[0] : ''; }
+        function lvDate(v) { return ymd(v); }
         function lvDuration(start, end, t) {
             if (!start || !t) return null;
             if (t === '24hr') return 1;
