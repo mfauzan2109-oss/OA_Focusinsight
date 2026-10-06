@@ -688,6 +688,7 @@ router.post('/api/submit-job-transfer', requireLogin, upload.single('attachment'
 });
 
 router.get('/api/request-details', (req, res) => {
+    console.log('REQUEST-DETAILS HIT, type =', req.query.type);
     const { id, type } = req.query;
 
     if (!id || !type) {
@@ -710,6 +711,16 @@ router.get('/api/request-details', (req, res) => {
         query = `SELECT j.*, u.phone_no, u.email FROM \`job_transfer_requests\` j LEFT JOIN users u ON LOWER(j.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE j.id = ?`;
     } else if (reqType.includes('loan')) {
         query = `SELECT ln.*, u.phone_no, u.email FROM \`loans\` ln LEFT JOIN users u ON LOWER(ln.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE ln.id = ?`;
+    } else if (reqType.includes('hiring')) {
+        query = `SELECT f.*, u.phone_no, u.email FROM \`hiring_approvals\` f LEFT JOIN users u ON LOWER(f.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE f.id = ?`;
+    } else if (reqType.includes('probation')) {
+        query = `SELECT f.*, COALESCE(NULLIF(TRIM(f.employee_department), ''), f.department) AS department, u.phone_no, u.email FROM \`probation_confirmations\` f LEFT JOIN users u ON LOWER(f.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE f.id = ?`;
+    } else if (reqType.includes('contract')) {
+        query = `SELECT f.*, COALESCE(NULLIF(TRIM(f.employee_department), ''), f.department) AS department, u.phone_no, u.email FROM \`contract_renewals\` f LEFT JOIN users u ON LOWER(f.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE f.id = ?`;
+    } else if (reqType.includes('resign')) {
+        query = `SELECT f.*, u.phone_no, u.email FROM \`resignations\` f LEFT JOIN users u ON LOWER(f.employee_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE f.id = ?`;
+    } else if (reqType.includes('manpower') || reqType.includes('outsourc')) {
+        query = `SELECT f.*, f.requester_id AS employee_id, f.requested_by AS employee_name, f.requester_department AS department, u.phone_no, u.email FROM \`manpower_outsourcing_requests\` f LEFT JOIN users u ON LOWER(f.requester_id) = LOWER(u.user_id COLLATE utf8mb4_general_ci) WHERE f.id = ?`;
     } else {
         return res.status(400).json({ success: false, message: 'Invalid or unsupported request type.' });
     }
@@ -753,6 +764,13 @@ router.get('/api/request-details', (req, res) => {
             }];
 
             return res.json({ success: true, data: record });
+        }
+        // 4b. Fetch position rows for Manpower Outsourcing requests
+        else if (reqType.includes('manpower') || reqType.includes('outsourc')) {
+            db.query('SELECT * FROM `manpower_outsourcing_positions` WHERE request_id = ?', [record.id], (posErr, posResults) => {
+                record.positions = posResults || [];
+                return res.json({ success: true, data: record });
+            });
         }
         // 5. Standard return for Leave, Overtime, and Loans
         else {
