@@ -596,6 +596,7 @@
             
             <a href="my-request.html" class="nav-item active"><i class='bx bx-file'></i> My Request</a>
             <a href="application-center.html" class="nav-item"><i class='bx bx-calendar-check'></i> Application Center</a>
+            <a href="it-report.html" class="nav-item" id="reportItem" style="display: none;"><i class='bx bx-bar-chart-alt-2'></i> Report</a>
         </nav>
 
         <div class="sidebar-footer">
@@ -711,6 +712,12 @@
             }
 
             const formattedUserId = userId.toUpperCase();
+
+            // Report is only for the IT department
+            if (/\b(it|information technology)\b/i.test(department || '')) {
+                const reportItem = document.getElementById('reportItem');
+                if (reportItem) reportItem.style.display = 'flex';
+            }
 
             // Profile Avatar Setup
             const specificAvatarKey = `userAvatar_${formattedUserId}`;
