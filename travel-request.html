@@ -409,6 +409,8 @@
             <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
             <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>
             <a href="application-center.html" class="nav-item active"><i class='bx bx-calendar-check'></i> Application Center</a>
+            <a href="it-report.html" class="nav-item" id="reportItem" style="display: none;"><i class='bx bx-bar-chart-alt-2'></i> Report</a>
+
         </nav>
 
         <div class="sidebar-footer">
@@ -787,6 +789,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
 
+            
             const CONFIG = {
                 apiBaseUrl: window.APP_CONFIG?.apiBaseUrl || (window.location.origin.includes('localhost') 
                     ? '/api' 
@@ -807,6 +810,8 @@
             const currentDepartment = sessionStorage.getItem('department') || localStorage.getItem('department') || userSession.department || 'General Department';
             
             const currentPosition = sessionStorage.getItem('position') || localStorage.getItem('position') || userSession.position || '';
+           
+           
             const userRole = (sessionStorage.getItem('role') || localStorage.getItem('role') || userSession.role || '').toLowerCase();
 
             const formattedEmployeeId = (currentEmployeeId || '').toUpperCase();
@@ -1536,6 +1541,22 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showApprovalHistory);
     else showApprovalHistory();
+})();
+</script>
+<script>
+// Report link: visible to IT department only
+(function () {
+    function showReportItem() {
+        var user = {};
+        try { user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user')) || {}; } catch (e) {}
+        var department = sessionStorage.getItem('department') || localStorage.getItem('department') || user.department || '';
+        if (/\b(it|information technology)\b/i.test(department)) {
+            var reportItem = document.getElementById('reportItem');
+            if (reportItem) reportItem.style.display = 'flex';
+        }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showReportItem);
+    else showReportItem();
 })();
 </script>
 </body>
