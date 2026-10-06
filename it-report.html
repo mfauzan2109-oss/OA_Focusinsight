@@ -523,9 +523,9 @@
         </a>
         <nav class="nav-menu">
             <a href="dashboard.html" class="nav-item"><i class='bx bx-grid-alt'></i> Dashboard</a>
-            <a href="it-report.html" class="nav-item active"><i class='bx bx-bar-chart-alt-2'></i> Report</a>
+            <a href="my-request.html" class="nav-item"><i class='bx bx-file'></i> My Request</a>  
             <a href="application-center.html" class="nav-item"><i class='bx bx-calendar-check'></i> Application Center</a>
-            <a href="my-request.html" class="nav-item"><i class='bx bx-list-ul'></i> My Request</a>
+            <a href="it-report.html" class="nav-item active"><i class='bx bx-bar-chart-alt-2'></i> Report</a>
         </nav>
         <div class="sidebar-footer">
             <a href="index.html" class="sign-out" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span></a>
@@ -936,5 +936,35 @@
     }
     </script>
 <script src="/assets/js/session-guard.js"></script>
+<script>
+// Profile picture: loaded from the server (same source as profile.html)
+(function () {
+    function loadProfilePicture() {
+        var userId = (sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '').toUpperCase();
+        if (!userId) return;
+        var targets = [document.getElementById('sidebarAvatarContainer'), document.getElementById('topAvatar')].filter(Boolean);
+        if (!targets.length) return;
+
+        fetch('/api/profile/' + encodeURIComponent(userId))
+            .then(function (res) { return res.json(); })
+            .then(function (profData) {
+                if (!(profData.success && profData.data && profData.data.profile_picture)) return;
+                var pic = profData.data.profile_picture;
+                var src = pic.startsWith('http') ? pic : '/' + pic;
+                var imgHTML = '<img src="' + src + '" alt="Profile Picture" data-profile-img style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">';
+                targets.forEach(function (el) {
+                    el.innerHTML = imgHTML;
+                    // If another script later replaces it with initials, put the picture back
+                    new MutationObserver(function () {
+                        if (!el.querySelector('img[data-profile-img]')) el.innerHTML = imgHTML;
+                    }).observe(el, { childList: true });
+                });
+            })
+            .catch(function (err) { console.error('Error loading profile:', err); });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadProfilePicture);
+    else loadProfilePicture();
+})();
+</script>
 </body>
 </html>

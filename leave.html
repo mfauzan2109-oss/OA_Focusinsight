@@ -1446,5 +1446,34 @@
     else showApprovalHistory();
 })();
 </script>
+<script>
+// Profile picture: loaded from the server (same source as profile.html)
+(function () {
+    function loadProfilePicture() {
+        var userId = (sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '').toUpperCase();
+        if (!userId) return;
+        var targets = [document.getElementById('sidebarAvatarContainer'), document.getElementById('topAvatar')].filter(Boolean);
+        if (!targets.length) return;
+
+        fetch('/api/profile/' + encodeURIComponent(userId))
+            .then(function (res) { return res.json(); })
+            .then(function (profData) {
+                if (!(profData.success && profData.data && profData.data.profile_picture)) return;
+                var pic = profData.data.profile_picture;
+                var src = pic.startsWith('http') ? pic : '/' + pic;
+                var imgHTML = '<img src="' + src + '" alt="Profile Picture" data-profile-img style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">';
+                targets.forEach(function (el) {
+                    el.innerHTML = imgHTML;
+                    new MutationObserver(function () {
+                        if (!el.querySelector('img[data-profile-img]')) el.innerHTML = imgHTML;
+                    }).observe(el, { childList: true });
+                });
+            })
+            .catch(function (err) { console.error('Error loading profile:', err); });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadProfilePicture);
+    else loadProfilePicture();
+})();
+</script>
 </body>
 </html>

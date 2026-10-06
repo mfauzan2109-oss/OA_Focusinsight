@@ -2284,6 +2284,32 @@
                     <div class="form-group"><label>Claim Type</label><div class="form-control-static" data-field="claim_type" data-input-type="text">General Disbursement</div></div>
                     <div class="form-group"><label>Total Disbursement Amount</label><div class="form-control-static" data-field="total_amount" data-input-type="text">${amountDisplay}</div></div>
                 `;
+            } else if (!['job transfer', 'job-transfer', 'job_transfer'].includes(lowerType)) {
+                // Generic view: Hiring, Probation, Contract Renewal, Resignation, Manpower Outsourcing
+                calcBlock.style.display = 'none';
+                const HIDE = new Set(['id', 'ID', 'status', 'Status', 'created_at', 'updated_at', 'supporting_document',
+                    'approval_steps', 'phone_no', 'email', 'profile_picture', 'items', 'positions', 'employees',
+                    'last_reminder_sent', 'rejected_by', 'rejected_at', 'rejection_reason', 'comment']);
+                const gEsc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const gLabel = k => k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const gRows = (obj, extraHide) => Object.keys(obj)
+                    .filter(k => !HIDE.has(k) && !(extraHide && extraHide.has(k)) &&
+                        obj[k] !== null && obj[k] !== '' && typeof obj[k] !== 'object')
+                    .map(k => {
+                        let v = obj[k];
+                        if (/date/i.test(k) && /^\d{4}-\d{2}-\d{2}/.test(String(v))) v = formatDateOnly(v);
+                        const long = String(v).length > 60 || /\n/.test(String(v));
+                        return `<div class="form-group"${long ? ' style="grid-column: 1 / -1;"' : ''}><label>${gLabel(k)}</label><div class="form-control-static">${gEsc(v)}</div></div>`;
+                    }).join('');
+                fieldsHTML = gRows(data);
+                if (Array.isArray(data.positions)) {
+                    data.positions.forEach((p, i) => {
+                        fieldsHTML += `<div class="form-group" style="grid-column: 1 / -1;"><label style="font-weight:700;">Position ${i + 1}</label></div>` +
+                            gRows(p, new Set(['request_id']));
+                    });
+                }
+                const reasonText = data.reason_for_hiring || data.reason_for_renewal || data.reason || data.reason_for_outsourcing || data.remarks || '';
+                document.getElementById('req-reason').textContent = reasonText || 'No description provided.';
             }
 
             container.innerHTML = fieldsHTML;
@@ -3464,6 +3490,36 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showApprovalHistory);
     else showApprovalHistory();
+})();
+</script>
+<script>
+// Profile picture: loaded from the server (same source as profile.html)
+(function () {
+    function loadProfilePicture() {
+        var userId = (sessionStorage.getItem('userId') || sessionStorage.getItem('user_id') || '').toUpperCase();
+        if (!userId) return;
+        var targets = [document.getElementById('sidebarAvatarContainer'), document.getElementById('topAvatar')].filter(Boolean);
+        if (!targets.length) return;
+
+        fetch('/api/profile/' + encodeURIComponent(userId))
+            .then(function (res) { return res.json(); })
+            .then(function (profData) {
+                if (!(profData.success && profData.data && profData.data.profile_picture)) return;
+                var pic = profData.data.profile_picture;
+                var src = pic.startsWith('http') ? pic : '/' + pic;
+                var imgHTML = '<img src="' + src + '" alt="Profile Picture" data-profile-img style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">';
+                targets.forEach(function (el) {
+                    el.innerHTML = imgHTML;
+                    // If another script later replaces it with initials, put the picture back
+                    new MutationObserver(function () {
+                        if (!el.querySelector('img[data-profile-img]')) el.innerHTML = imgHTML;
+                    }).observe(el, { childList: true });
+                });
+            })
+            .catch(function (err) { console.error('Error loading profile:', err); });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadProfilePicture);
+    else loadProfilePicture();
 })();
 </script>
 </body>
