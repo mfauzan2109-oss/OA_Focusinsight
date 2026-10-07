@@ -603,6 +603,34 @@
     .doc-link-btn:hover {
       background: #dbeafe;
     }
+
+    /* ================= VGM "ALL APPROVAL" TABLE (VGM account only) ================= */
+    .vgm-panel { margin-left: 24px !important; margin-right: 24px !important; background: #fff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 14px 16px 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); }
+    .vgm-panel h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0 0 10px; }
+    .vgm-bar { display: flex; align-items: center; justify-content: flex-end; gap: 14px; flex-wrap: wrap; background: #d7f8f7; border-radius: 10px; padding: 10px 14px; }
+    .vgm-selected { font-size: 12px; font-weight: 700; color: #1d4ed8; }
+    .vgm-btn { display: inline-flex; align-items: center; gap: 8px; border: none; border-radius: 999px; padding: 9px 20px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; }
+    .vgm-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .vgm-btn.approve { background: #1a9f09; }
+    .vgm-btn.reject { background: #fb2727; }
+    .vgm-table-wrap { overflow-x: auto; margin-top: 12px; }
+    .vgm-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 760px; }
+    .vgm-table th { background: #ef5fb4; color: #fff; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 12px 10px; text-align: center; }
+    .vgm-table td { background: #f9faff; padding: 12px 10px; text-align: center; color: #1f2937; border-bottom: 1px solid #e2e8f0; }
+    .vgm-table td:nth-child(1) { text-align: left; white-space: nowrap; }
+    .vgm-table td:nth-child(2) { text-align: left; }
+    .vgm-chk { width: 15px; height: 15px; margin-right: 8px; vertical-align: middle; cursor: pointer; accent-color: #2563eb; }
+    .vgm-chk:disabled { cursor: not-allowed; }
+    .vgm-pill { display: inline-block; min-width: 78px; padding: 3px 12px; border-radius: 999px; font-size: 10px; font-weight: 700; border: 1px solid rgba(0,0,0,.18); }
+    .vgm-pill.pending { background: #fbc543; color: #7a5200; }
+    .vgm-pill.revision { background: #ff9e65; color: #7c2d12; }
+    .vgm-pill.approved { background: #86efac; color: #14532d; }
+    .vgm-pill.rejected { background: #fca5a5; color: #7f1d1d; }
+    .vgm-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 11px; color: #64748b; flex-wrap: wrap; gap: 8px; }
+    .vgm-pages { display: flex; align-items: center; gap: 6px; }
+    .vgm-pages button { border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; min-width: 24px; height: 24px; font-size: 11px; cursor: pointer; font-family: inherit; color: #334155; }
+    .vgm-pages button.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .vgm-pages button:disabled { opacity: .4; cursor: default; }
   </style>
 </head>
 <body>
@@ -771,35 +799,34 @@
       </div>
     </section>
 
-    <!-- All Approval History Section -->
-    <section class="table-panel">
+    <!-- All Approval table: shown for the VGM account only (see isVgm in the script) -->
+    <section class="vgm-panel" id="vgmPanel" style="display: none;">
       <h3>All Approval</h3>
-      <div class="table-container">
-        <table class="approval-table">
+      <div class="vgm-bar">
+        <span class="vgm-selected" id="vgmSelectedCount">0 Selected</span>
+        <button type="button" class="vgm-btn approve" id="vgmApproveBtn" disabled><i class='bx bx-check-circle'></i> Approve Selected</button>
+        <button type="button" class="vgm-btn reject" id="vgmRejectBtn" disabled><i class='bx bx-x'></i> Reject Selected</button>
+      </div>
+      <div class="vgm-table-wrap">
+        <table class="vgm-table">
           <thead>
             <tr>
               <th>Request ID</th>
               <th>Type</th>
-              <th>Employee (Department)</th>
+              <th>Employee<br>(Department)</th>
               <th>Amount</th>
               <th>Submitted</th>
               <th>Status</th>
-              <th>Action</th>
             </tr>
           </thead>
-          <tbody id="completedTableBody">
-            <tr>
-              <td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">
-                Loading approval history...
-              </td>
-            </tr>
+          <tbody id="vgmTableBody">
+            <tr><td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">Loading requests...</td></tr>
           </tbody>
         </table>
       </div>
-
-      <div class="table-footer">
-        <span id="paginationInfo">Showing 0 of 0 entries</span>
-        <div class="pagination" id="paginationControls"></div>
+      <div class="vgm-foot">
+        <span id="vgmFootInfo">Showing 0 of 0 records</span>
+        <div class="vgm-pages" id="vgmPages"></div>
       </div>
     </section>
 
@@ -811,6 +838,8 @@
       const userId = sessionStorage.getItem('userId');
       const position = sessionStorage.getItem('position');
       const department = sessionStorage.getItem('department');
+      // Only the VGM account gets the "All Approval" table
+      const isVgm = /\bvgm\b|vice[\s-]*general[\s-]*manager/i.test(position || '');
 
       if (!username || !userId) {
         alert("Access Denied! Please log in first.");
@@ -1017,7 +1046,7 @@
             item.style.display = text.includes(query) ? 'block' : 'none';
           });
 
-          document.querySelectorAll('#completedTableBody tr').forEach(row => {
+          document.querySelectorAll('#vgmTableBody tr').forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(query) ? '' : 'none';
           });
@@ -1405,10 +1434,8 @@
           const result = await res.json();
 
           const queueList = document.getElementById('queueList');
-          const completedBody = document.getElementById('completedTableBody');
           
           queueList.innerHTML = '';
-          completedBody.innerHTML = '';
 
           if (result.success && Array.isArray(result.data)) {
             allRequestsData = result.data;
@@ -1427,11 +1454,6 @@
                 return new Date(b.last_reminder_sent) - new Date(a.last_reminder_sent);
               }
               return 0;
-            });
-
-            const completedItems = allRequestsData.filter(item => {
-              const s = (item.status || '').trim().toLowerCase();
-              return s !== 'pending' && s !== 'in review' && s !== 'submitted';
             });
 
             const cardColors = ['card-color-0', 'card-color-1', 'card-color-2', 'card-color-3', 'card-color-4', 'card-color-5'];
@@ -1523,47 +1545,145 @@
             // Re-add reminder cards after the queue is rebuilt (the refresh clears the track)
             renderReminderCards();
 
-            if (completedItems.length > 0) {
-              completedItems.forEach(item => {
-                const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
-                const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
-                
-                let statusClass = 'approved';
-                const lowerStatus = (item.status || '').toLowerCase();
-                if (lowerStatus.includes('reject')) {
-                  statusClass = 'rejected';
-                } else if (lowerStatus.includes('revision')) {
-                  statusClass = 'revision';
-                }
-
-                const reqType = item.request_type || 'General';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                  <td><strong>${formattedId}</strong></td>
-                  <td>${reqType}</td>
-                  <td>${item.employee_name} (${item.department})</td>
-                  <td>${item.amount || '—'}</td>
-                  <td>${dateStr}</td>
-                  <td><span class="table-badge ${statusClass}">${item.status}</span></td>
-                  <td><a href="request-details.html?id=${item.id}&type=${encodeURIComponent(reqType)}" class="view-action-link">View</a></td>
-                `;
-                completedBody.appendChild(tr);
-              });
-              document.getElementById('paginationInfo').textContent = `Showing ${completedItems.length} of ${completedItems.length} entries`;
-            } else {
-              completedBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No completed approval records found.</td></tr>`;
-              document.getElementById('paginationInfo').textContent = `Showing 0 of 0 entries`;
-            }
+            // VGM only: every request that comes in is listed in the All Approval table
+            if (isVgm) renderVgmTable();
 
           } else {
             queueList.innerHTML = `<div style="padding: 20px; text-align: center; color: #64748b;">No requests found.</div>`;
-            completedBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No entries available.</td></tr>`;
+            if (isVgm) renderVgmTable();
           }
         } catch (err) {
           console.error("Queue Fetch Error:", err);
         }
       }
+
+      // ================= VGM: ALL APPROVAL TABLE =================
+      const VGM_PAGE_SIZE = 7;
+      let vgmPage = 1;
+      const vgmSelected = new Set();   // keys "type|id" - survives the 5s auto refresh
+      const vgmKey = it => `${it.request_type}|${it.id}`;
+      const vgmIsPending = it => ['pending', 'in review', 'submitted'].includes((it.status || '').trim().toLowerCase());
+      const vgmEsc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+      function vgmStatusClass(status) {
+        const t = (status || '').toLowerCase();
+        if (t.includes('reject')) return 'rejected';
+        if (t.includes('revision') || t.includes('resubmi')) return 'revision';
+        if (t.includes('approv')) return 'approved';
+        return 'pending';
+      }
+
+      function vgmUpdateBar() {
+        const n = vgmSelected.size;
+        document.getElementById('vgmSelectedCount').textContent = `${n} Selected`;
+        document.getElementById('vgmApproveBtn').disabled = n === 0;
+        document.getElementById('vgmRejectBtn').disabled = n === 0;
+      }
+
+      function renderVgmTable() {
+        const panel = document.getElementById('vgmPanel');
+        if (!panel) return;
+        if (!isVgm) { panel.style.display = 'none'; return; }
+        panel.style.display = '';
+
+        // newest submission first, so a freshly submitted form shows at the top
+        const rows = allRequestsData.slice().sort((a, b) => new Date(b.date_submitted || 0) - new Date(a.date_submitted || 0));
+
+        // drop selections that are no longer pending (approved/rejected since last refresh)
+        const pendingKeys = new Set(rows.filter(vgmIsPending).map(vgmKey));
+        Array.from(vgmSelected).forEach(k => { if (!pendingKeys.has(k)) vgmSelected.delete(k); });
+
+        const totalPages = Math.max(1, Math.ceil(rows.length / VGM_PAGE_SIZE));
+        if (vgmPage > totalPages) vgmPage = totalPages;
+        const pageRows = rows.slice((vgmPage - 1) * VGM_PAGE_SIZE, vgmPage * VGM_PAGE_SIZE);
+
+        const body = document.getElementById('vgmTableBody');
+        body.innerHTML = '';
+        if (!pageRows.length) {
+          body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">No requests yet. New request forms will appear here.</td></tr>`;
+        }
+        pageRows.forEach(item => {
+          const formattedId = `REQ-2026-${String(item.id).padStart(3, '0')}`;
+          const dateStr = item.date_submitted ? new Date(item.date_submitted).toISOString().split('T')[0] : '—';
+          const pending = vgmIsPending(item);
+          const reqType = item.request_type || 'General';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <input type="checkbox" class="vgm-chk" ${pending ? '' : 'disabled title="Already actioned"'} ${vgmSelected.has(vgmKey(item)) ? 'checked' : ''} aria-label="Select ${vgmEsc(formattedId)}">
+              <a href="request-details.html?id=${encodeURIComponent(item.id)}&type=${encodeURIComponent(reqType)}" class="view-action-link">${vgmEsc(formattedId)}</a>
+            </td>
+            <td>${vgmEsc(reqType)}</td>
+            <td>${vgmEsc(item.employee_name)}<br>(${vgmEsc(item.department)})</td>
+            <td>${vgmEsc(item.amount || '')}</td>
+            <td>${vgmEsc(dateStr)}</td>
+            <td><span class="vgm-pill ${vgmStatusClass(item.status)}">${vgmEsc(item.status || 'Pending')}</span></td>`;
+          const chk = tr.querySelector('.vgm-chk');
+          chk.addEventListener('change', () => {
+            if (chk.checked) vgmSelected.add(vgmKey(item)); else vgmSelected.delete(vgmKey(item));
+            vgmUpdateBar();
+          });
+          body.appendChild(tr);
+        });
+
+        const from = rows.length ? (vgmPage - 1) * VGM_PAGE_SIZE + 1 : 0;
+        document.getElementById('vgmFootInfo').textContent =
+          `Showing ${pageRows.length} of ${rows.length} records`;
+
+        const pages = document.getElementById('vgmPages');
+        pages.innerHTML = '';
+        const mk = (label, page, opts = {}) => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.textContent = label;
+          if (opts.active) b.classList.add('active');
+          if (opts.disabled) b.disabled = true;
+          b.addEventListener('click', () => { vgmPage = page; renderVgmTable(); });
+          pages.appendChild(b);
+        };
+        mk('‹', vgmPage - 1, { disabled: vgmPage <= 1 });
+        for (let p = 1; p <= totalPages; p++) mk(String(p), p, { active: p === vgmPage });
+        mk('›', vgmPage + 1, { disabled: vgmPage >= totalPages });
+        vgmUpdateBar();
+      }
+
+      async function vgmBulkAction(actionStatus) {
+        const picked = allRequestsData.filter(it => vgmSelected.has(vgmKey(it)) && vgmIsPending(it));
+        if (!picked.length) return;
+
+        let comment = document.getElementById('comment')?.value.trim() || '';
+        if (actionStatus === 'Rejected' && !comment) {
+          comment = (window.prompt(`Reason for rejecting ${picked.length} request(s):`) || '').trim();
+          if (!comment) { alert('Please state your reason/comment before rejecting.'); return; }
+        }
+        if (!window.confirm(`${actionStatus === 'Approved' ? 'Approve' : 'Reject'} ${picked.length} selected request(s)?`)) return;
+
+        const approveBtn = document.getElementById('vgmApproveBtn');
+        const rejectBtn = document.getElementById('vgmRejectBtn');
+        approveBtn.disabled = rejectBtn.disabled = true;
+
+        let ok = 0; const failed = [];
+        for (const it of picked) {
+          try {
+            const res = await fetch(`/api/approval-queue/${encodeURIComponent(it.request_type)}/${it.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: actionStatus, comment })
+            });
+            const result = await res.json();
+            if (result.success) { ok++; vgmSelected.delete(vgmKey(it)); }
+            else failed.push(`REQ-2026-${String(it.id).padStart(3, '0')}: ${result.message || 'failed'}`);
+          } catch (e) {
+            failed.push(`REQ-2026-${String(it.id).padStart(3, '0')}: server error`);
+          }
+        }
+        alert(`${ok} request(s) marked as '${actionStatus}'.` + (failed.length ? `\n\nFailed:\n${failed.join('\n')}` : ''));
+        if (document.getElementById('comment')) document.getElementById('comment').value = '';
+        await fetchApprovalQueue();
+        fetchNotifications();
+      }
+
+      document.getElementById('vgmApproveBtn')?.addEventListener('click', () => vgmBulkAction('Approved'));
+      document.getElementById('vgmRejectBtn')?.addEventListener('click', () => vgmBulkAction('Rejected'));
 
       function resetDetailCard() {
         selectedRawId = null;

@@ -802,20 +802,20 @@
 
         /* ================= REJECTION UI ================= */
         .reject-banner {
-            background-color: #fecaca;
-            border: 1px solid #f87171;
-            color: #7f1d1d;
-            padding: 14px 18px;
-            border-radius: 10px;
-            font-size: 13px;
-            line-height: 1.7;
+            background-color: #fd8f8f;
+            border: 1.5px solid #dc2626;
+            color: #3b0a0a;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .reject-banner-title {
-            font-weight: 800;
-            font-size: 14.5px;
-            margin-bottom: 4px;
-            color: #b91c1c;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 2px;
+            color: #1f0505;
         }
 
         .edit-input {
@@ -1413,6 +1413,37 @@
                 display: none;
             }
         }
+
+        /* ================= PROBATION CONFIRMATION ================= */
+        .pb-sub { font-size: 12px; font-weight: 700; color: #1d4ed8; line-height: 1.7; margin-bottom: 12px; }
+        .pb-tag { color: #dc2626; font-weight: 700; font-size: 13px; text-transform: none; letter-spacing: 0; }
+        .pb-table-wrap { overflow-x: auto; margin-bottom: 14px; }
+        .pb-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 400px; }
+        .pb-table th, .pb-table td { border: 1px solid #94a3b8; padding: 8px 10px; text-align: center; }
+        .pb-table td:first-child { text-align: left; font-weight: 500; color: #1f2937; }
+        .pb-table th { background: #f8fafc; font-weight: 600; color: #334155; }
+        .pb-radio { width: 16px; height: 16px; border: 1.5px solid #1f2937; border-radius: 50%; display: inline-block; vertical-align: middle; background: #fff; position: relative; }
+        button.pb-radio { padding: 0; margin: 0; appearance: none; -webkit-appearance: none; cursor: pointer; transition: transform .1s, box-shadow .1s; }
+        button.pb-radio:hover { transform: scale(1.15); box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
+        button.pb-radio:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+        .pb-table td.pb-cell { padding: 0; }
+        .pb-table td.pb-cell .pb-hit { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 8px 10px; cursor: pointer; }
+        .pb-radio.on { border-color: #475569; background: #cbd5e1; }
+        .pb-radio.on::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #334155; }
+        .pb-score-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .pb-pass { font-size: 13px; font-weight: 700; color: #1d4ed8; }
+        .pb-total { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 700; color: #1d4ed8; }
+        .pb-total .tv-value { min-width: 150px; justify-content: center; font-weight: 600; background: #fff; }
+        .pb-total .tv-value.fail { color: #dc2626; }
+        .pb-reco { border: 1px solid #cbd5e1; border-radius: 12px; padding: 14px 16px; background: #fff; }
+        .pb-reco h5 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        .pb-opt { display: flex; align-items: center; gap: 10px; padding: 3px 0 3px 14px; font-size: 13px; color: #475569; }
+        .pb-opt.on { color: #0f172a; font-weight: 700; }
+        .pb-opt.on .pb-radio { border-color: #16a34a; background: #dcfce7; }
+        .pb-opt.on .pb-radio::after { background: #16a34a; }
+        .pb-reco .tv-field { margin-top: 14px; max-width: 320px; }
+        .pb-long { min-height: 110px; align-items: flex-start; }
+        @media (max-width: 720px) { .pb-two { grid-template-columns: 1fr !important; } }
     </style>
 </head>
 
@@ -1671,6 +1702,30 @@
             </div>
         </div>
 
+
+        <!-- Probation confirmation only -->
+        <div id="probation-section" style="display: none; flex-direction: column; gap: 20px;">
+            <div class="card">
+                <div class="ot-card-head">
+                    <div class="card-header-sm" style="margin-bottom: 0;"><i class="fa-regular fa-file-lines"></i>
+                        Request Information</div>
+                    <span class="submitted-by-note" style="margin: 0;">As submitted by HR</span>
+                </div>
+                <div id="probation-form-content"></div>
+            </div>
+            <div class="travel-grid">
+                <div class="card">
+                    <div class="travel-card-title">Supporting Documents</div>
+                    <div class="travel-subtitle"><i class="fa-solid fa-paperclip"></i> Uploaded Attachments</div>
+                    <div id="probation-attachments"></div>
+                </div>
+                <div class="card">
+                    <div class="travel-card-title"><i class="fa-regular fa-circle-check"></i> Approval Timeline</div>
+                    <div class="tl-list" id="probation-tl"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Dynamic Detailed Information Section -->
         <div class="card" id="generic-detail-card">
             <div class="card-header-sm"><i class="fa-solid fa-file-lines"></i> Detailed Request Information</div>
@@ -1729,7 +1784,7 @@
 
         <!-- Rejection Banner (shown only when applicable) -->
         <div id="rejectBanner" class="reject-banner" style="display: none;">
-            <div class="reject-banner-title"><i class="fa-solid fa-circle-xmark"></i> Request Rejected</div>
+            <div class="reject-banner-title">🔴 Request Rejected</div>
             <div>Rejected by: <span id="rejectedBy">—</span></div>
             <div>Date &amp; Time: <span id="rejectedAt">—</span></div>
             <div>Reason: <span id="rejectedReason">—</span></div>
@@ -2376,15 +2431,7 @@
             const rejectBanner = document.getElementById('rejectBanner');
             document.getElementById('btnSendEmail').style.display = '';
 
-            if (statusRaw === 'REJECTED' || statusRaw === 'REJECT') {
-                rejectBanner.style.display = 'block';
-                document.getElementById('rejectedBy').innerText = data.rejected_by || 'Approving Manager';
-                const rejectedAtRaw = data.rejected_at || data.updated_at;
-                document.getElementById('rejectedAt').innerText = rejectedAtRaw ? new Date(rejectedAtRaw).toLocaleString() : '—';
-                document.getElementById('rejectedReason').innerText = data.rejection_reason || data.comment || 'No reason provided.';
-            } else {
-                rejectBanner.style.display = 'none';
-            }
+            applyRejectBanner(data, statusRaw);
 
             renderTravelView(data, type, statusRaw, docPath);
         }
@@ -3287,6 +3334,364 @@
             });
         }
 
+
+        function pbBuildTimeline(steps, data, statusRaw) {
+            const overall = statusRaw.startsWith('APPROVE') ? 'approved'
+                : statusRaw.startsWith('REJECT') ? 'rejected' : 'pending';
+            const out = [{
+                approver_role: 'Initiator',
+                acted_by: data.initiator_name || data.requested_by || 'Initiator',
+                status: 'approved',
+                acted_at: data.created_at || data['Created At'],
+                _sub: 'Initiator · Submitted',
+                _meta: true
+            }];
+            steps.forEach((st, i) => {
+                const role = st.approver_role || st.step_label || 'Approver';
+                out.push(Object.assign({}, st, { _sub: `${role} · Stage ${i + 1}` }));
+            });
+            const cc = Array.isArray(data.cc_recipients)
+                ? data.cc_recipients.map(r => (r && typeof r === 'object')
+                    ? [r.name || r.employee_name, r.department].filter(Boolean).join(' · ') : String(r)).filter(Boolean)
+                : [];
+            out.push({
+                approver_role: 'CC',
+                acted_by: cc.length ? `CC: ${cc.join(', ')}` : 'CC',
+                status: overall === 'approved' ? 'approved' : 'waiting',
+                _sub: 'CC · Notified when approved',
+                _stateLabel: 'Notified',
+                _meta: true
+            });
+            return out;
+        }
+
+        // ---------------- Probation Confirmation (read-only copy of the form) ----------------
+        const PB_ITEMS = [
+            { key: 'job_knowledge', label: 'Job Knowledge & Understanding' },
+            { key: 'quality_of_work', label: 'Quality of Work' },
+            { key: 'work_productivity', label: 'Work Productivity' },
+            { key: 'communication_skills', label: 'Communication Skills' },
+            { key: 'teamwork', label: 'Teamwork & Collaboration' },
+            { key: 'problem_solving', label: 'Problem Solving & Initiative' },
+            { key: 'attendance', label: 'Attendance & Punctuality' },
+            { key: 'adaptability', label: 'Adaptability & Learning Ability' },
+            { key: 'responsibility', label: 'Responsibility & Work Attitude' },
+            { key: 'compliance', label: 'Compliance with Company Policies' }
+        ];
+        const PB_PASS = 40;
+        const PB_RECOS = ['Confirm Employment', 'Extend Probation', 'Do Not Confirm'];
+
+        function pbParseScores(data) {
+            const norm = v => String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const aliases = ['jobknowledge', 'qualityofwork', 'workproductivity', 'communicationskill', 'teamwork',
+                'problemsolving', 'attendance', 'adaptab', 'responsibility', 'compliance'];
+            const labelIdx = txt => { const n = norm(txt); if (!n) return -1; return aliases.findIndex(a => n.includes(a)); };
+            const toScore = v => {
+                if (v && typeof v === 'object') {
+                    for (const k of ['score', 'rating', 'value', 'level', 'points', 'point', 'assessment_level', 'selected']) {
+                        if (v[k] !== undefined && v[k] !== null && v[k] !== '') { v = v[k]; break; }
+                    }
+                }
+                const n = Number(v);
+                return Number.isInteger(n) && n >= 1 && n <= 5 ? n : 0;
+            };
+            const numberedIdx = key => {
+                const m = String(key).toLowerCase().match(/^(?:q|qn|item|items|score|scores|rating|ratings|assessment|criteria|criterion|point|points|kpi|a|r|s)[_\-\s]?(\d{1,2})$/);
+                if (!m) return -1;
+                const i = Number(m[1]) - 1;
+                return i >= 0 && i < PB_ITEMS.length ? i : -1;
+            };
+            const tryParse = v => {
+                if (typeof v !== 'string') return v;
+                const t = v.trim();
+                if (!/^[\[{]/.test(t)) return v;
+                try { return JSON.parse(t); } catch (e) { return v; }
+            };
+            const fromCandidate = cand => {
+                const out = PB_ITEMS.map(() => 0);
+                if (Array.isArray(cand)) {
+                    cand.forEach((el, i) => {
+                        let idx = i;
+                        if (el && typeof el === 'object') {
+                            const li = labelIdx(el.item || el.name || el.label || el.criteria || el.assessment_item || el.title || el.key);
+                            if (li >= 0) idx = li;
+                        }
+                        if (idx < out.length) out[idx] = toScore(el);
+                    });
+                } else if (cand && typeof cand === 'object') {
+                    Object.keys(cand).forEach(k => {
+                        let idx = labelIdx(k);
+                        if (idx < 0) idx = numberedIdx(k);
+                        if (idx >= 0) { const s = toScore(cand[k]); if (s) out[idx] = s; }
+                    });
+                }
+                return out;
+            };
+
+            const cands = [data];
+            Object.keys(data || {}).forEach(k => {
+                const v = tryParse(data[k]);
+                if (v && typeof v === 'object') cands.push(v);
+            });
+            // one level deeper (e.g. assessment: { items: [...] })
+            cands.slice(1).forEach(c => {
+                if (c && typeof c === 'object') Object.keys(c).forEach(k => {
+                    const v = tryParse(c[k]);
+                    if (v && typeof v === 'object') cands.push(v);
+                });
+            });
+
+            let best = PB_ITEMS.map(() => 0), bestCount = 0;
+            cands.forEach(c => {
+                const r = fromCandidate(c);
+                const cnt = r.filter(Boolean).length;
+                if (cnt > bestCount) { best = r; bestCount = cnt; }
+            });
+            if (!bestCount) console.warn('[Probation] No per-item scores found in data. Keys:', Object.keys(data || {}));
+            return best;
+        }
+
+        function pbRecoIndex(value) {
+            const t = String(value || '').toLowerCase();
+            if (!t) return -1;
+            if (t.includes('not')) return 2;
+            if (t.includes('extend')) return 1;
+            if (t.includes('confirm')) return 0;
+            return -1;
+        }
+
+        function pbLongBox(text) {
+            const box = tvValueBox(text);
+            box.classList.add('pb-long');
+            return box;
+        }
+
+        function pbFieldWith(label, node, full) {
+            const wrap = tvEl('div', 'tv-field' + (full ? ' full' : ''));
+            wrap.append(tvEl('label', 'tv-label', label), node);
+            return wrap;
+        }
+
+        function renderProbationForm(data) {
+            const root = document.getElementById('probation-form-content');
+            root.replaceChildren();
+
+            // ---- Employee Information ----
+            const emp = tvEl('div', 'tv-section');
+            emp.appendChild(tvEl('div', 'tv-section-title', 'Employee Information'));
+            const grid = tvEl('div', 'tv-fields');
+            const empId = tvPick(data, 'probation_employee_id', 'employee_id', 'Employee ID');
+            const dt = (...k) => tvDateText(tvPick(data, ...k));
+            const period = tvPick(data, 'probation_period', 'probation_months');
+            const periodText = period && /^\d+$/.test(String(period)) ? `${period} Months` : period;
+            [
+                ['Employee ID', empId],
+                ['Employee Name', tvPick(data, 'probation_employee_name', 'employee_name', 'Employee Name')],
+                ['Department', tvPick(data, 'department', 'Department', 'employee_department')],
+                ['Position', tvPick(data, 'position', 'Position', 'employee_position')],
+                ['Employment Type', tvPick(data, 'employment_type', 'Employment Type') || 'Probation'],
+                ['Employment Date', dt('employment_date', 'join_date', 'date_joined', 'start_date')],
+                ['Probation End Date', dt('probation_end_date', 'end_date')],
+                ['Probation Period', periodText]
+            ].forEach(([l, v]) => grid.appendChild(tvField(l, v)));
+            emp.appendChild(grid);
+            root.appendChild(emp);
+
+            // ---- Reason / Remarks ----
+            const rs = tvEl('div', 'tv-section');
+            rs.appendChild(tvEl('div', 'tv-section-title', 'Reason / Remarks'));
+            rs.appendChild(pbLongBox(tvPick(data, 'reason', 'remarks', 'Reason')));
+            root.appendChild(rs);
+
+            // ---- Probation Assessment ----
+            const scores = pbParseScores(data);
+            const sum = scores.reduce((a, b) => a + b, 0);
+            const totalRaw = Number(tvPick(data, 'total_points', 'total_score', 'total'));
+            const total = Number.isFinite(totalRaw) && totalRaw > 0 ? totalRaw : sum;
+            const max = PB_ITEMS.length * 5;
+
+            const as = tvEl('div', 'tv-section');
+            const title = tvEl('div', 'tv-section-title', 'Probation Assessment ');
+            title.appendChild(tvEl('span', 'pb-tag', '* (For Manager / HOD Use Only)'));
+            as.appendChild(title);
+            const sub = tvEl('div', 'pb-sub');
+            sub.innerHTML = 'Please rate the employee\'s performance based on the following scale:<br>' +
+                '1 = Unsatisfactory<br>2 = Needs Improvement<br>3 = Meets Expectations<br>4 = Exceeds Expectation<br>5 = Outstanding';
+            as.appendChild(sub);
+
+            const wrap = tvEl('div', 'pb-table-wrap');
+            const table = tvEl('table', 'pb-table');
+            const thead = tvEl('thead');
+            const h1 = tvEl('tr');
+            const th1 = tvEl('th', '', 'Assessment Item'); th1.rowSpan = 2; th1.style.width = '36%';
+            const th2 = tvEl('th', '', 'Assessment Level'); th2.colSpan = 5;
+            h1.append(th1, th2);
+            const h2 = tvEl('tr');
+            [1, 2, 3, 4, 5].forEach(n => h2.appendChild(tvEl('th', '', String(n))));
+            thead.append(h1, h2);
+            const tbody = tvEl('tbody');
+            PB_ITEMS.forEach((it, i) => {
+                const tr = tvEl('tr');
+                tr.appendChild(tvEl('td', '', it.label));
+                tr.setAttribute('role', 'radiogroup');
+                tr.setAttribute('aria-label', it.label);
+                [1, 2, 3, 4, 5].forEach(n => {
+                    const td = tvEl('td', 'pb-cell');
+                    const hit = tvEl('div', 'pb-hit');
+                    const r = tvEl('button', 'pb-radio' + (scores[i] === n ? ' on' : ''));
+                    r.type = 'button';
+                    r.dataset.row = i; r.dataset.val = n;
+                    r.setAttribute('role', 'radio');
+                    r.setAttribute('aria-checked', scores[i] === n ? 'true' : 'false');
+                    r.setAttribute('aria-label', `${it.label}: ${n}`);
+                    const pick = () => pbSetScore(i, n);
+                    r.addEventListener('click', pick);
+                    hit.addEventListener('click', e => { if (e.target === hit) pick(); });
+                    hit.appendChild(r); td.appendChild(hit); tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.append(thead, tbody);
+            wrap.appendChild(table);
+            as.appendChild(wrap);
+
+            const row = tvEl('div', 'pb-score-row');
+            row.appendChild(tvEl('div', 'pb-pass', `*Passing Points : ${PB_PASS}/${max}`));
+            const tot = tvEl('div', 'pb-total');
+            tot.appendChild(tvEl('span', '', 'Total Points :'));
+            const totBox = tvEl('div', 'tv-value', `${total}/${max}`);
+            if (total && total < PB_PASS) totBox.classList.add('fail');
+            tot.appendChild(totBox);
+
+            // Rating is clickable: update the marks and the running total, and tell the page.
+            window._pbScores = scores.slice();
+            const pbSetScore = (row, val) => {
+                window._pbScores[row] = val;
+                table.querySelectorAll(`button.pb-radio[data-row="${row}"]`).forEach(b => {
+                    const on = Number(b.dataset.val) === val;
+                    b.classList.toggle('on', on);
+                    b.setAttribute('aria-checked', on ? 'true' : 'false');
+                });
+                const t = window._pbScores.reduce((a, b) => a + b, 0);
+                totBox.textContent = `${t}/${max}`;
+                totBox.classList.toggle('fail', t < PB_PASS);
+                document.dispatchEvent(new CustomEvent('probation-assessment-change', { detail: { scores: window._pbScores.slice(), total: t, max, pass: t >= PB_PASS } }));
+            };
+            window.getProbationAssessment = () => ({ scores: window._pbScores.slice(), total: window._pbScores.reduce((a, b) => a + b, 0), max });
+            row.appendChild(tot);
+            as.appendChild(row);
+            root.appendChild(as);
+
+            // ---- Confirmation Recommendation ----
+            const cr = tvEl('div', 'tv-section');
+            const crTitle = tvEl('div', 'tv-section-title', 'Confirmation Recommendation ');
+            crTitle.appendChild(tvEl('span', 'pb-tag', '*(For Manager / HOD Use Only)'));
+            cr.appendChild(crTitle);
+            const box = tvEl('div', 'pb-reco');
+            box.appendChild(tvEl('h5', '', 'Overall Recommendation'));
+            const picked = pbRecoIndex(tvPick(data, 'overall_recommendation', 'recommendation', 'confirmation_recommendation'));
+            PB_RECOS.forEach((label, i) => {
+                const o = tvEl('div', 'pb-opt' + (picked === i ? ' on' : ''));
+                o.append(tvEl('span', 'pb-radio' + (picked === i ? ' on' : '')), tvEl('span', '', label));
+                box.appendChild(o);
+            });
+            box.appendChild(tvField('Proposed Confirmation Date',
+                tvDateText(tvPick(data, 'proposed_confirmation_date', 'confirmation_date'))));
+            cr.appendChild(box);
+            root.appendChild(cr);
+
+            // ---- Performance Summary ----
+            const ps = tvEl('div', 'tv-section');
+            const psTitle = tvEl('div', 'tv-section-title', 'Performance Summary ');
+            psTitle.appendChild(tvEl('span', 'pb-tag', '*(For Manager / HOD Use Only)'));
+            ps.appendChild(psTitle);
+            ps.appendChild(pbLongBox(tvPick(data, 'performance_summary', 'summary', 'manager_remarks')));
+            root.appendChild(ps);
+        }
+
+        function renderProbationView(data, statusRaw, docPath) {
+            const steps = Array.isArray(data.approval_steps) ? data.approval_steps : [];
+            const timelineSteps = pbBuildTimeline(steps, data, statusRaw);
+            tvApplySummary(data, statusRaw, timelineSteps.filter(x => !x._meta), 'Probation Confirmation', false);
+            renderProbationForm(data);
+
+            // Top cards show the initiator (HR who submitted), not the employee being confirmed.
+            const setTxt = (id, v) => { const n = document.getElementById(id); if (n && v) n.innerText = v; };
+            setTxt('emp-name', tvPick(data, 'initiator_name', 'requested_by'));
+            setTxt('emp-id', tvPick(data, 'initiator_id', 'initiator_employee_id', 'requested_by_id'));
+            setTxt('emp-dept', tvPick(data, 'initiator_department'));
+            setTxt('emp-position', tvPick(data, 'initiator_position'));
+
+            const box = document.getElementById('probation-attachments');
+            box.replaceChildren();
+            const files = tvParseAttachments(data, docPath);
+            if (!files.length) box.appendChild(tvEl('div', 'file-size', 'No attachment provided.'));
+            files.forEach(file => {
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                const link = tvEl('a', 'file-chip');
+                link.href = file.path.startsWith('http') ? file.path : `/${file.path.replace(/^\/+/, '')}`;
+                link.target = '_blank'; link.rel = 'noopener';
+                const tag = tvEl('span', 'file-ext', (ext || 'FILE').toUpperCase().slice(0, 4));
+                tag.style.background = ext === 'pdf' ? '#fee2e2' : '#e0e7ff';
+                tag.style.color = ext === 'pdf' ? '#dc2626' : '#4338ca';
+                const info = tvEl('div'); info.appendChild(tvEl('div', 'file-name', file.name));
+                const sz = tvFormatSize(file.size); if (sz) info.appendChild(tvEl('div', 'file-size', sz));
+                link.append(tag, info); box.appendChild(link);
+            });
+            tvRenderTimeline(document.getElementById('probation-tl'), timelineSteps, data, statusRaw);
+            applyRejectBanner(data, statusRaw);
+        }
+
+        async function renderProbationTimeline(data, statusRaw, docPath) {
+            renderProbationView(data, statusRaw, docPath);
+
+            // /api/request-details may not include probation_approval_steps or the assessment:
+            // read the full record from the probation endpoint and redraw with everything merged.
+            try {
+                const res = await fetch(`/api/probation-confirmations/${encodeURIComponent(data.id)}`);
+                const r = await res.json();
+                if (!r || !r.success) return;
+                const full = r.data || {};
+                const rows = Array.isArray(full.approval_steps) && full.approval_steps.length
+                    ? full.approval_steps
+                    : (Array.isArray(r.steps) ? r.steps.map(st => Object.assign({}, st, { acted_by: st.acted_by_name || st.acted_by })) : []);
+                const merged = Object.assign({}, data, full);
+                if (rows.length) merged.approval_steps = rows;
+                renderProbationView(merged, statusRaw, docPath);
+            } catch (err) {
+                console.error('Probation load error:', err);
+            }
+        }
+
+        // Red "Request Rejected" card. Name / date / reason come from the rejected approval step
+        // (falls back to the request-level fields when the backend sends them there).
+        function applyRejectBanner(data, statusRaw) {
+            const banner = document.getElementById('rejectBanner');
+            if (!banner) return;
+            const steps = Array.isArray(data.approval_steps) ? data.approval_steps : [];
+            const rejStep = steps.find(st => String(st.status || '').toLowerCase().startsWith('reject'));
+            const isRejected = String(statusRaw || '').toUpperCase().startsWith('REJECT') || !!rejStep;
+            if (!isRejected) { banner.style.display = 'none'; return; }
+
+            const name = (rejStep && (rejStep.acted_by || rejStep.approver_name)) || data.rejected_by || 'Approving Manager';
+            const role = rejStep && (rejStep.approver_role || rejStep.step_label);
+            const who = role && !String(name).includes(role) ? `${name} (${role})` : name;
+
+            const whenRaw = (rejStep && rejStep.acted_at) || data.rejected_at || data.updated_at;
+            let when = '—';
+            if (whenRaw) {
+                const d = new Date(whenRaw);
+                when = Number.isNaN(d.getTime()) ? String(whenRaw)
+                    : d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\b(am|pm)\b/i, m => m.toUpperCase());
+            }
+            const reason = (rejStep && rejStep.remarks) || data.rejection_reason || data.comment || 'No reason provided.';
+
+            document.getElementById('rejectedBy').innerText = who;
+            document.getElementById('rejectedAt').innerText = when;
+            document.getElementById('rejectedReason').innerText = reason;
+            banner.style.display = 'block';
+        }
+
         function renderTravelView(data, type, statusRaw, docPath) {
             const lowerType = String(type).trim().toLowerCase();
             const isTravel = lowerType.includes('travel');
@@ -3294,6 +3699,7 @@
             const isLeave = lowerType.includes('leave');
             const isDisb = lowerType.includes('disbursement');
             const isLoan = lowerType.includes('loan');
+            const isProbation = lowerType.includes('probation');
             const show = (id, on, display) => {
                 const node = document.getElementById(id);
                 if (node) node.style.display = on ? (display || 'block') : 'none';
@@ -3304,8 +3710,13 @@
             show('leave-section', isLeave, 'flex');
             show('disb-section', isDisb, 'flex');
             show('loan-section', isLoan, 'flex');
-            show('generic-detail-card', !(isTravel || isOvertime || isLeave || isDisb || isLoan));
-            show('generic-bottom-grid', !(isTravel || isOvertime || isLeave || isDisb || isLoan), 'grid');
+            show('probation-section', isProbation, 'flex');
+            show('generic-detail-card', !(isTravel || isOvertime || isLeave || isDisb || isLoan || isProbation));
+            show('generic-bottom-grid', !(isTravel || isOvertime || isLeave || isDisb || isLoan || isProbation), 'grid');
+            if (isProbation) {
+                renderProbationTimeline(data, statusRaw, docPath);
+                return;
+            }
             if (!isTravel && !isOvertime && !isLeave && !isDisb && !isLoan) {
                 show('travel-type-pill', false);
                 show('submitted-by-note', false);
