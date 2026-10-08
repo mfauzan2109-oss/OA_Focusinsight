@@ -310,7 +310,7 @@ router.get('/api/user-leave-info', requireLogin, (req, res) => {
 // Leave balance table on the leave forms (leave.html, hr/leave-application-hr.html).
 // Entitlement + carry-forward come from the leave_balances table; Annual/Sick fall
 // back to the tenure-based helpers when an employee has no row yet. "Used" counts
-// Pending + Approved requests (Rejected/Cancelled don't count) for the current year.
+// fully Approved requests only (Pending/Rejected/Cancelled don't count) for the current year.
 const BALANCE_TYPES = [
     { key: 'annual', label: 'Annual Leave' },
     { key: 'sick', label: 'Sick Leave' },
@@ -332,6 +332,72 @@ function balanceKeyFor(rawType) {
     return null;
 }
 
+// ---------------------------------------------------------------------------
+// Annual leave: carry forward + current year
+// Rules:
+//  - Entitlement follows years of service (getAnnualEntitlement: Y1=12, Y2=14, Y3=16 ...)
+//  - Unused CURRENT-YEAR balance at year end carries forward, max 6 days.
+//  - Carry forward is only valid until 30 June of the next year, then it shows 0.
+//  - Leave must be taken from carry forward FIRST, then from current-year entitlement.
+//  - Carry forward does not chain (unused carry forward is never carried again).
+// ---------------------------------------------------------------------------
+const MAX_CARRY_FORWARD = 6;
+
+function computeAnnualBalance(leaveRows, joinYear, yearsOfService, currentYear, today) {
+    const byYear = {};
+    (leaveRows || []).forEach(r => {
+        const sd = String(r.sd || '');
+        const y = parseInt(sd.slice(0, 4), 10);
+        if (!y) return;
+        const days = parseFloat(r.num_days) || 0;
+        if (!byYear[y]) byYear[y] = { total: 0, early: 0 };
+        byYear[y].total += days;
+        if (sd.slice(5, 10) <= '06-30') byYear[y].early += days; // can draw on carry forward
+    });
+
+    const startYear = Math.max(currentYear - 10, Math.min(joinYear || currentYear, currentYear));
+    let carry = 0;
+
+    for (let y = startYear; y <= currentYear; y++) {
+        const entitlement = getAnnualEntitlement(Math.max(1, yearsOfService - (currentYear - y)));
+        const u = byYear[y] || { total: 0, early: 0 };
+
+        const carryUsed = Math.min(carry, u.early);        // carry forward is used first
+        const currentUsed = u.total - carryUsed;
+        const currentRemaining = Math.max(0, entitlement - currentUsed);
+
+        if (y === currentYear) {
+            const expiry = new Date(currentYear, 5, 30);   // 30 June
+            const expired = today > expiry;
+            const carryRemaining = expired ? 0 : Math.max(0, carry - carryUsed);
+            return {
+                entitlement,
+                used: u.total,
+                carryRemaining,
+                currentRemaining,
+                totalRemaining: carryRemaining + currentRemaining,
+                expiry: `${currentYear}-06-30`
+            };
+        }
+        carry = Math.min(MAX_CARRY_FORWARD, currentRemaining);
+    }
+}
+
+// A leave counts against the balance ONLY when every approval step is Approved
+// (HOD -> VGM -> CEO -> Chairman -> HR). We check leave_approval_steps directly
+// instead of leave.Status, because Status may change before the last approver signs.
+const FULLY_APPROVED_SQL = `
+    LOWER(TRIM(l.Status)) NOT IN ('rejected', 'cancelled')
+    AND EXISTS (
+        SELECT 1 FROM leave_approval_steps s1 WHERE s1.leave_id = l.ID
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM leave_approval_steps s2
+        WHERE s2.leave_id = l.ID
+          AND LOWER(TRIM(s2.status)) <> 'approved'
+    )
+`;
+
 router.get('/api/leave-balance', requireLogin, (req, res) => {
     // Always the logged-in user; the employee_id query param the forms send is ignored.
     const userId = req.session.user.user_id;
@@ -339,7 +405,9 @@ router.get('/api/leave-balance', requireLogin, (req, res) => {
 
     db.query('SELECT join_date FROM users WHERE LOWER(user_id) = LOWER(?)', [userId], (userErr, userRows) => {
         let years = 1;
+        let joinYear = null;
         if (!userErr && userRows && userRows.length > 0 && userRows[0].join_date) {
+            joinYear = new Date(userRows[0].join_date).getFullYear();
             const diff = Math.abs(new Date() - new Date(userRows[0].join_date));
             years = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)));
         }
@@ -358,19 +426,33 @@ router.get('/api/leave-balance', requireLogin, (req, res) => {
             }
 
             const usedQuery = `
-                SELECT \`Leave Type\` AS leave_type, SUM(\`No of Days\`) AS used
-                FROM \`leave\`
-                WHERE LOWER(\`Employee ID\`) = LOWER(?)
-                  AND LOWER(TRIM(Status)) IN ('pending', 'approved')
-                  AND YEAR(\`Start Date\`) = ?
-                GROUP BY \`Leave Type\`
+                SELECT l.\`Leave Type\` AS leave_type, SUM(l.\`No of Days\`) AS used
+                FROM \`leave\` l
+                WHERE LOWER(l.\`Employee ID\`) = LOWER(?)
+                  AND ${FULLY_APPROVED_SQL}
+                  AND YEAR(l.\`Start Date\`) = ?
+                GROUP BY l.\`Leave Type\`
+            `;
+
+            const annualHistoryQuery = `
+                SELECT DATE_FORMAT(l.\`Start Date\`, '%Y-%m-%d') AS sd, l.\`No of Days\` AS num_days
+                FROM \`leave\` l
+                WHERE LOWER(l.\`Employee ID\`) = LOWER(?)
+                  AND LOWER(TRIM(l.\`Leave Type\`)) IN ('annual', 'annual leave')
+                  AND ${FULLY_APPROVED_SQL}
             `;
 
             db.query(usedQuery, [userId, year], (usedErr, usedRows) => {
-                if (usedErr) {
+              if (usedErr) {
                     console.error('Leave Balance (used days) Error:', usedErr);
                     return res.status(500).json({ success: false, message: 'Database error.' });
+              }
+              db.query(annualHistoryQuery, [userId], (histErr, histRows) => {
+                if (histErr) {
+                    console.error('Leave Balance (annual history) Error:', histErr);
+                    return res.status(500).json({ success: false, message: 'Database error.' });
                 }
+                const annual = computeAnnualBalance(histRows, joinYear, years, year, new Date());
 
                 const usedMap = {};
                 (usedRows || []).forEach(r => {
@@ -388,6 +470,17 @@ router.get('/api/leave-balance', requireLogin, (req, res) => {
                 today.setHours(0, 0, 0, 0);
 
                 const data = BALANCE_TYPES.map(t => {
+                    if (t.key === 'annual') {
+                        return {
+                            leave_type: t.label,
+                            entitlement: annual.entitlement,
+                            carried_forward: annual.carryRemaining,
+                            carried_forward_expires: annual.expiry,
+                            current_year_remaining: annual.currentRemaining,
+                            used: annual.used,
+                            remaining: annual.totalRemaining
+                        };
+                    }
                     const row = rowMap[t.key];
                     let entitlement;
                     let carried = 0;
@@ -418,6 +511,7 @@ router.get('/api/leave-balance', requireLogin, (req, res) => {
                 });
 
                 return res.json({ success: true, data: data });
+              });
             });
         });
     });

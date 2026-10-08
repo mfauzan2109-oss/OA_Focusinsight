@@ -1054,12 +1054,11 @@
                     tr.dataset.type = row.leave_type;
                     const lowClass = row.remaining <= 2 ? ' balance-low' : '';
                     let remainingHtml = `${row.remaining} days`;
-                    if (row.leave_type === 'Annual Leave' && Number(row.carried_forward) > 0) {
-                        // Current Year = this year's entitlement less what has been used;
-                        // Carry Forward = whatever else is still left. The two add up to Total Remaining.
+                    if (row.leave_type === 'Annual Leave') {
+                        // Carry forward is used first; it shows 0 after 30 June.
+                        const carry = Number(row.carried_forward) || 0;
+                        const currentYear = Number(row.current_year_remaining) || 0;
                         const total = Number(row.remaining);
-                        const currentYear = Math.min(total, Math.max(0, Number(row.entitlement) - Number(row.used)));
-                        const carry = total - currentYear;
                         const expiry = formatExpiry(row.carried_forward_expires);
                         remainingHtml = `
                             <div class="balance-breakdown">
