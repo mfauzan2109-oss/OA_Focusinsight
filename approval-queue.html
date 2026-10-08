@@ -1727,7 +1727,7 @@
           const result = await response.json();
 
           if (result.success) {
-            alert(`Request marked as '${actionStatus}'!`);
+            alert(result.message || `Request marked as '${actionStatus}'!`);
             document.getElementById('comment').value = '';
             selectedRawId = null;
             selectedType = null;

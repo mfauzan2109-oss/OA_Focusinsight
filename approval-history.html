@@ -1108,6 +1108,7 @@
 
       function statusClassFor(status) {
         const lower = (status || '').toLowerCase();
+        if (lower === 'pending' || lower === 'in review' || lower === 'submitted') return 'pending';
         if (lower.includes('reject')) return 'rejected';
         if (lower.includes('revision')) return 'revision';
         return 'approved';
@@ -1126,7 +1127,7 @@
         controls.innerHTML = '';
 
         if (total === 0) {
-          body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">${query.trim() ? 'No matching records found.' : 'No approval history yet.'}</td></tr>`;
+          body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">${query.trim() ? 'No matching records found.' : 'You have not approved any requests yet.'}</td></tr>`;
           info.textContent = 'Showing 0 of 0 records';
           return;
         }
@@ -1141,7 +1142,7 @@
             <td>${escHtml(item.employee_name)} (${escHtml(item.department)})</td>
             <td>${escHtml(item.amount || '—')}</td>
             <td>${formatDate(item.date_submitted)}</td>
-            <td><span class="table-badge ${statusClassFor(item.status)}">${escHtml(item.status)}</span></td>
+            <td><span class="table-badge ${statusClassFor(item.status)}">${escHtml(isPendingItem(item) ? 'In progress' : item.status)}</span></td>
           `;
           body.appendChild(tr);
         });
@@ -1179,28 +1180,31 @@
         }
       }
 
-      async function fetchApprovalHistory() {
+      async function updateQueueBadge() {
         try {
-          const params = new URLSearchParams({
-            user_id: userId || '',
-            department: department || '',
-            position: position || ''
-          });
+          const params = new URLSearchParams({ user_id: userId || '', department: department || '', position: position || '' });
           const res = await fetch(`/api/approval-queue?${params.toString()}`);
           const result = await res.json();
-
           if (result.success && Array.isArray(result.data)) {
-            // Sidebar badge = requests still waiting in the queue
             const pendingCount = result.data.filter(isPendingItem).length;
             const badge = document.getElementById('approvalQueueBadge');
             if (badge) {
               badge.textContent = pendingCount;
               badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
             }
+          }
+        } catch (err) { /* badge is optional */ }
+      }
 
+      // History = requests THIS user has approved (server uses the logged-in session).
+      async function fetchApprovalHistory() {
+        try {
+          const res = await fetch('/api/approval-history');
+          const result = await res.json();
+
+          if (result.success && Array.isArray(result.data)) {
             allRows = result.data
-              .filter(item => !isPendingItem(item))
-              .sort((a, b) => new Date(b.date_submitted || 0) - new Date(a.date_submitted || 0));
+              .sort((a, b) => new Date(b.acted_at || 0) - new Date(a.acted_at || 0));
             applyFilter();
             renderTable();
           } else {
@@ -1212,6 +1216,7 @@
           document.getElementById('historyTableBody').innerHTML =
             `<tr><td colspan="6" style="text-align: center; color: #ef4444; padding: 20px;">Server error while loading approval history.</td></tr>`;
         }
+        updateQueueBadge();
       }
 
       // Both search boxes (header + panel) drive the same filter
