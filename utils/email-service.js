@@ -29,6 +29,13 @@ function getTransporter() {
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS
+        },
+        // LOCAL TESTING ONLY: set SMTP_ALLOW_SELF_SIGNED=true in .env when an antivirus
+        // or proxy re-signs the TLS connection ("self-signed certificate in certificate chain").
+        // Leave unset in production.
+        tls: {
+            rejectUnauthorized:
+                String(process.env.SMTP_ALLOW_SELF_SIGNED).toLowerCase() !== 'true'
         }
     });
 
