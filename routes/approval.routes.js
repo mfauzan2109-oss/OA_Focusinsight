@@ -4,6 +4,7 @@ const mysql = require('mysql2/promise');
 const db = require('../config/database');
 const { sendEmail } = require('../utils/email-service');
 const { resolveApproverRecipients } = require('../utils/p1-email');
+const { buildEmail } = require('../utils/request-email');
 
 const router = express.Router();
 
@@ -210,7 +211,7 @@ async function getApprovalTrail(connection, cfg, id) {
         for (const st of steps) {
             const name = st.acted_by ? await getUserName(connection, st.acted_by) : 'Unknown';
             const when = st.acted_at ? ` - ${new Date(st.acted_at).toLocaleString('en-MY')}` : '';
-            lines.push(`  - ${name} (${st.approver_role})${when}`);
+            lines.push(`${name} (${st.approver_role})${when}`);
         }
         return lines;
     } catch (e) {
@@ -223,15 +224,19 @@ async function notifyNextApprover(connection, typeKey, id, nextStep, department,
         const recipients = await resolveApproverRecipients(connection, nextStep.approver_role, department);
         const ref = `REQ-${typeKey.toUpperCase()}-${id}`;
         for (const r of recipients) {
+            const content = await buildEmail(connection, typeKey, id, {
+                greeting: `Hi ${r.name || r.user_id},`,
+                paragraphs: [
+                    `A ${typeKey.toUpperCase()} request requires your approval (${nextStep.approver_role}).`,
+                    ...(approvedBy ? [`Previously approved by: ${approvedBy}`] : [])
+                ],
+                footer: 'Please log in to the FocusInsight OA System to review the request.'
+            });
             await sendEmail({
                 to: r.email,
                 subject: `Approval Required: ${ref}`,
-                text:
-                    `Hi ${r.name || r.user_id},\n\n` +
-                    `A ${typeKey.toUpperCase()} request requires your approval.\n` +
-                    `Request: ${ref}\nRole: ${nextStep.approver_role}\n` +
-                    (approvedBy ? `Previously approved by: ${approvedBy}\n` : '') +
-                    `\nPlease log in to the FocusInsight OA System to review the request.`
+                text: content.text,
+                html: content.html
             });
         }
     } catch (e) {
@@ -239,8 +244,8 @@ async function notifyNextApprover(connection, typeKey, id, nextStep, department,
     }
 }
 
-// Tell the person who applied that their request is finished (fully approved or rejected).
-async function notifyInitiator(connection, cfg, typeKey, id, employeeId, outcome, step, actorName, remarks) {
+// Keeps the person who applied informed: after each approved stage, when fully approved, or when rejected.
+async function notifyInitiator(connection, cfg, typeKey, id, employeeId, outcome, step, actorName, remarks, nextStep) {
     try {
         if (!employeeId) return;
         const [rows] = await connection.query(
@@ -256,24 +261,36 @@ async function notifyInitiator(connection, cfg, typeKey, id, employeeId, outcome
         const name = (u && (u.name || u.full_name || u.employee_name)) || employeeId;
         const ref = `REQ-${typeKey.toUpperCase()}-${id}`;
         const trail = await getApprovalTrail(connection, cfg, id);
-        const trailText = trail.length ? `\nApproved by:\n${trail.join('\n')}\n` : '';
+        const T = typeKey.toUpperCase();
 
-        const approved = outcome === 'approved';
-        const subject = approved
-            ? `Request Approved: ${ref}`
-            : `Request Rejected: ${ref}`;
-        const text = approved
-            ? `Hi ${name},\n\n` +
-              `Your ${typeKey.toUpperCase()} request ${ref} has been fully approved.\n` +
-              trailText +
-              `\nPlease log in to the FocusInsight OA System to view the details.`
-            : `Hi ${name},\n\n` +
-              `Your ${typeKey.toUpperCase()} request ${ref} was rejected by ${actorName} (${step.approver_role}).\n` +
-              `Reason: ${remarks || 'No reason given.'}\n` +
-              trailText +
-              `\nPlease log in to the FocusInsight OA System to view the details.`;
+        let subject;
+        let paragraphs;
+        if (outcome === 'progress') {
+            subject = `Request Update: ${ref} approved by ${step.approver_role}`;
+            paragraphs = [
+                `Your ${T} request ${ref} was approved by ${actorName} (${step.approver_role}).`,
+                `It is now waiting for ${nextStep ? nextStep.approver_role : 'the next'} approval.`
+            ];
+        } else if (outcome === 'approved') {
+            subject = `Request Approved: ${ref}`;
+            paragraphs = [`Your ${T} request ${ref} has been fully approved.`];
+        } else {
+            subject = `Request Rejected: ${ref}`;
+            paragraphs = [
+                `Your ${T} request ${ref} was rejected by ${actorName} (${step.approver_role}).`,
+                `Reason: ${remarks || 'No reason given.'}`
+            ];
+        }
 
-        await sendEmail({ to: email, subject, text });
+        const content = await buildEmail(connection, typeKey, id, {
+            greeting: `Hi ${name},`,
+            paragraphs,
+            listTitle: trail.length ? 'Approved by:' : '',
+            listItems: trail,
+            footer: 'Please log in to the FocusInsight OA System to view the details.'
+        });
+
+        await sendEmail({ to: email, subject, text: content.text, html: content.html });
     } catch (e) {
         console.error('[EMAIL] Requester notification failed:', e.message);
     }
@@ -386,13 +403,18 @@ router.put('/api/approval-queue/:type/:id', async (req, res) => {
         console.log(
             `[APPROVAL] ${typeKey.toUpperCase()} #${id}: ${actorName} (${actor}) ${stepStatus} ` +
             `step ${current.step_order} (${current.approver_role}) -> ` +
-            (action === 'rejected' ? 'REJECTED, emailing requester' : (next ? `next: ${next.approver_role}` : 'FINAL, emailing requester'))
+            (action === 'rejected' ? 'REJECTED, emailing requester' : (next ? `next: ${next.approver_role}, emailing next approver + requester` : 'FINAL, emailing requester'))
         );
 
         if (next) {
             await notifyNextApprover(
                 connection, typeKey, id, next, reqRow.department,
                 `${actorName} (${current.approver_role})`
+            );
+            // Also keep the requester updated after every approved stage.
+            await notifyInitiator(
+                connection, cfg, typeKey, id, reqRow.employee_id,
+                'progress', current, actorName, comment, next
             );
         } else {
             // Rejected at any step, or the last step approved -> tell the requester.
