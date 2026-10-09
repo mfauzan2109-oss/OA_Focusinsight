@@ -24,3 +24,7 @@ Thumbs.db
 # Editor folders
 .vscode/
 .idea/
+
+.env
+node_modules/
+Focusinsight-reports/
