@@ -9,6 +9,43 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="../assets/css/hr/hiring-approval-form.css">
+
+    <style>
+        /* Extra styles for the evaluation sections (rating table, radios, yes/no table) */
+        .form-section-title { text-transform: uppercase; letter-spacing: 0.3px; }
+        .rating-note { color: #2563eb; font-weight: 600; font-size: 13px; line-height: 1.6; margin: 0 0 14px; }
+        .rating-note span { display: block; }
+
+        .eval-table { width: 100%; border-collapse: collapse; background: #fff; }
+        .eval-table th, .eval-table td { border: 1px solid #1f2937; padding: 10px 8px; font-size: 13px; text-align: center; color: #111827; }
+        .eval-table td.item-name { text-align: left; padding-left: 14px; }
+        .eval-table thead th { font-weight: 500; }
+        .eval-table input[type="radio"] { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
+        .eval-table tr.row-invalid td { background: #fef2f2; }
+
+        .points-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 14px; }
+        .passing-points { color: #2563eb; font-weight: 700; font-size: 12px; }
+        .total-points { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; }
+        .total-points input { width: 90px; text-align: center; font-weight: 700; }
+        .pass-status { font-size: 12px; font-weight: 600; margin-top: 6px; text-align: right; min-height: 16px; }
+        .pass-status.pass { color: #16a34a; }
+        .pass-status.fail { color: #dc2626; }
+
+        .radio-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+        .radio-list label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 400; cursor: pointer; }
+        .radio-list input[type="radio"] { accent-color: #2563eb; width: 15px; height: 15px; }
+
+        .yn-table { width: 100%; max-width: 560px; border-collapse: collapse; background: #fff; }
+        .yn-table th, .yn-table td { border: 1px solid #1f2937; padding: 10px 12px; font-size: 13px; }
+        .yn-table th { text-align: center; font-weight: 500; width: 90px; }
+        .yn-table td.q { text-align: left; }
+        .yn-table td.c { text-align: center; }
+        .yn-table input[type="radio"] { width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; }
+        .yn-table tr.row-invalid td { background: #fef2f2; }
+
+        .field-invalid { border-color: #ef4444 !important; }
+        .table-scroll { overflow-x: auto; }
+    </style>
 </head>
 <body>
 
@@ -94,121 +131,198 @@
                         </div>
                     </div>
 
-                    <!-- 1. EMPLOYMENT INFORMATION -->
+                    <!-- 1. CANDIDATE DETAILS -->
                     <div class="form-section">
-                        <h3 class="form-section-title">1. Employment Information</h3>
+                        <h3 class="form-section-title">1. Candidate Details</h3>
                         <div class="form-grid-2">
                             <div class="input-group form-full">
-                                <label for="employeeName">Employee Name<span class="req">*</span></label>
-                                <input type="text" id="employeeName" placeholder="e.g. new position reference" required>
+                                <label for="candidateName">Candidate Name<span class="req">*</span></label>
+                                <input type="text" id="candidateName" required>
                             </div>
                             <div class="input-group">
-                                <label for="hiringType">Hiring type<span class="req">*</span></label>
-                                <select id="hiringType" required>
-                                    <option value="" disabled selected>Select hiring type</option>
-                                    <option value="New Position">New Position</option>
-                                    <option value="Replacement">Replacement</option>
-                                    <option value="Temporary">Temporary</option>
-                                    <option value="Promotion">Promotion</option>
-                                </select>
+                                <label for="appliedPosition">Applied Position<span class="req">*</span></label>
+                                <input type="text" id="appliedPosition" required>
                             </div>
                             <div class="input-group">
-                                <label for="employeeReplacedSearch">Employee being replaced<span class="req">*</span></label>
-                                <div class="search-select-wrapper">
-                                    <i class='bx bx-search'></i>
-                                    <input type="text" id="employeeReplacedSearch" placeholder="Search employee" autocomplete="off" disabled>
-                                    <input type="hidden" id="employeeReplacedId">
-                                    <div class="search-dropdown" id="employeeReplacedDropdown"></div>
+                                <label for="interviewerName">Interviewer Name<span class="req">*</span></label>
+                                <input type="text" id="interviewerName" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="interviewDate">Interview Date<span class="req">*</span></label>
+                                <input type="date" id="interviewDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="interviewTime">Interview Time<span class="req">*</span></label>
+                                <input type="time" id="interviewTime" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="joinDate">Join Date<span class="req">*</span></label>
+                                <input type="date" id="joinDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="endDate">End Date<span class="req">*</span></label>
+                                <input type="date" id="endDate" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="period">Period<span class="req">*</span></label>
+                                <input type="text" id="period" placeholder="Auto-filled from Join / End Date" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. RATINGS / EVALUATION FACTOR -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">2. Ratings / Evaluation Factor</h3>
+                        <p class="rating-note">
+                            Please rate the employee's performance based on the following scale:
+                            <span>1 = Very Poor</span>
+                            <span>2 = Poor</span>
+                            <span>3 = Fair</span>
+                            <span>4 = Good</span>
+                            <span>5 = Excellent</span>
+                        </p>
+
+                        <div class="table-scroll">
+                            <table class="eval-table" id="ratingTable">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" style="width:38%;">Assessment item</th>
+                                        <th colspan="5">Assessment level</th>
+                                    </tr>
+                                    <tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-rating="jobKnowledge">
+                                        <td class="item-name">Job Knowledge</td>
+                                        <td><input type="radio" name="jobKnowledge" value="1"></td>
+                                        <td><input type="radio" name="jobKnowledge" value="2"></td>
+                                        <td><input type="radio" name="jobKnowledge" value="3"></td>
+                                        <td><input type="radio" name="jobKnowledge" value="4"></td>
+                                        <td><input type="radio" name="jobKnowledge" value="5"></td>
+                                    </tr>
+                                    <tr data-rating="relevantExperience">
+                                        <td class="item-name">Relevant Experience</td>
+                                        <td><input type="radio" name="relevantExperience" value="1"></td>
+                                        <td><input type="radio" name="relevantExperience" value="2"></td>
+                                        <td><input type="radio" name="relevantExperience" value="3"></td>
+                                        <td><input type="radio" name="relevantExperience" value="4"></td>
+                                        <td><input type="radio" name="relevantExperience" value="5"></td>
+                                    </tr>
+                                    <tr data-rating="verbalCommunication">
+                                        <td class="item-name">Verbal Communication</td>
+                                        <td><input type="radio" name="verbalCommunication" value="1"></td>
+                                        <td><input type="radio" name="verbalCommunication" value="2"></td>
+                                        <td><input type="radio" name="verbalCommunication" value="3"></td>
+                                        <td><input type="radio" name="verbalCommunication" value="4"></td>
+                                        <td><input type="radio" name="verbalCommunication" value="5"></td>
+                                    </tr>
+                                    <tr data-rating="attitude">
+                                        <td class="item-name">Attitude</td>
+                                        <td><input type="radio" name="attitude" value="1"></td>
+                                        <td><input type="radio" name="attitude" value="2"></td>
+                                        <td><input type="radio" name="attitude" value="3"></td>
+                                        <td><input type="radio" name="attitude" value="4"></td>
+                                        <td><input type="radio" name="attitude" value="5"></td>
+                                    </tr>
+                                    <tr data-rating="experience">
+                                        <td class="item-name">Experience</td>
+                                        <td><input type="radio" name="experience" value="1"></td>
+                                        <td><input type="radio" name="experience" value="2"></td>
+                                        <td><input type="radio" name="experience" value="3"></td>
+                                        <td><input type="radio" name="experience" value="4"></td>
+                                        <td><input type="radio" name="experience" value="5"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="points-row">
+                            <span class="passing-points">*Passing Points : 15/25</span>
+                            <div>
+                                <div class="total-points">
+                                    <span>Total Points :</span>
+                                    <input type="text" id="totalPoints" readonly value="0">
+                                    <span>/ 25</span>
                                 </div>
-                                <span class="helper-text" id="replacedHelperText">Only applicable for Replacement hiring type.</span>
-                            </div>
-                            <div class="input-group">
-                                <label for="employmentType">Employment Type<span class="req">*</span></label>
-                                <select id="employmentType" required>
-                                    <option value="" disabled selected>Select employment type</option>
-                                    <option value="Permanent">Permanent</option>
-                                    <option value="Contract">Contract</option>
-                                    <option value="Intern">Intern</option>
-                                    <option value="Probation">Probation</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label for="requiredStartDate">Required Start Date<span class="req">*</span></label>
-                                <input type="date" id="requiredStartDate" required>
-                            </div>
-                            <div class="input-group form-full" id="employmentPeriodGroup" style="display: none;">
-                                <label for="employmentPeriod">Period<span class="req">*</span></label>
-                                <input type="text" id="employmentPeriod" placeholder="e.g. 6 Months">
-                            </div>
-                            <div class="input-group">
-                                <label for="workLocation">Work Location<span class="req">*</span></label>
-                                <input type="text" id="workLocation" placeholder="e.g. Bukit Mertajam, Penang" required>
-                            </div>
-                            <div class="input-group form-full">
-                                <label for="reasonForHiring">Reason for Hiring<span class="req">*</span></label>
-                                <textarea id="reasonForHiring" rows="3" placeholder="Please provide your reason." required></textarea>
+                                <div class="pass-status" id="passStatus"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 2. JOB REQUIREMENT -->
+                    <!-- 3. OVERALL COMMENT -->
                     <div class="form-section">
-                        <h3 class="form-section-title">2. Job Requirement</h3>
-                        <div class="input-group">
-                            <label for="jobDescription">Job Description<span class="req">*</span></label>
-                            <textarea id="jobDescription" rows="4" placeholder="Please provide job description." required></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label for="keyResponsibilities">Key Responsibilities<span class="req">*</span></label>
-                            <textarea id="keyResponsibilities" rows="4" placeholder="Please provide key responsibilities." required></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label for="minimumQualification">Minimum Qualification<span class="req">*</span></label>
-                            <input type="text" id="minimumQualification" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="requiredSkills">Required Skills<span class="req">*</span></label>
-                            <textarea id="requiredSkills" rows="3" required></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label for="requiredExperience">Required Experience<span class="req">*</span></label>
-                            <textarea id="requiredExperience" rows="3" required></textarea>
-                        </div>
-                    </div>
-
-                    <!-- 3. SALARY INFO -->
-                    <div class="form-section">
-                        <h3 class="form-section-title">3. Salary Info</h3>
+                        <h3 class="form-section-title">3. Overall Comment</h3>
                         <div class="form-grid-2">
                             <div class="input-group">
-                                <label for="salaryRange">Salary Range (RM)<span class="req">*</span></label>
-                                <input type="text" id="salaryRange" placeholder="e.g. RM 3,000 - RM 4,500" required>
+                                <label for="overallComment">Overall Comment<span class="req">*</span></label>
+                                <textarea id="overallComment" rows="4" required></textarea>
                             </div>
                             <div class="input-group">
-                                <label for="hiringPriority">Hiring Priority<span class="req">*</span></label>
-                                <select id="hiringPriority" required>
-                                    <option value="" disabled selected>Select priority</option>
-                                    <option value="Low">Low</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="High">High</option>
-                                    <option value="Urgent">Urgent</option>
-                                </select>
+                                <label for="conclusion">Conclusion<span class="req">*</span></label>
+                                <textarea id="conclusion" rows="4" required></textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="proposeRole">Propose Role<span class="req">*</span></label>
+                                <input type="text" id="proposeRole" required>
+                            </div>
+                            <div class="input-group" id="recommendationGroup">
+                                <label>Choose One<span class="req">*</span></label>
+                                <div class="radio-list">
+                                    <label><input type="radio" name="recommendation" value="Strong Hire"> Strong Hire</label>
+                                    <label><input type="radio" name="recommendation" value="Hire"> Hire</label>
+                                    <label><input type="radio" name="recommendation" value="KIV"> KIV</label>
+                                    <label><input type="radio" name="recommendation" value="Not Suitable, no hire"> Not Suitable, no hire</label>
+                                    <label><input type="radio" name="recommendation" value="2nd round interview required"> 2nd round interview required</label>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="input-group form-full" style="margin-top: 16px;">
-                            <label>Supporting Document (if applicable)</label>
-                            <input type="file" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png">
-                            <div class="dropzone" id="dropzone">
-                                <i class='bx bx-cloud-upload'></i>
-                                Drag &amp; drop or <a href="#" id="browseFilesLink">browse files</a>
-                                <small>PDF, JPG, PNG up to 5MB</small>
+                    <!-- 4. SALARY DETAILS -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">4. Salary Details</h3>
+                        <div class="form-grid-2">
+                            <div class="input-group">
+                                <label for="currentSalary">Current Salary</label>
+                                <input type="text" id="currentSalary" placeholder="e.g. RM 3,000">
                             </div>
-                            <div class="file-preview" id="filePreview">
-                                <i class='bx bx-check-circle'></i>
-                                <span id="fileNameText"></span>
-                                <a href="#" id="removeFileLink" style="margin-left:auto;color:#ef4444;font-size:12px;">Remove</a>
+                            <div class="input-group">
+                                <label for="expectedSalary">Expected Salary<span class="req">*</span></label>
+                                <input type="text" id="expectedSalary" placeholder="e.g. RM 4,000" required>
                             </div>
+                            <div class="input-group">
+                                <label for="suggestedSalary">Suggested Salary<span class="req">*</span></label>
+                                <input type="text" id="suggestedSalary" placeholder="e.g. RM 3,800" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. EXTRA / REMARKS -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">5. Extra / Remarks</h3>
+                        <div class="table-scroll">
+                            <table class="yn-table" id="remarksTable">
+                                <thead>
+                                    <tr><th style="width:auto;"></th><th>Yes</th><th>No</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-yn="overtimeConcerns">
+                                        <td class="q">Overtime concerns?</td>
+                                        <td class="c"><input type="radio" name="overtimeConcerns" value="Yes"></td>
+                                        <td class="c"><input type="radio" name="overtimeConcerns" value="No"></td>
+                                    </tr>
+                                    <tr data-yn="businessTripConcerns">
+                                        <td class="q">Business Trips / Overseas Travel Concerns?</td>
+                                        <td class="c"><input type="radio" name="businessTripConcerns" value="Yes"></td>
+                                        <td class="c"><input type="radio" name="businessTripConcerns" value="No"></td>
+                                    </tr>
+                                    <tr data-yn="nightShift">
+                                        <td class="q">Night Shift?</td>
+                                        <td class="c"><input type="radio" name="nightShift" value="Yes"></td>
+                                        <td class="c"><input type="radio" name="nightShift" value="No"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -224,7 +338,259 @@
         </div>
     </main>
 
-    <script src="../assets/js/hr/hiring-approval-form.js"></script>
+    <script>
+// Hiring Approval Form (candidate evaluation).
+// Replaces the old hiring-approval-form.js for this page.
+(function () {
+    'use strict';
+
+    // >>> Set this to the route that saves the form on your server. <<<
+    const SUBMIT_URL = '/api/hiring-approval';
+    const PASSING_POINTS = 15;
+    const MAX_POINTS = 25;
+
+    const RATING_ITEMS = [
+        ['jobKnowledge', 'Job Knowledge'],
+        ['relevantExperience', 'Relevant Experience'],
+        ['verbalCommunication', 'Verbal Communication'],
+        ['attitude', 'Attitude'],
+        ['experience', 'Experience']
+    ];
+    const YES_NO_ITEMS = [
+        ['overtimeConcerns', 'Overtime concerns?'],
+        ['businessTripConcerns', 'Business Trips / Overseas Travel Concerns?'],
+        ['nightShift', 'Night Shift?']
+    ];
+
+    const $ = id => document.getElementById(id);
+    const val = id => ($(id).value || '').trim();
+    const checked = name => {
+        const el = document.querySelector(`input[name="${name}"]:checked`);
+        return el ? el.value : '';
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const username = sessionStorage.getItem('username');
+        const userId = sessionStorage.getItem('userId');
+        const department = sessionStorage.getItem('department');
+
+        if (!username || !userId) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // ---- Header / sidebar -------------------------------------------------
+        const formattedUserId = userId.toUpperCase();
+        $('sidebarName').textContent = username;
+        $('sidebarMeta').textContent = `${formattedUserId} • ${department || 'General'}`;
+        $('topAvatar').textContent = username.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+
+        const savedAvatar = localStorage.getItem(`userAvatar_${formattedUserId}`);
+        if (savedAvatar) {
+            const img = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            $('sidebarAvatarContainer').innerHTML = img;
+            $('topAvatar').innerHTML = img;
+        }
+
+        // ---- Request information ---------------------------------------------
+        $('requestedBy').value = username;
+        $('requesterDept').value = department || '';
+        $('requestDate').value = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        // ---- Ratings total ----------------------------------------------------
+        function updateTotal() {
+            let total = 0;
+            let answered = 0;
+            RATING_ITEMS.forEach(([name]) => {
+                const v = parseInt(checked(name), 10);
+                if (!isNaN(v)) { total += v; answered++; }
+            });
+            $('totalPoints').value = total;
+
+            const status = $('passStatus');
+            if (answered < RATING_ITEMS.length) {
+                status.textContent = '';
+                status.className = 'pass-status';
+            } else if (total >= PASSING_POINTS) {
+                status.textContent = 'Passed the passing points';
+                status.className = 'pass-status pass';
+            } else {
+                status.textContent = 'Below passing points';
+                status.className = 'pass-status fail';
+            }
+            return total;
+        }
+        document.querySelectorAll('#ratingTable input[type="radio"]').forEach(r => {
+            r.addEventListener('change', () => {
+                r.closest('tr').classList.remove('row-invalid');
+                updateTotal();
+            });
+        });
+        document.querySelectorAll('#remarksTable input[type="radio"]').forEach(r => {
+            r.addEventListener('change', () => r.closest('tr').classList.remove('row-invalid'));
+        });
+        updateTotal();
+
+        // ---- Period from Join / End date -------------------------------------
+        function updatePeriod() {
+            const j = $('joinDate').value;
+            const e = $('endDate').value;
+            if (!j || !e) return;
+            const start = new Date(j);
+            const end = new Date(e);
+            if (end < start) { $('period').value = ''; return; }
+
+            // Both dates count, so measure up to the day AFTER the end date.
+            const endExclusive = new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1);
+            let months = (endExclusive.getFullYear() - start.getFullYear()) * 12 + (endExclusive.getMonth() - start.getMonth());
+            let anchor = new Date(start.getFullYear(), start.getMonth() + months, start.getDate());
+            if (anchor > endExclusive) {
+                months--;
+                anchor = new Date(start.getFullYear(), start.getMonth() + months, start.getDate());
+            }
+            const days = Math.round((endExclusive - anchor) / 86400000);
+
+            const parts = [];
+            if (months > 0) parts.push(`${months} Month${months > 1 ? 's' : ''}`);
+            if (days > 0) parts.push(`${days} Day${days > 1 ? 's' : ''}`);
+            $('period').value = parts.join(' ') || '1 Day';
+        }
+        $('joinDate').addEventListener('change', updatePeriod);
+        $('endDate').addEventListener('change', updatePeriod);
+
+        // ---- Clear red borders when typing -----------------------------------
+        document.querySelectorAll('#hiringForm input, #hiringForm textarea').forEach(el => {
+            el.addEventListener('input', () => el.classList.remove('field-invalid'));
+        });
+        document.querySelectorAll('input[name="recommendation"]').forEach(r => {
+            r.addEventListener('change', () => $('recommendationGroup').classList.remove('field-invalid'));
+        });
+
+        // ---- Cancel -----------------------------------------------------------
+        $('btnCancel').addEventListener('click', function () {
+            if (confirm('Discard this form and go back?')) {
+                window.location.href = 'hr-operation.html';
+            }
+        });
+
+        // ---- Submit -----------------------------------------------------------
+        $('hiringForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const problems = [];
+            let firstBad = null;
+            const mark = (el, msg) => {
+                problems.push(msg);
+                if (el) { el.classList.add('field-invalid'); if (!firstBad) firstBad = el; }
+            };
+
+            [
+                ['candidateName', 'Candidate Name'], ['appliedPosition', 'Applied Position'],
+                ['interviewerName', 'Interviewer Name'], ['interviewDate', 'Interview Date'],
+                ['interviewTime', 'Interview Time'], ['joinDate', 'Join Date'], ['endDate', 'End Date'],
+                ['period', 'Period'], ['overallComment', 'Overall Comment'], ['conclusion', 'Conclusion'],
+                ['proposeRole', 'Propose Role'], ['expectedSalary', 'Expected Salary'],
+                ['suggestedSalary', 'Suggested Salary']
+            ].forEach(([id, label]) => { if (!val(id)) mark($(id), label); });
+
+            if (val('joinDate') && val('endDate') && val('endDate') < val('joinDate')) {
+                mark($('endDate'), 'End Date must be on or after Join Date');
+            }
+
+            RATING_ITEMS.forEach(([name, label]) => {
+                if (!checked(name)) {
+                    const row = document.querySelector(`tr[data-rating="${name}"]`);
+                    row.classList.add('row-invalid');
+                    problems.push(`Rating: ${label}`);
+                    if (!firstBad) firstBad = row;
+                }
+            });
+
+            if (!checked('recommendation')) mark($('recommendationGroup'), 'Choose One (recommendation)');
+
+            YES_NO_ITEMS.forEach(([name, label]) => {
+                if (!checked(name)) {
+                    const row = document.querySelector(`tr[data-yn="${name}"]`);
+                    row.classList.add('row-invalid');
+                    problems.push(`Extra / Remarks: ${label}`);
+                    if (!firstBad) firstBad = row;
+                }
+            });
+
+            if (problems.length) {
+                alert('Please complete the following:\n\n- ' + problems.join('\n- '));
+                if (firstBad && firstBad.scrollIntoView) firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            const ratings = {};
+            RATING_ITEMS.forEach(([name]) => { ratings[name] = parseInt(checked(name), 10); });
+            const total = updateTotal();
+
+            const payload = {
+                requested_by: userId,
+                requested_by_name: username,
+                department: department || '',
+
+                candidate_name: val('candidateName'),
+                applied_position: val('appliedPosition'),
+                interviewer_name: val('interviewerName'),
+                interview_date: val('interviewDate'),
+                interview_time: val('interviewTime'),
+                join_date: val('joinDate'),
+                end_date: val('endDate'),
+                period: val('period'),
+
+                ratings: ratings,
+                total_points: total,
+                passing_points: PASSING_POINTS,
+                max_points: MAX_POINTS,
+                passed: total >= PASSING_POINTS,
+
+                overall_comment: val('overallComment'),
+                conclusion: val('conclusion'),
+                propose_role: val('proposeRole'),
+                recommendation: checked('recommendation'),
+
+                current_salary: val('currentSalary'),
+                expected_salary: val('expectedSalary'),
+                suggested_salary: val('suggestedSalary'),
+
+                overtime_concerns: checked('overtimeConcerns'),
+                business_trip_concerns: checked('businessTripConcerns'),
+                night_shift: checked('nightShift')
+            };
+
+            const btn = $('btnSubmit');
+            btn.disabled = true;
+            const original = btn.textContent;
+            btn.textContent = 'Submitting...';
+
+            try {
+                const res = await fetch(SUBMIT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json().catch(() => ({}));
+
+                if (res.ok && result.success !== false) {
+                    alert(result.message || 'Hiring approval form submitted successfully!');
+                    window.location.href = 'my-request.html';
+                } else {
+                    alert('Submission error: ' + (result.message || 'Failed to submit the form.'));
+                }
+            } catch (err) {
+                console.error('Hiring form submit failed:', err);
+                alert('Submission failed. Please check your network connection.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = original;
+            }
+        });
+    });
+})();
+    </script>
 
 <script src="/assets/js/session-guard.js"></script>
 </body>
