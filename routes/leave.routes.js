@@ -386,138 +386,199 @@ function computeAnnualBalance(leaveRows, joinYear, yearsOfService, currentYear, 
 // A leave counts against the balance ONLY when every approval step is Approved
 // (HOD -> VGM -> CEO -> Chairman -> HR). We check leave_approval_steps directly
 // instead of leave.Status, because Status may change before the last approver signs.
-const FULLY_APPROVED_SQL = `
-    LOWER(TRIM(l.Status)) NOT IN ('rejected', 'cancelled')
-    AND EXISTS (
-        SELECT 1 FROM leave_approval_steps s1 WHERE s1.leave_id = l.ID
-    )
-    AND NOT EXISTS (
-        SELECT 1 FROM leave_approval_steps s2
-        WHERE s2.leave_id = l.ID
-          AND LOWER(TRIM(s2.status)) <> 'approved'
+// Old leaves that have no step rows fall back to Status = 'Approved'.
+const FULLY_APPROVED_CORE_SQL = `
+    (
+        (
+            EXISTS (SELECT 1 FROM leave_approval_steps s1 WHERE s1.leave_id = l.ID)
+            AND NOT EXISTS (
+                SELECT 1 FROM leave_approval_steps s2
+                WHERE s2.leave_id = l.ID AND LOWER(TRIM(s2.status)) <> 'approved'
+            )
+        )
+        OR (
+            NOT EXISTS (SELECT 1 FROM leave_approval_steps s3 WHERE s3.leave_id = l.ID)
+            AND LOWER(TRIM(l.Status)) = 'approved'
+        )
     )
 `;
+const FULLY_APPROVED_SQL = `
+    LOWER(TRIM(l.Status)) NOT IN ('rejected', 'cancelled')
+    AND ${FULLY_APPROVED_CORE_SQL}
+`;
+// Submitted but not yet fully approved (still waiting for approvers).
+const PENDING_SQL = `
+    LOWER(TRIM(l.Status)) NOT IN ('rejected', 'cancelled')
+    AND NOT ${FULLY_APPROVED_CORE_SQL}
+`;
 
-router.get('/api/leave-balance', requireLogin, (req, res) => {
-    // Always the logged-in user; the employee_id query param the forms send is ignored.
-    const userId = req.session.user.user_id;
+function dbQuery(sql, params) {
+    return new Promise((resolve, reject) => {
+        db.query(sql, params || [], (err, rows) => (err ? reject(err) : resolve(rows)));
+    });
+}
+
+// Balances for one employee in the current year.
+// used    = fully approved leave only (this is what the table shows)
+// pending = leave still waiting for approvers (only used to block over-applying)
+async function getLeaveBalances(userId) {
     const year = new Date().getFullYear();
 
-    db.query('SELECT join_date FROM users WHERE LOWER(user_id) = LOWER(?)', [userId], (userErr, userRows) => {
-        let years = 1;
-        let joinYear = null;
-        if (!userErr && userRows && userRows.length > 0 && userRows[0].join_date) {
-            joinYear = new Date(userRows[0].join_date).getFullYear();
-            const diff = Math.abs(new Date() - new Date(userRows[0].join_date));
-            years = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)));
+    let years = 1;
+    let joinYear = null;
+    const userRows = await dbQuery('SELECT join_date FROM users WHERE LOWER(user_id) = LOWER(?)', [userId]).catch(() => []);
+    if (userRows && userRows.length > 0 && userRows[0].join_date) {
+        joinYear = new Date(userRows[0].join_date).getFullYear();
+        const diff = Math.abs(new Date() - new Date(userRows[0].join_date));
+        years = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)));
+    }
+
+    const balRows = await dbQuery(`
+        SELECT leave_type, entitlement, carried_forward,
+               DATE_FORMAT(carried_forward_expires, '%Y-%m-%d') AS carried_forward_expires
+        FROM leave_balances
+        WHERE LOWER(employee_id) = LOWER(?) AND year = ?
+    `, [userId, year]);
+
+    const usedRows = await dbQuery(`
+        SELECT l.\`Leave Type\` AS leave_type, SUM(l.\`No of Days\`) AS used
+        FROM \`leave\` l
+        WHERE LOWER(l.\`Employee ID\`) = LOWER(?)
+          AND ${FULLY_APPROVED_SQL}
+          AND YEAR(l.\`Start Date\`) = ?
+        GROUP BY l.\`Leave Type\`
+    `, [userId, year]);
+
+    const pendingRows = await dbQuery(`
+        SELECT l.\`Leave Type\` AS leave_type, SUM(l.\`No of Days\`) AS pending
+        FROM \`leave\` l
+        WHERE LOWER(l.\`Employee ID\`) = LOWER(?)
+          AND ${PENDING_SQL}
+          AND YEAR(l.\`Start Date\`) = ?
+        GROUP BY l.\`Leave Type\`
+    `, [userId, year]);
+
+    const histRows = await dbQuery(`
+        SELECT DATE_FORMAT(l.\`Start Date\`, '%Y-%m-%d') AS sd, l.\`No of Days\` AS num_days
+        FROM \`leave\` l
+        WHERE LOWER(l.\`Employee ID\`) = LOWER(?)
+          AND LOWER(TRIM(l.\`Leave Type\`)) IN ('annual', 'annual leave')
+          AND ${FULLY_APPROVED_SQL}
+    `, [userId]);
+
+    const usedMap = {};
+    (usedRows || []).forEach(r => {
+        const key = balanceKeyFor(r.leave_type);
+        if (key) usedMap[key] = (usedMap[key] || 0) + (parseFloat(r.used) || 0);
+    });
+    const pendingMap = {};
+    (pendingRows || []).forEach(r => {
+        const key = balanceKeyFor(r.leave_type);
+        if (key) pendingMap[key] = (pendingMap[key] || 0) + (parseFloat(r.pending) || 0);
+    });
+    const rowMap = {};
+    (balRows || []).forEach(r => {
+        const key = balanceKeyFor(r.leave_type);
+        if (key) rowMap[key] = r;
+    });
+
+    const annual = computeAnnualBalance(histRows, joinYear, years, year, new Date());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const data = BALANCE_TYPES.map(t => {
+        if (t.key === 'annual') {
+            return {
+                key: t.key,
+                leave_type: t.label,
+                entitlement: annual.entitlement,
+                carried_forward: annual.carryRemaining,
+                carried_forward_expires: annual.expiry,
+                current_year_remaining: annual.currentRemaining,
+                used: annual.used,
+                pending: pendingMap.annual || 0,
+                remaining: annual.totalRemaining
+            };
         }
 
-        const balQuery = `
-            SELECT leave_type, entitlement, carried_forward,
-                   DATE_FORMAT(carried_forward_expires, '%Y-%m-%d') AS carried_forward_expires
-            FROM leave_balances
-            WHERE LOWER(employee_id) = LOWER(?) AND year = ?
-        `;
+        const row = rowMap[t.key];
+        let entitlement;
+        let carried = 0;
 
-        db.query(balQuery, [userId, year], (balErr, balRows) => {
-            if (balErr) {
-                console.error('Leave Balance (leave_balances) Error:', balErr);
-                return res.status(500).json({ success: false, message: 'Database error.' });
+        if (row) {
+            entitlement = parseFloat(row.entitlement) || 0;
+            carried = parseFloat(row.carried_forward) || 0;
+            if (carried > 0 && row.carried_forward_expires && new Date(row.carried_forward_expires) < today) {
+                carried = 0;
             }
+        } else if (t.key === 'sick') {
+            entitlement = getSickEntitlement(years);
+        } else {
+            entitlement = BALANCE_DEFAULTS[t.key];
+        }
 
-            const usedQuery = `
-                SELECT l.\`Leave Type\` AS leave_type, SUM(l.\`No of Days\`) AS used
-                FROM \`leave\` l
-                WHERE LOWER(l.\`Employee ID\`) = LOWER(?)
-                  AND ${FULLY_APPROVED_SQL}
-                  AND YEAR(l.\`Start Date\`) = ?
-                GROUP BY l.\`Leave Type\`
-            `;
-
-            const annualHistoryQuery = `
-                SELECT DATE_FORMAT(l.\`Start Date\`, '%Y-%m-%d') AS sd, l.\`No of Days\` AS num_days
-                FROM \`leave\` l
-                WHERE LOWER(l.\`Employee ID\`) = LOWER(?)
-                  AND LOWER(TRIM(l.\`Leave Type\`)) IN ('annual', 'annual leave')
-                  AND ${FULLY_APPROVED_SQL}
-            `;
-
-            db.query(usedQuery, [userId, year], (usedErr, usedRows) => {
-              if (usedErr) {
-                    console.error('Leave Balance (used days) Error:', usedErr);
-                    return res.status(500).json({ success: false, message: 'Database error.' });
-              }
-              db.query(annualHistoryQuery, [userId], (histErr, histRows) => {
-                if (histErr) {
-                    console.error('Leave Balance (annual history) Error:', histErr);
-                    return res.status(500).json({ success: false, message: 'Database error.' });
-                }
-                const annual = computeAnnualBalance(histRows, joinYear, years, year, new Date());
-
-                const usedMap = {};
-                (usedRows || []).forEach(r => {
-                    const key = balanceKeyFor(r.leave_type);
-                    if (key) usedMap[key] = (usedMap[key] || 0) + (parseFloat(r.used) || 0);
-                });
-
-                const rowMap = {};
-                (balRows || []).forEach(r => {
-                    const key = balanceKeyFor(r.leave_type);
-                    if (key) rowMap[key] = r;
-                });
-
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                const data = BALANCE_TYPES.map(t => {
-                    if (t.key === 'annual') {
-                        return {
-                            leave_type: t.label,
-                            entitlement: annual.entitlement,
-                            carried_forward: annual.carryRemaining,
-                            carried_forward_expires: annual.expiry,
-                            current_year_remaining: annual.currentRemaining,
-                            used: annual.used,
-                            remaining: annual.totalRemaining
-                        };
-                    }
-                    const row = rowMap[t.key];
-                    let entitlement;
-                    let carried = 0;
-
-                    if (row) {
-                        entitlement = parseFloat(row.entitlement) || 0;
-                        carried = parseFloat(row.carried_forward) || 0;
-                        if (carried > 0 && row.carried_forward_expires && new Date(row.carried_forward_expires) < today) {
-                            carried = 0; // carry-forward expired
-                        }
-                    } else if (t.key === 'annual') {
-                        entitlement = getAnnualEntitlement(years);
-                    } else if (t.key === 'sick') {
-                        entitlement = getSickEntitlement(years);
-                    } else {
-                        entitlement = BALANCE_DEFAULTS[t.key];
-                    }
-
-                    const used = usedMap[t.key] || 0;
-                    return {
-                        leave_type: t.label,
-                        entitlement: entitlement,
-                        carried_forward: carried,
-                        carried_forward_expires: (carried > 0 && row) ? row.carried_forward_expires : null,
-                        used: used,
-                        remaining: Math.max(0, entitlement + carried - used)
-                    };
-                });
-
-                return res.json({ success: true, data: data });
-              });
-            });
-        });
+        const used = usedMap[t.key] || 0;
+        return {
+            key: t.key,
+            leave_type: t.label,
+            entitlement: entitlement,
+            carried_forward: carried,
+            carried_forward_expires: (carried > 0 && row) ? row.carried_forward_expires : null,
+            used: used,
+            pending: pendingMap[t.key] || 0,
+            remaining: Math.max(0, entitlement + carried - used)
+        };
     });
+
+    return { year, data };
+}
+
+router.get('/api/leave-balance', requireLogin, async (req, res) => {
+    // Always the logged-in user; the employee_id query param the forms send is ignored.
+    try {
+        const result = await getLeaveBalances(req.session.user.user_id);
+        return res.json({ success: true, data: result.data });
+    } catch (err) {
+        console.error('Leave Balance Error:', err);
+        return res.status(500).json({ success: false, message: 'Database error.' });
+    }
 });
 
-router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req, res) => {
+// Blocks applications that exceed the balance (approved usage + other pending requests).
+// Only entries starting in the current year are checked.
+async function checkLeaveBalance(userId, leaveType, leaveEntries) {
+    const key = balanceKeyFor(leaveType);
+    if (!key) return null; // unpaid, marriage, replacement, others: no entitlement to check
+
+    const { year, data } = await getLeaveBalances(userId);
+    const row = data.find(r => r.key === key);
+    if (!row) return null;
+
+    const inYear = leaveEntries.filter(e => String(e.start_date).slice(0, 4) === String(year));
+    const requested = inYear.reduce((sum, e) => sum + Number(e.duration || 0), 0);
+    if (requested <= 0) return null;
+
+    let available;
+    if (key === 'annual') {
+        // Carry forward can only be used by leave starting on or before 30 June.
+        const earlyDays = inYear
+            .filter(e => String(e.start_date).slice(5, 10) <= '06-30')
+            .reduce((sum, e) => sum + Number(e.duration || 0), 0);
+        const carryUsable = Math.min(Number(row.carried_forward) || 0, earlyDays);
+        available = Number(row.current_year_remaining) + carryUsable - row.pending;
+    } else {
+        available = Number(row.remaining) - row.pending;
+    }
+    available = Math.max(0, available);
+
+    if (requested > available) {
+        const pendingNote = row.pending > 0 ? ` (including ${row.pending} day(s) from your other pending requests)` : '';
+        return `Insufficient ${row.leave_type} balance. Available: ${available} day(s)${pendingNote}, requested: ${requested} day(s).`;
+    }
+    return null;
+}
+
+router.post('/api/submit-leave', requireLogin, upload.single('attachment'), async (req, res) => {
     const employee_id = req.session.user.user_id;
     const employee_name = req.session.user.name;
     const department = req.session.user.department;
@@ -615,6 +676,16 @@ router.post('/api/submit-leave', requireLogin, upload.single('attachment'), (req
                 }))
             )
             : null;
+
+    try {
+        const balanceError = await checkLeaveBalance(employee_id, leave_type, leaveEntries);
+        if (balanceError) {
+            return res.status(400).json({ success: false, message: balanceError });
+        }
+    } catch (balanceErr) {
+        console.error('Leave balance check error:', balanceErr);
+        return res.status(500).json({ success: false, message: 'Failed to check leave balance.' });
+    }
 
     const overlapConditions =
         leaveEntries.map(() => `
