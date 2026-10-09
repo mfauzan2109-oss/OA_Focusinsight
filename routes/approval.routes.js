@@ -4,6 +4,7 @@ const mysql = require('mysql2/promise');
 const db = require('../config/database');
 const { sendEmail } = require('../utils/email-service');
 const { resolveApproverRecipients } = require('../utils/p1-email');
+const { buildEmail } = require('../utils/request-email');
 
 const router = express.Router();
 
@@ -15,27 +16,27 @@ const INCLUDE_REJECTED_IN_HISTORY = false;
 // ---------------------------------------------------------------------------
 const REQUEST_TYPES = {
     leave: {
-        table: 'leave', idCol: 'ID', statusCol: 'Status', deptCol: 'Department',
+        table: 'leave', idCol: 'ID', statusCol: 'Status', deptCol: 'Department', empCol: 'Employee ID',
         stepsTable: 'leave_approval_steps', fk: 'leave_id',
         cols: "m.ID AS id, m.`Employee ID` AS employee_id, m.`Employee Name` AS employee_name, m.Department AS department, 'Leave' AS request_type, 'Not Applicable' AS amount, m.`Created At` AS date_submitted, m.last_reminder_sent AS last_reminder_sent, TRIM(m.Status) AS status"
     },
     disbursement: {
-        table: 'disbursements', idCol: 'id', statusCol: 'status', deptCol: 'department',
+        table: 'disbursements', idCol: 'id', statusCol: 'status', deptCol: 'department', empCol: 'employee_id',
         stepsTable: 'disbursement_approval_steps', fk: 'disbursement_id',
         cols: "m.id AS id, m.employee_id AS employee_id, m.employee_name AS employee_name, m.department AS department, 'Disbursement' AS request_type, m.total_amount AS amount, m.created_at AS date_submitted, m.last_reminder_sent AS last_reminder_sent, TRIM(m.status) AS status"
     },
     travel: {
-        table: 'travel', idCol: 'id', statusCol: 'status', deptCol: 'department',
+        table: 'travel', idCol: 'id', statusCol: 'status', deptCol: 'department', empCol: 'employee_id',
         stepsTable: 'travel_approval_steps', fk: 'travel_id',
         cols: "m.id AS id, m.employee_id AS employee_id, m.employee_name AS employee_name, m.department AS department, 'Travel' AS request_type, m.total_amount AS amount, m.created_at AS date_submitted, m.last_reminder_sent AS last_reminder_sent, TRIM(m.status) AS status"
     },
     overtime: {
-        table: 'overtime', idCol: 'id', statusCol: 'status', deptCol: 'department',
+        table: 'overtime', idCol: 'id', statusCol: 'status', deptCol: 'department', empCol: 'employee_id',
         stepsTable: 'overtime_approval_steps', fk: 'overtime_id',
         cols: "m.id AS id, m.employee_id AS employee_id, m.employee_name AS employee_name, m.department AS department, 'Overtime' AS request_type, m.total_claim AS amount, m.created_at AS date_submitted, m.last_reminder_sent AS last_reminder_sent, TRIM(m.status) AS status"
     },
     loan: {
-        table: 'loans', idCol: 'id', statusCol: 'status', deptCol: 'department',
+        table: 'loans', idCol: 'id', statusCol: 'status', deptCol: 'department', empCol: 'employee_id',
         stepsTable: 'loan_approval_steps', fk: 'loan_id',
         cols: "m.id AS id, m.employee_id AS employee_id, m.employee_name AS employee_name, m.department AS department, 'Loan' AS request_type, m.amount_requested AS amount, m.created_at AS date_submitted, m.last_reminder_sent AS last_reminder_sent, TRIM(m.status) AS status"
     }
@@ -182,23 +183,116 @@ router.get('/api/approval-history', async (req, res) => {
 // ---------------------------------------------------------------------------
 // PUT approve / reject: advances ONE step. Request is only "Approved" after the last step.
 // ---------------------------------------------------------------------------
-async function notifyNextApprover(connection, typeKey, id, nextStep, department) {
+// Display name of a user (falls back to the user id).
+async function getUserName(connection, userId) {
+    try {
+        const [rows] = await connection.query(
+            'SELECT * FROM users WHERE LOWER(user_id) = LOWER(?) LIMIT 1',
+            [userId]
+        );
+        const u = rows && rows[0];
+        return (u && (u.name || u.full_name || u.employee_name)) || userId;
+    } catch (e) {
+        return userId;
+    }
+}
+
+// "Name (Role)" lines for every step that has been approved so far.
+async function getApprovalTrail(connection, cfg, id) {
+    try {
+        const [steps] = await connection.query(
+            `SELECT step_order, approver_role, acted_by, acted_at
+             FROM ${cfg.stepsTable}
+             WHERE ${cfg.fk} = ? AND LOWER(TRIM(status)) = 'approved'
+             ORDER BY step_order`,
+            [id]
+        );
+        const lines = [];
+        for (const st of steps) {
+            const name = st.acted_by ? await getUserName(connection, st.acted_by) : 'Unknown';
+            const when = st.acted_at ? ` - ${new Date(st.acted_at).toLocaleString('en-MY')}` : '';
+            lines.push(`${name} (${st.approver_role})${when}`);
+        }
+        return lines;
+    } catch (e) {
+        return [];
+    }
+}
+
+async function notifyNextApprover(connection, typeKey, id, nextStep, department, approvedBy) {
     try {
         const recipients = await resolveApproverRecipients(connection, nextStep.approver_role, department);
         const ref = `REQ-${typeKey.toUpperCase()}-${id}`;
         for (const r of recipients) {
+            const content = await buildEmail(connection, typeKey, id, {
+                greeting: `Hi ${r.name || r.user_id},`,
+                paragraphs: [
+                    `A ${typeKey.toUpperCase()} request requires your approval (${nextStep.approver_role}).`,
+                    ...(approvedBy ? [`Previously approved by: ${approvedBy}`] : [])
+                ],
+                footer: 'Please log in to the FocusInsight OA System to review the request.'
+            });
             await sendEmail({
                 to: r.email,
                 subject: `Approval Required: ${ref}`,
-                text:
-                    `Hi ${r.name || r.user_id},\n\n` +
-                    `A ${typeKey.toUpperCase()} request requires your approval.\n` +
-                    `Request: ${ref}\nRole: ${nextStep.approver_role}\n\n` +
-                    `Please log in to the FocusInsight OA System to review the request.`
+                text: content.text,
+                html: content.html
             });
         }
     } catch (e) {
         console.error('[EMAIL] Next approver notification failed:', e.message);
+    }
+}
+
+// Keeps the person who applied informed: after each approved stage, when fully approved, or when rejected.
+async function notifyInitiator(connection, cfg, typeKey, id, employeeId, outcome, step, actorName, remarks, nextStep) {
+    try {
+        if (!employeeId) return;
+        const [rows] = await connection.query(
+            'SELECT * FROM users WHERE LOWER(user_id) = LOWER(?) LIMIT 1',
+            [employeeId]
+        );
+        const u = rows && rows[0];
+        const email = u && (u.email || u.Email || u.email_address);
+        if (!email) {
+            console.warn(`[EMAIL] No email found for requester ${employeeId} (REQ-${typeKey.toUpperCase()}-${id}).`);
+            return;
+        }
+        const name = (u && (u.name || u.full_name || u.employee_name)) || employeeId;
+        const ref = `REQ-${typeKey.toUpperCase()}-${id}`;
+        const trail = await getApprovalTrail(connection, cfg, id);
+        const T = typeKey.toUpperCase();
+
+        let subject;
+        let paragraphs;
+        if (outcome === 'progress') {
+            subject = `Request Update: ${ref} approved by ${step.approver_role}`;
+            paragraphs = [
+                `Your ${T} request ${ref} was approved by ${actorName} (${step.approver_role}).`,
+                `It is now waiting for ${nextStep ? nextStep.approver_role : 'the next'} approval.`
+            ];
+        } else if (outcome === 'approved') {
+            subject = `Request Approved: ${ref}`;
+            paragraphs = [`Your ${T} request ${ref} has been fully approved.`];
+        } else {
+            subject = `Request Rejected: ${ref}`;
+            paragraphs = [
+                `Your ${T} request ${ref} was rejected by ${actorName} (${step.approver_role}).`,
+                `Reason: ${remarks || 'No reason given.'}`
+            ];
+        }
+
+        const content = await buildEmail(connection, typeKey, id, {
+            greeting: `Hi ${name},`,
+            paragraphs,
+            listTitle: trail.length ? 'Approved by:' : '',
+            listItems: trail,
+            footer: 'Please log in to the FocusInsight OA System to view the details.'
+        });
+
+        await sendEmail({ to: email, subject, text: content.text, html: content.html });
+    } catch (e) {
+        console.error('[EMAIL] Requester notification failed:', e.message);
     }
 }
 
@@ -248,7 +342,7 @@ router.put('/api/approval-queue/:type/:id', async (req, res) => {
         }
 
         const [[reqRow]] = await connection.query(
-            `SELECT \`${cfg.deptCol}\` AS department FROM \`${cfg.table}\` WHERE \`${cfg.idCol}\` = ?`,
+            `SELECT \`${cfg.deptCol}\` AS department, \`${cfg.empCol}\` AS employee_id FROM \`${cfg.table}\` WHERE \`${cfg.idCol}\` = ?`,
             [id]
         );
         if (!reqRow) {
@@ -304,8 +398,31 @@ router.put('/api/approval-queue/:type/:id', async (req, res) => {
 
         await connection.commit();
 
+        const actorName = await getUserName(connection, actor);
+
+        console.log(
+            `[APPROVAL] ${typeKey.toUpperCase()} #${id}: ${actorName} (${actor}) ${stepStatus} ` +
+            `step ${current.step_order} (${current.approver_role}) -> ` +
+            (action === 'rejected' ? 'REJECTED, emailing requester' : (next ? `next: ${next.approver_role}, emailing next approver + requester` : 'FINAL, emailing requester'))
+        );
+
         if (next) {
-            await notifyNextApprover(connection, typeKey, id, next, reqRow.department);
+            await notifyNextApprover(
+                connection, typeKey, id, next, reqRow.department,
+                `${actorName} (${current.approver_role})`
+            );
+            // Also keep the requester updated after every approved stage.
+            await notifyInitiator(
+                connection, cfg, typeKey, id, reqRow.employee_id,
+                'progress', current, actorName, comment, next
+            );
+        } else {
+            // Rejected at any step, or the last step approved -> tell the requester.
+            await notifyInitiator(
+                connection, cfg, typeKey, id, reqRow.employee_id,
+                action === 'approved' ? 'approved' : 'rejected',
+                current, actorName, comment
+            );
         }
 
         return res.json({ success: true, message });
