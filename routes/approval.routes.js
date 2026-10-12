@@ -4,7 +4,20 @@ const mysql = require('mysql2/promise');
 const db = require('../config/database');
 const { sendEmail } = require('../utils/email-service');
 const { resolveApproverRecipients } = require('../utils/p1-email');
-const { buildEmail } = require('../utils/request-email');
+
+
+// Plain-text email body (no table, no HTML).
+async function buildEmail(_connection, _typeKey, _id, o) {
+    const options = o || {};
+    const paragraphs = options.paragraphs || [];
+    const listItems = options.listItems || [];
+    const text =
+        (options.greeting ? `${options.greeting}\n\n` : '') +
+        paragraphs.join('\n') + '\n' +
+        (listItems.length ? `\n${options.listTitle || ''}\n${listItems.map(i => `  - ${i}`).join('\n')}\n` : '') +
+        (options.footer ? `\n${options.footer}` : '');
+    return { text, html: undefined };
+}
 
 const router = express.Router();
 
@@ -219,17 +232,22 @@ async function getApprovalTrail(connection, cfg, id) {
     }
 }
 
-async function notifyNextApprover(connection, typeKey, id, nextStep, department, approvedBy) {
+async function notifyNextApprover(connection, cfg, typeKey, id, nextStep, department, approvedBy) {
     try {
         const recipients = await resolveApproverRecipients(connection, nextStep.approver_role, department);
         const ref = `REQ-${typeKey.toUpperCase()}-${id}`;
+        const trail = await getApprovalTrail(connection, cfg, id); // everyone who approved so far
         for (const r of recipients) {
             const content = await buildEmail(connection, typeKey, id, {
                 greeting: `Hi ${r.name || r.user_id},`,
                 paragraphs: [
-                    `A ${typeKey.toUpperCase()} request requires your approval (${nextStep.approver_role}).`,
-                    ...(approvedBy ? [`Previously approved by: ${approvedBy}`] : [])
+                    `A ${typeKey.toUpperCase()} request requires your approval.`,
+                    `Request: ${ref}`,
+                    `Role: ${nextStep.approver_role}`,
+                    ...(approvedBy ? [`Just approved by: ${approvedBy}`] : [])
                 ],
+                listTitle: trail.length ? 'Approved so far:' : '',
+                listItems: trail,
                 footer: 'Please log in to the FocusInsight OA System to review the request.'
             });
             await sendEmail({
@@ -273,7 +291,10 @@ async function notifyInitiator(connection, cfg, typeKey, id, employeeId, outcome
             ];
         } else if (outcome === 'approved') {
             subject = `Request Approved: ${ref}`;
-            paragraphs = [`Your ${T} request ${ref} has been fully approved.`];
+            paragraphs = [
+                `Your ${T} request ${ref} has been fully approved.`,
+                `Final approval by: ${actorName} (${step.approver_role})`
+            ];
         } else {
             subject = `Request Rejected: ${ref}`;
             paragraphs = [
@@ -408,7 +429,7 @@ router.put('/api/approval-queue/:type/:id', async (req, res) => {
 
         if (next) {
             await notifyNextApprover(
-                connection, typeKey, id, next, reqRow.department,
+                connection, cfg, typeKey, id, next, reqRow.department,
                 `${actorName} (${current.approver_role})`
             );
             // Also keep the requester updated after every approved stage.

@@ -162,17 +162,21 @@ function detailsText(d) {
     return lines.join('\n');
 }
 
-// options: { greeting, paragraphs: [], listTitle, listItems: [], footer }
+// options: { greeting, paragraphs: [], listTitle, listItems: [], footer, includeDetails }
+// By default the email is plain text (no table). Pass includeDetails: true to add the
+// details table (and an HTML version).
 async function buildEmail(connection, typeKey, id, options) {
     const o = options || {};
     const paragraphs = o.paragraphs || [];
     const listItems = o.listItems || [];
 
     let details = null;
-    try {
-        details = await loadDetails(connection, typeKey, id);
-    } catch (e) {
-        console.error('[EMAIL] Could not load request details:', e.message);
+    if (o.includeDetails === true) {
+        try {
+            details = await loadDetails(connection, typeKey, id);
+        } catch (e) {
+            console.error('[EMAIL] Could not load request details:', e.message);
+        }
     }
 
     const text =
@@ -182,10 +186,14 @@ async function buildEmail(connection, typeKey, id, options) {
         (listItems.length ? `\n${o.listTitle || ''}\n${listItems.map(i => `  - ${i}`).join('\n')}\n` : '') +
         (o.footer ? `\n${o.footer}` : '');
 
+    if (!details) {
+        return { text, html: undefined };
+    }
+
     const html = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;color:#111827;">
         ${o.greeting ? `<p style="font-size:14px;">${esc(o.greeting)}</p>` : ''}
         ${paragraphs.map(p => `<p style="font-size:14px;margin:6px 0;">${esc(p)}</p>`).join('')}
-        ${details ? detailsHtml(details) : ''}
+        ${detailsHtml(details)}
         ${listItems.length ? `<p style="font-size:13px;font-weight:bold;margin:14px 0 4px;">${esc(o.listTitle || '')}</p>
             <ul style="font-size:14px;margin:0;padding-left:20px;">${listItems.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}
         ${o.footer ? `<p style="font-size:13px;color:#6b7280;margin-top:18px;">${esc(o.footer)}</p>` : ''}
