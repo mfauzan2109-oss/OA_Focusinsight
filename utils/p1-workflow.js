@@ -4,7 +4,39 @@ const mysql = require('mysql2/promise');
 const db = require('../config/database');
 const { sendEmail } = require('./email-service');
 const { resolveApproverRecipients } = require('./p1-email');
-const { buildEmail, loadDetails } = require('./request-email');
+
+
+// Plain-text email body (no table, no HTML).
+async function buildEmail(_connection, _typeKey, _id, o) {
+    const options = o || {};
+    const paragraphs = options.paragraphs || [];
+    const listItems = options.listItems || [];
+    const text =
+        (options.greeting ? `${options.greeting}\n\n` : '') +
+        paragraphs.join('\n') + '\n' +
+        (listItems.length ? `\n${options.listTitle || ''}\n${listItems.map(i => `  - ${i}`).join('\n')}\n` : '') +
+        (options.footer ? `\n${options.footer}` : '');
+    return { text, html: undefined };
+}
+
+// Which table/columns hold the requester's employee id, per request type.
+const STAFF_LOOKUP = {
+    leave:        { table: 'leave',         idCol: 'ID', empCol: 'Employee ID' },
+    travel:       { table: 'travel',        idCol: 'id', empCol: 'employee_id' },
+    disbursement: { table: 'disbursements', idCol: 'id', empCol: 'employee_id' },
+    loan:         { table: 'loans',         idCol: 'id', empCol: 'employee_id' },
+    overtime:     { table: 'overtime',      idCol: 'id', empCol: 'employee_id' }
+};
+
+async function loadDetails(connection, type, id) {
+    const c = STAFF_LOOKUP[type];
+    if (!c) return null;
+    const [rows] = await connection.query(
+        `SELECT \`${c.empCol}\` AS staffId FROM \`${c.table}\` WHERE \`${c.idCol}\` = ?`,
+        [id]
+    );
+    return rows && rows[0] ? { staffId: rows[0].staffId } : null;
+}
 
 const TARGETS = {
     leave: {
@@ -133,7 +165,9 @@ async function saveWithApprovalSteps({
                 const content = await buildEmail(connection, type, result.insertId, {
                     greeting: `Hi ${recipient.name || recipient.user_id},`,
                     paragraphs: [
-                        `A ${type.toUpperCase()} request requires your approval (${firstRole}).`
+                        `A ${type.toUpperCase()} request requires your approval.`,
+                        `Request: ${ref}`,
+                        `Role: ${firstRole}`
                     ],
                     footer: 'Please log in to the FocusInsight OA System to review the request.'
                 });
@@ -151,7 +185,7 @@ async function saveWithApprovalSteps({
             );
         }
 
-        // Confirmation to the person who applied, with the same details table.
+        // Confirmation to the person who applied.
         try {
             const ref = `REQ-${type.toUpperCase()}-${result.insertId}`;
             const details = await loadDetails(connection, type, result.insertId);
